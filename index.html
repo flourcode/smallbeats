@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Small Beats · Make your own mixtape</title>
+<meta name="description" content="A tiny music machine in your browser. Pick a sound, mix a few parts, put a sticker on it and send the tape to somebody.">
+<link rel="canonical" href="https://smallbeats.com/">
+<meta name="theme-color" content="#15130f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Small Beats">
+<meta property="og:url" content="https://smallbeats.com/">
+<meta property="og:title" content="Small Beats · Make your own mixtape">
+<meta property="og:description" content="Pick a sound. Mix a few parts. Put a sticker on it. Send it to somebody.">
+<meta property="og:image" content="https://smallbeats.com/og.png?v=3">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Three pixel cassettes, GROCERY RUN, SIDE QUEST and SADURDAY BEATS, each with a sticker, next to the words Make your own mixtape.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://smallbeats.com/og.png?v=3">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" href="fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="stickers.png" as="image">
+<link rel="stylesheet" href="app.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Small Beats","url":"https://smallbeats.com/","applicationCategory":"MusicApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"A tiny music machine for making mixtapes in your browser."}</script>
+</head>
+<body>
+<a class="skip" href="#make">Skip to the machine</a>
+
+<header class="top">
+  <a class="brand" href="/" aria-label="Small Beats home"><i class="brand-mark" aria-hidden="true"></i><span>SMALL BEATS</span></a>
+  <nav class="nav" aria-label="Main"><a href="#make">MAKE</a><a href="#tapes" id="navTapes" hidden>TAPES<b class="nav-n" id="navCount"></b></a><a href="#about">ABOUT</a><a href="https://www.youtube.com/@catnip_fm" target="_blank" rel="noopener">YOUTUBE</a></nav>
+</header>
+
+<main>
+  <!-- a tape somebody sent you (shown when the address has ?tape=) -->
+  <section class="mail" id="mail" hidden aria-label="A tape somebody sent you">
+    <p class="kick" id="mailKick">A TAPE FOR YOU</p>
+    <div class="mail-cass" id="mailCass"></div>
+    <p class="mail-by" id="mailBy"></p>
+    <div class="row-btns">
+      <button class="pb pb-big" type="button" id="mailPlay" style="--c:var(--green)">▶ PLAY</button>
+      <button class="pb pb-big" type="button" id="mailRemix" style="--c:var(--amber)">REMIX THIS TAPE</button>
+    </div>
+    <button class="linkish" type="button" id="mailKeep">Keep it on my shelf</button>
+  </section>
+
+  <section class="hero" id="hero">
+    <h1>Make your own mixtape.</h1>
+    <p class="lede">Pick a sound. Mix a few parts. Make it yours.</p>
+  </section>
+
+  <section class="deck" id="make" aria-label="The machine">
+    <div class="machine">
+      <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
+      <div class="readout">
+        <button class="play" type="button" id="play" aria-pressed="false"><span class="play-i" aria-hidden="true"></span><span class="play-t" id="playT">PLAY</span></button>
+        <div class="vfd" aria-live="polite">
+          <div class="vfd-top"><span id="vfdSide">SIDE A</span><span class="vfd-count" id="vfdCount">000</span></div>
+          <div class="vfd-name" id="vfdName">LO-FI</div>
+          <canvas class="vu" id="vu" width="160" height="18" aria-hidden="true"></canvas>
+        </div>
+      </div>
+
+      <div class="step">
+        <p class="step-h"><b>1</b> PICK A SOUND</p>
+        <div class="starts" role="group" aria-label="Pick a sound" id="starts"></div>
+      </div>
+
+      <div class="step">
+        <p class="step-h"><b>2</b> MIX IT</p>
+        <div class="layers" id="layers"></div>
+      </div>
+
+      <div class="step step-tune">
+        <button class="pb pb-tune" type="button" id="newTune" style="--c:var(--yellow)">NEW TUNE <span aria-hidden="true">↻</span></button>
+        <p class="hint">Same parts, a different song.</p>
+      </div>
+      <p class="deck-print" aria-hidden="true"><span>SMALL BEATS · SB-1</span><span>TINY MUSIC MACHINE</span></p>
+    </div>
+
+    <div class="tapeside bench" aria-label="Your tape">
+      <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
+      <p class="step-h bench-h"><b>3</b> MAKE IT YOURS</p>
+      <div class="cass-wrap" id="cassWrap"></div>
+      <div class="namebar">
+        <div class="namebox"><input type="text" id="tapeName" maxlength="24" autocomplete="off" spellcheck="false" aria-label="Tape name"><button class="pb pb-sm" type="button" id="rollName" style="--c:var(--paper)" aria-label="Another name" title="Another name">↻</button></div>
+        <div class="namebox from"><input type="text" id="fromName" maxlength="24" autocomplete="off" spellcheck="false" placeholder="mixed by (optional)" aria-label="Mixed by, optional"></div>
+      </div>
+      <div class="savebar">
+        <div class="row-btns" id="saveRow">
+          <button class="pb pb-big" type="button" id="saveBtn" style="--c:var(--red)"><i class="rec" aria-hidden="true"></i>SAVE TAPE</button>
+        </div>
+        <div class="row-btns" id="shareRow" hidden>
+          <button class="pb pb-big" type="button" id="copyLink" style="--c:var(--blue)">COPY LINK</button>
+          <button class="pb pb-big" type="button" id="shareBtn" style="--c:var(--amber)" hidden>SHARE TAPE</button>
+          <button class="linkish" type="button" id="savePic" hidden>SAVE A PICTURE</button>
+        </div>
+        <input type="text" class="linkbox" id="sentLink" readonly aria-label="Your tape's link" hidden>
+        <p class="note" id="sentNote" aria-live="polite"></p>
+      </div>
+      <div class="stickers">
+        <p class="step-h">STICKER</p>
+        <div class="quick" id="quick" role="group" aria-label="Pick a sticker"></div>
+      </div>
+      <div class="shells"><p class="step-h">CASSETTE <span class="shell-name" id="shellName"></span></p><div class="shell-row" id="shellRow" role="group" aria-label="Pick a cassette"></div></div>
+    </div>
+  </section>
+
+  <section class="shelf" id="tapes" aria-label="Your tapes" hidden>
+    <h2>YOUR TAPES</h2>
+    <p class="hint">They stay in this browser.</p>
+    <div class="shelf-row" id="shelf"></div>
+  </section>
+
+  <section class="about" id="about">
+    <h2>ABOUT</h2>
+    <div class="about-cols">
+      <div>
+        <h3>What is this?</h3>
+        <p>A tiny music machine. Pick a starting sound, turn parts on and off, and when it sounds right, put a sticker on the tape, name it and send it to somebody. They open the link and hear your tape. Then they can remix it and send it back.</p>
+        <p>No account, nothing to install, nothing to learn. If you don't like the tune, hit <b>NEW TUNE</b> and it writes another one with the same parts.</p>
+      </div>
+      <div>
+        <h3>How does it work?</h3>
+        <p>Nothing you hear is a recording. The drums, bass, keys and the rain outside are all made in your browser while you listen, and every part follows the same chord changes, so whatever you switch on still fits together.</p>
+        <p>A tape link is a short recipe: the parts you picked, a number for the tune, the name and the sticker. The other person's browser plays it from that.</p>
+      </div>
+      <div>
+        <h3>Who made it?</h3>
+        <p>One person who grew up making mixtapes off the radio. It's free, with no ads.</p>
+        <p>Longer sessions are on <a href="https://www.youtube.com/@catnip_fm" target="_blank" rel="noopener">YouTube</a>. Something broken, or made a tape worth hearing? <a href="mailto:hello@smallbeats.com">hello@smallbeats.com</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>© 2026 Small Beats</p>
+  <nav aria-label="Footer"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="https://www.youtube.com/@catnip_fm" target="_blank" rel="noopener">YouTube</a><a href="mailto:hello@smallbeats.com">hello@smallbeats.com</a></nav>
+</footer>
+
+<div class="drawer" id="drawer" hidden>
+  <div class="drawer-scrim" id="drawerScrim"></div>
+  <div class="drawer-panel" role="dialog" aria-modal="false" aria-label="All stickers">
+    <div class="drawer-head"><p class="step-h">ALL STICKERS</p><button class="pb pb-sm" type="button" id="drawerDone" style="--c:var(--paper)">DONE</button></div>
+    <div class="cats" id="cats" role="tablist"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+
+<script src="analytics.js" defer></script>
+<script src="stickers.js" defer></script>
+<script src="engine.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>
