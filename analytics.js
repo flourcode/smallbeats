@@ -6,10 +6,9 @@
  *   - If you change what's collected, update privacy.html first, then deploy.
  *
  * What it does:
- *   - Loads Google's gtag.js and counts page views. Pages swapped in without a reload are counted by GA4's enhanced
- *     measurement (leave "page changes based on browser history events" switched on in the data stream settings).
- *   - app.js sends a few events through window.gtag (play, new_tune, sticker_pick, tape_save, tape_send,
- *     tape_open, tape_remix), never in broadcast mode.
+ *   - Loads Google's gtag.js and counts page views.
+ *   - app.js sends product events through window.gtag, never in broadcast mode: play, pause, genre_select, part_toggle,
+ *     new_tune, sticker_select, tape_name, tape_save, tape_share, tape_open, tape_remix.
  *   - Uses Google Consent Mode: advertising storage is always denied, and in the EEA, the UK and Switzerland
  *     analytics storage is denied too (Google then sends cookieless pings), because there's no consent banner.
  *     If you later add a certified consent banner (needed anyway for AdSense in those regions), let it update consent.

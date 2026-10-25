@@ -1,7 +1,6 @@
 /* Small Beats · styles. Two kinds of pixel on purpose: square pixels are the illustration (stickers, the cassette,
    the keys), round dots are the machine (the display, the counter). Always dark. Colour comes mostly from the stickers. */
 @font-face{font-family:Silk;src:url(fonts/silkscreen-400.woff2) format('woff2');font-weight:100 900;font-display:swap} /* the regular cut at every weight: its bold turns W and M into blobs */
-@font-face{font-family:Doto;src:url(fonts/doto-700.woff2) format('woff2');font-weight:700;font-display:swap}
 @font-face{font-family:Doto;src:url(fonts/doto-900.woff2) format('woff2');font-weight:900;font-display:swap}
 @font-face{font-family:Plex;src:url(fonts/plex-400.woff2) format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:Plex;src:url(fonts/plex-600.woff2) format('woff2');font-weight:600;font-display:swap}
@@ -100,8 +99,6 @@ a{color:var(--amber)}
 .tapeside{min-width:0}
 .bench{position:relative;background:#2b2722;padding:22px 18px 18px;box-shadow:0 -4px 0 0 var(--line),0 4px 0 0 var(--line),-4px 0 0 0 var(--line),4px 0 0 0 var(--line),inset 0 4px 0 0 rgba(255,255,255,.07),inset 0 -6px 0 0 rgba(0,0,0,.3)}
 .bench .step:first-of-type{margin-top:6px}
-.namerow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.namerow .hint{margin:0}
 .linkbox{width:calc(100% - 8px);font:400 14px/1.3 ui-monospace,Menlo,monospace;color:var(--ink);background:var(--cream);border:0;padding:10px;margin:10px 4px 0;box-shadow:0 0 0 4px var(--line)}
 .cass-wrap{display:flex;justify-content:center}
 .quick{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
@@ -136,18 +133,10 @@ a{color:var(--amber)}
 
 /* ---- stickers: square pixels, integer scale only ---- */
 .stk{display:block;width:32px;height:32px;background-image:url(stickers.png);background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;flex:0 0 auto}
-.stk.x2{width:64px;height:64px;background-size:1600px 640px}
-.stk.x3{width:96px;height:96px;background-size:2400px 960px}
-.stk.x1{background-size:800px 320px}
 .stuck{filter:drop-shadow(2px 0 0 #fbf6ea) drop-shadow(-2px 0 0 #fbf6ea) drop-shadow(0 2px 0 #fbf6ea) drop-shadow(0 -2px 0 #fbf6ea) drop-shadow(2px 3px 0 rgba(0,0,0,.25))} /* die-cut edge */
 
 /* ---- the cassette: pixel art, with the sticker in the window ---- */
 .cass{position:relative;width:min(100%,460px);margin:6px auto 18px;text-align:left;container-type:inline-size}
-.cass.editable{cursor:pointer}
-.cass-name{position:absolute;left:8.93%;width:82.14%;top:12.6%;height:16.4%;margin:0;padding:0 2%;border:0;background:transparent;text-align:center;text-transform:uppercase;
-  font:900 6.79cqw/1 Doto,monospace;letter-spacing:.02em;caret-color:currentColor;cursor:text;border-radius:0}
-.cass-name:hover{background:rgba(255,255,255,.18)}
-.cass-name:focus{outline:2px dashed currentColor;outline-offset:-3px;background:rgba(255,255,255,.28)}
 .cass .stk.slap{animation:slap .32s steps(4,end)}
 @keyframes slap{0%{transform:scale(1.5) rotate(-10deg)}60%{transform:scale(.92) rotate(2deg)}100%{transform:none}}
 .cass-svg svg{display:block;width:100%;height:auto;filter:drop-shadow(0 6px 0 rgba(0,0,0,.4))}
@@ -157,11 +146,11 @@ a{color:var(--amber)}
 @media (prefers-reduced-motion:reduce){.cass.pop,.cass .stk.slap{animation:none}}
 
 /* ---- a tape somebody sent you ---- */
-.mail{max-width:640px;margin:8px auto 20px;padding:22px var(--gut);text-align:center;display:flex;flex-direction:column;align-items:center}
+.shared-tape{max-width:640px;margin:8px auto 20px;padding:22px var(--gut);text-align:center;display:flex;flex-direction:column;align-items:center}
 .kick{font:700 14px/1 Silk;letter-spacing:2px;color:var(--amber);margin:0 0 8px}
-.mail-cass{width:100%;display:flex;justify-content:center}
-.mail-by{margin:0 0 14px;color:var(--muted)}
-.mail .row-btns{justify-content:center}
+.shared-cass{width:100%;display:flex;justify-content:center}
+.shared-by{margin:0 0 14px;color:var(--muted)}
+.shared-tape .row-btns{justify-content:center}
 
 /* ---- your tapes ---- */
 .shelf,.about{max-width:1180px;margin:0 auto;padding:28px var(--gut)}
@@ -188,15 +177,15 @@ a{color:var(--amber)}
 @keyframes up{from{transform:translateY(30px);opacity:.4}}
 .drawer-head{display:flex;justify-content:space-between;align-items:center}
 .drawer-head .step-h{margin:0}
-.cats{display:flex;gap:8px;overflow-x:auto;padding:12px 4px 10px;scrollbar-width:thin}
-.cat{flex:0 0 auto;border:0;background:var(--key);color:var(--cream);font:700 11px/1 Silk;letter-spacing:1px;padding:10px 12px;cursor:pointer;box-shadow:0 0 0 2px var(--line)}
-.cat[aria-selected=true]{background:var(--amber);color:var(--ink)}
+.sticker-tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 4px 10px;scrollbar-width:thin}
+.sticker-tab{flex:0 0 auto;border:0;background:var(--key);color:var(--cream);font:700 11px/1 Silk;letter-spacing:1px;padding:10px 12px;cursor:pointer;box-shadow:0 0 0 2px var(--line)}
+.sticker-tab[aria-selected=true]{background:var(--amber);color:var(--ink)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));grid-auto-rows:76px;gap:8px;overflow-y:auto;padding:6px 6px 8px;min-height:0}
 .grid .sbtn{aspect-ratio:auto;height:76px}
 
 /* ---- broadcast: just the tape, for recordings ---- */
 .broadcast body{background:#0d0b09}
-.broadcast .top,.broadcast .hero,.broadcast .machine,.broadcast .tapeside .step,.broadcast .namebar,.broadcast .savebar,.broadcast .stickers,.broadcast .shells,.broadcast .bench-h,.broadcast .bench .screw,.broadcast .shelf,.broadcast .about,.broadcast .foot,.broadcast .mail,.broadcast .skip{display:none!important}
+.broadcast .top,.broadcast .hero,.broadcast .machine,.broadcast .tapeside .step,.broadcast .namebar,.broadcast .savebar,.broadcast .stickers,.broadcast .shells,.broadcast .bench-h,.broadcast .bench .screw,.broadcast .shelf,.broadcast .about,.broadcast .foot,.broadcast .shared-tape,.broadcast .skip{display:none!important}
 .broadcast .deck{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:0}
 .broadcast .bench{background:none;box-shadow:none;padding:0}
 .broadcast .tapeside{width:min(70vw,120vh)}

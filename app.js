@@ -1,5 +1,5 @@
-/* Small Beats · the machine and the tapes.
-   One loop: PICK a sound → MIX the parts → NEW TUNE → STICKER → NAME → SAVE → SEND → (they) PLAY → REMIX → SEND.
+/* Small Beats · the mixer, the tape and the shelf.
+   One loop: PICK A SOUND → MIX IT → NEW TUNE → STICKER → NAME → SAVE → SHARE → (they) PLAY → REMIX → SHARE.
    The deck always plays one cassette: your draft, a tape off your shelf, or one somebody sent you. Touch any control while
    somebody else's tape (or a saved one) is in the deck and it quietly becomes a remix of it: nothing asks, nothing stops.
    No keyboard shortcuts, no dialogs, no accounts. Tapes live in this browser; a link carries the whole recipe. */
@@ -26,8 +26,7 @@ const LAYERS=[
   {k:'k',name:'KEYS',opts:[[1,'RHODES'],[2,'GUITAR'],[3,'PAD'],[4,'8-BIT']],c:'var(--yellow)'},
   {k:'w',name:'ATMOSPHERE',opts:[[1,'RAIN'],[2,'OCEAN'],[3,'FIRE']],c:'var(--blue)'},
   {k:'p',name:'SPEED',opts:[[0,'SLOW'],[1,'EASY'],[2,'FAST']],c:'var(--paper)',fixed:true}];
-/* fourteen cassette shells in the era's design language (no real brands), the same ones Catnip FM tapes had, so old links keep theirs */
-const LABELS=[ /* fourteen 80s tape-rack shells. Their order is part of every tape link (the "c" number), so restyle them freely but never reorder */
+const SHELLS=[ /* fourteen 80s cassette shells (no real brands). A tape stores its shell's place in this list, so restyle freely but never reorder */
   {name:'70S TRIPLE',sh:'#e7dcc3',hi:'#f4ecd9',lab:'#fff7e6',strip:'#fff7e6',ink:'#3b2a1e',acc:'#c8571b',art:'triple',cols:['#c8571b','#e8902f','#f2c14e'],side:'A',len:'90'},
   {name:'MIAMI',sh:'#232227',hi:'#3a3940',lab:'#2e2c33',strip:'#2e2c33',ink:'#f2c94c',acc:'#ff5fa2',art:'neon',cols:['#ff5fa2','#3ee0e8'],side:'A',len:'60'},
   {name:'CLEAR BLUE',sh:'#6fa9de',hi:'#a3cbf0',lab:'#ffffff',strip:'#ffffff',ink:'#1d3557',acc:'#2f7fd6',clear:1,art:'lines',cols:['#58aaf5','#ff6f91'],len:'60'},
@@ -54,22 +53,21 @@ const seed=()=>1+Math.floor(Math.random()*2147483646);
 const clampInt=(v,lo,hi,d)=>{v=Math.round(+v);return Number.isFinite(v)?Math.max(lo,Math.min(hi,v)):d;};
 const cleanName=v=>String(v||'').replace(/[\u0000-\u001f<>]/g,'').replace(/\s+/g,' ').trim().slice(0,24);
 const cleanBy=v=>String(v||'').replace(/[^\w &'.,!?\/-]/g,'').replace(/\s+/g,' ').trim().slice(0,24)||undefined;
-function hashStr(s){let h=0;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))|0;return Math.abs(h);}
 function cleanTape(t){if(!t||typeof t!=='object')return null;
-  const s=clampInt(t.s,0,4,0),o={n:cleanName(t.n)||'MY TAPE',c:clampInt(t.c,0,LABELS.length-1,0),d:clampInt(t.d,0,4,DRUM_ON[s]),b:clampInt(t.b,0,3,0),k:clampInt(t.k,0,4,0),
-    w:clampInt(t.w,0,4,0),p:clampInt(t.p,0,2,1),s,r:clampInt(t.r,0,2147483647,0),t:clampInt(t.t,0,249,ST.quick[0]),i:t.i===0?0:1};
+  const s=clampInt(t.s,0,4,0),o={n:cleanName(t.n)||'MY TAPE',c:clampInt(t.c,0,SHELLS.length-1,0),d:clampInt(t.d,0,4,DRUM_ON[s]),b:clampInt(t.b,0,3,0),k:clampInt(t.k,0,4,0),
+    w:clampInt(t.w,0,3,0),p:clampInt(t.p,0,2,1),s,r:clampInt(t.r,1,2147483647,1),t:clampInt(t.t,0,ST.list.length-1,ST.quick[0])};
   if(t.id&&/^[a-z0-9]{1,16}$/.test(t.id))o.id=t.id;const by=cleanBy(t.by),fr=cleanBy(t.from);if(by)o.by=by;if(fr)o.from=fr;return o;}
 const b64e=j=>btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-function encodeTape(t){const a=[8,t.n,t.c,t.d,t.b,t.k,t.w,t.p,t.s,t.r,t.t];if(t.by||t.from)a.push(t.by||'');if(t.from)a.push(t.from);if(!t.i)a[0]=9;return b64e(JSON.stringify(a));} /* 9: an old-sound tape */
-function decodeTape(code){try{const a=JSON.parse(decodeURIComponent(escape(atob(String(code).replace(/-/g,'+').replace(/_/g,'/')))));if(!Array.isArray(a))return null;
-    if(a[0]===8||a[0]===9)return cleanTape({n:a[1],c:a[2],d:a[3],b:a[4],k:a[5],w:a[6],p:a[7],s:a[8],r:a[9],t:a[10],by:a[11],from:a[12],i:a[0]===8?1:0});
-    if(a[0]===7||a[0]===6) /* Catnip FM links: [v,name,shell,d,b,k,w,p,freq,s,seed,by,from]. They play the same; they get a sticker */
-      return cleanTape({n:String(a[1]||'').toUpperCase(),c:(+a[2]||0)%LABELS.length,d:a[3],b:a[4],k:a[5],w:a[6],p:a[7],s:a[9],r:a[10],t:ST.quick[hashStr(a[1])%ST.quick.length],by:a[11],from:a[12],i:a[0]===7?1:0});
+/* A tape link: ?tape= + base64url of [1, name, shell, drums, bass, keys, atmosphere, speed, sound, seed, sticker, by?, from?].
+   Anything else is not a tape. See README, "Tape format". */
+const TAPE_V=1;
+function encodeTape(t){const a=[TAPE_V,t.n,t.c,t.d,t.b,t.k,t.w,t.p,t.s,t.r,t.t];if(t.by||t.from)a.push(t.by||'');if(t.from)a.push(t.from);return b64e(JSON.stringify(a));}
+function decodeTape(code){try{const a=JSON.parse(decodeURIComponent(escape(atob(String(code).replace(/-/g,'+').replace(/_/g,'/')))));
+    if(Array.isArray(a)&&a[0]===TAPE_V&&a.length>=11)return cleanTape({n:a[1],c:a[2],d:a[3],b:a[4],k:a[5],w:a[6],p:a[7],s:a[8],r:a[9],t:a[10],by:a[11],from:a[12]});
   }catch(e){}return null;}
 const tapeURL=t=>location.origin+location.pathname.replace(/[^/]*$/,'')+'?tape='+encodeTape(t);
-const serial=t=>'SB-'+String((t.r||hashStr(t.n))%100000).padStart(5,'0');
-function freshDraft(s){const st=startOf(s==null?0:s);return cleanTape(Object.assign({n:pick(NAMES),c:Math.floor(Math.random()*LABELS.length),s:st.s,r:seed(),t:pick(ST.quick),i:1},st.rec));}
-const sameMusic=(a,b)=>a&&b&&['d','b','k','w','p','s','r','i'].every(k=>a[k]===b[k]);
+const serial=t=>'SB-'+String(t.r%100000).padStart(5,'0');
+const sameMusic=(a,b)=>a&&b&&['d','b','k','w','p','s','r'].every(k=>a[k]===b[k]);
 const sameTape=(a,b)=>sameMusic(a,b)&&a.n===b.n&&a.t===b.t&&a.c===b.c;
 
 /* ---------- saved state ---------- */
@@ -77,14 +75,14 @@ let S={vol:.8,by:'',tapes:[],draft:null};
 try{const v=JSON.parse(localStorage.getItem(STORE)||'null');if(v&&typeof v==='object')Object.assign(S,v);}catch(e){}
 S.tapes=(Array.isArray(S.tapes)?S.tapes:[]).map(cleanTape).filter(Boolean).slice(0,60);
 const STARTERS=[ /* three tapes already on the shelf on a first visit, so the shelf, PLAY, REMIX and COPY LINK explain themselves */
-  {id:'grocery',n:'GROCERY RUN',c:9,d:3,b:1,k:3,w:0,p:1,s:1,r:1422687053,t:214,i:1},
-  {id:'sidequest',n:'SIDE QUEST',c:5,d:2,b:1,k:4,w:0,p:1,s:3,r:1469865583,t:196,i:1},
-  {id:'sadurday',n:'SADURDAY BEATS',c:4,d:2,b:1,k:1,w:0,p:1,s:0,r:1469865583,t:56,i:1}];
+  {id:'grocery',n:'GROCERY RUN',c:9,d:3,b:1,k:3,w:0,p:1,s:1,r:1422687053,t:214},
+  {id:'sidequest',n:'SIDE QUEST',c:5,d:2,b:1,k:4,w:0,p:1,s:3,r:1469865583,t:196},
+  {id:'sadurday',n:'SADURDAY BEATS',c:4,d:2,b:1,k:1,w:0,p:1,s:0,r:1469865583,t:56}];
 if(!S.seeded&&!BC){S.tapes=STARTERS.map(cleanTape).concat(S.tapes).slice(0,60);S.seeded=1;} /* once: throw them out and they stay gone */
 const FIRST_TAPE=STARTERS[0]; /* what a first visit opens on: house, warm bass, pad, the rainbow tape, the panda */
 let draft=cleanTape(S.draft)||cleanTape(FIRST_TAPE);delete draft.id;
 function save(){if(BC)return;S.draft=draft;try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
-let mail=null;{const c=Q.get('tape');if(c)mail=decodeTape(c);}
+let shared=null;{const c=Q.get('tape');if(c)shared=decodeTape(c);}
 let cur=draft; /* what's in the deck */
 let savedId=(S.tapes.find(t=>sameTape(t,draft))||{}).id||null; /* the shelf tape the draft was last saved as, while nothing's changed since */
 const TRACKED=new Set();function track(ev,p,every){if(BC||(!every&&TRACKED.has(ev)))return;TRACKED.add(ev);try{if(window.gtag)window.gtag('event',ev,p||{});}catch(e){}}
@@ -98,11 +96,10 @@ function ensureAudio(){if(!actx){try{if(navigator.audioSession)navigator.audioSe
 const isPlaying=()=>!!gen&&!!actx&&actx.state==='running';
 const isPaused=()=>!!gen&&!!actx&&actx.state==='suspended';
 function counterMs(){return heard+(isPlaying()&&runFrom?performance.now()-runFrom:0);}
-function pause(){if(!isPlaying())return;heard+=performance.now()-runFrom;runFrom=0;actx.suspend().then(paintPlay,paintPlay);}
+function pause(){if(!isPlaying())return;track('pause',{},true);heard+=performance.now()-runFrom;runFrom=0;actx.suspend().then(paintPlay,paintPlay);}
 function resume(){if(!isPaused())return;actx.resume().then(()=>{runFrom=performance.now();paintPlay();},paintPlay);}
 function start(t){const a=ensureAudio();stopGen(.12);const g=a.createGain();g.gain.value=0;g.connect(master);
-  const opts=t.n==='NINE LIVES'?E.NINE_OPTS:null; /* a tape called NINE LIVES gets the old late-night sheen */
-  const b=E.band(a,g,t,opts);const now=a.currentTime;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+.25);
+  const b=E.band(a,g,t);const now=a.currentTime;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+.25);
   b.tick(now+2.2);const timer=setInterval(()=>b.tick(a.currentTime+2.2),400);
   if(!runFrom)runFrom=performance.now();gen={b,g,timer,tape:t};paintPlay();}
 function stopGen(fade){if(!gen)return;const g=gen;gen=null;clearInterval(g.timer);try{const n=actx.currentTime;g.g.gain.cancelScheduledValues(n);g.g.gain.setValueAtTime(g.g.gain.value,n);g.g.gain.linearRampToValueAtTime(0,n+(fade||.4));
@@ -122,7 +119,7 @@ const CW=56,CH2=33,INK='#1d1c21';
 function cassPix(t,phase){const cells=new Array(CW*CH2);const P=(x,y,v)=>{if(x>=0&&y>=0&&x<CW&&y<CH2)cells[y*CW+x]=v;};const R=(x,y,w,h,v)=>{for(let j=0;j<h;j++)for(let i=0;i<w;i++)P(x+i,y+j,v);};
   /* a box with its corners knocked off, n pixels deep, the way 8-bit art rounds things */
   const RB=(x,y,w,h,v,n)=>{for(let j=0;j<h;j++){const k=Math.max(0,n-j,n-(h-1-j));R(x+k,y+j,w-2*k,1,v);}};
-  const sh=LABELS[t.c]||LABELS[0],K=INK,S1=sh.sh,S2=sh.hi,LP=sh.strip,SC=sh.clear?sh.hi:'#a8a49a',lab=sh.lab;
+  const sh=SHELLS[t.c]||SHELLS[0],K=INK,S1=sh.sh,S2=sh.hi,LP=sh.strip,SC=sh.clear?sh.hi:'#a8a49a',lab=sh.lab;
   RB(0,0,CW,CH2,K,2);RB(1,1,CW-2,CH2-2,S1,2);R(3,1,CW-6,1,S2);R(2,2,1,1,S2);R(CW-3,2,1,1,S2);       /* the shell, a lit top edge */
   if(sh.clear)for(let y=3;y<31;y+=3)for(let x=2;x<54;x+=7)if((x+y)%2)P(x,y,S2);
   RB(4,3,48,21,K,1);RB(5,4,46,19,lab,1);R(6,4,44,6,LP);R(5,5,1,5,LP);R(50,5,1,5,LP);              /* the label, a strip for the name */
@@ -164,30 +161,30 @@ const stkScale=w=>Math.max(1,Math.floor(w*.215/32)); /* as big as fits between t
 function sizeStk(el){const w=el.clientWidth;if(!w)return;const cell=w/CW,fixed=el.dataset.scale?+el.dataset.scale:0,s=fixed||stkScale(w); /* a sticker, not cover art */
   const k=el.querySelector('.stk');if(!k)return;if(+k.dataset.s!==s){k.dataset.s=s;paintStk(k,+k.dataset.id,s);}k.style.left=Math.round(28*cell-16*s)+'px';k.style.top=Math.round(17*cell-16*s)+'px';}
 function cassette(t){const el=document.createElement('div');el.className='cass';el.innerHTML='<div class="cass-svg"></div><i class="stk stuck" aria-hidden="true"></i>';fillCass(el,t);if(cassRO)cassRO.observe(el);return el;}
-function fillCass(el,t){el._t=t;el.querySelector('.cass-svg').innerHTML=cassSVG(t,el._ph||0,!!el._edit);if(el._edit){const sh=LABELS[t.c]||LABELS[0],inp=el._edit;inp.style.color=sh.ink;inp.style.fontSize=(t.n.length>16?5.5:6.79)+'cqw';if(document.activeElement!==inp)inp.value=t.n;}const k=el.querySelector('.stk');k.dataset.id=t.t;k.dataset.s='';sizeStk(el);if(!k.dataset.s)paintStk(k,t.t,2);
-  el.setAttribute('role','img');el.setAttribute('aria-label','Cassette: '+t.n+', with a '+ST.names[t.t].toLowerCase()+' sticker'+(t.by?', mixed by '+t.by:''));}
+function fillCass(el,t){el._t=t;el.querySelector('.cass-svg').innerHTML=cassSVG(t,el._ph||0,!!el._edit);if(el._edit){const sh=SHELLS[t.c]||SHELLS[0],inp=el._edit;inp.style.color=sh.ink;inp.style.fontSize=(t.n.length>16?5.5:6.79)+'cqw';if(document.activeElement!==inp)inp.value=t.n;}const k=el.querySelector('.stk');k.dataset.id=t.t;k.dataset.s='';sizeStk(el);if(!k.dataset.s)paintStk(k,t.t,2);
+  el.setAttribute('role','img');el.setAttribute('aria-label','Cassette: '+t.n+', with a '+ST.list[t.t].name.toLowerCase()+' sticker'+(t.by?', mixed by '+t.by:''));}
 setInterval(()=>{document.querySelectorAll('.cass.playing').forEach(el=>{if(!el._t)return;el._ph=((el._ph||0)+1)%4;el.querySelector('.cass-svg').innerHTML=cassSVG(el._t,el._ph,!!el._edit);});},170); /* the reels step round */
 
 /* ---------- build the page ---------- */
 const deckCass=cassette(cur);$('cassWrap').appendChild(deckCass);
 deckCass.title='Tap for another cassette';
-deckCass.addEventListener('click',()=>{edit(t=>{t.c=(t.c+1)%LABELS.length;});});
+deckCass.addEventListener('click',()=>{edit(t=>{t.c=(t.c+1)%SHELLS.length;});});
 
 const startBtns=STARTS.map(st=>{const b=document.createElement('button');b.type='button';b.className='pb key';b.textContent=st.name;b.style.setProperty('--on',st.c);
-  b.addEventListener('click',()=>{edit(t=>{if(t.s!==st.s){t.s=st.s;Object.assign(t,st.rec);autoName(t);}});});$('starts').appendChild(b);return {b,st};});
+  b.addEventListener('click',()=>{if(cur.s!==st.s)track('genre_select',{sound:st.name},true);edit(t=>{if(t.s!==st.s){t.s=st.s;Object.assign(t,st.rec);autoName(t);}});});$('starts').appendChild(b);return {b,st};});
 
 const layerBtns=[];
 for(const L of LAYERS){const row=document.createElement('div');row.className='layer';row.innerHTML='<span class="layer-name">'+L.name+'</span><div class="layer-keys" role="group" aria-label="'+L.name+'"></div>';
   const keys=row.querySelector('.layer-keys');
   if(L.drums){const b=document.createElement('button');b.type='button';b.className='pb key';b.style.setProperty('--on','var(--green)');
-    b.addEventListener('click',()=>edit(t=>{t.d=t.d?0:DRUM_ON[t.s];}));keys.appendChild(b);layerBtns.push({L,b,drums:true});}
+    b.addEventListener('click',()=>{track('part_toggle',{part:'drums'},true);edit(t=>{t.d=t.d?0:DRUM_ON[t.s];});});keys.appendChild(b);layerBtns.push({L,b,drums:true});}
   else for(const [v,label] of L.opts){const b=document.createElement('button');b.type='button';b.className='pb key';b.textContent=label;b.style.setProperty('--on',L.c);
-    b.addEventListener('click',()=>edit(t=>{t[L.k]=L.fixed?v:(t[L.k]===v?0:v);}));keys.appendChild(b);layerBtns.push({L,b,v});}
+    b.addEventListener('click',()=>{track('part_toggle',{part:L.name.toLowerCase(),value:label.toLowerCase()},true);edit(t=>{t[L.k]=L.fixed?v:(t[L.k]===v?0:v);});});keys.appendChild(b);layerBtns.push({L,b,v});}
   $('layers').appendChild(row);}
 
-const shellBtns=LABELS.map((L,i)=>{const b=document.createElement('button');b.type='button';b.className='shell';b.setAttribute('aria-label',L.name.toLowerCase()+' cassette');b.title=L.name;
+const shellBtns=SHELLS.map((L,i)=>{const b=document.createElement('button');b.type='button';b.className='shell';b.setAttribute('aria-label',L.name.toLowerCase()+' cassette');b.title=L.name;
   b.innerHTML=cassSVG({n:'',c:i,r:1},0,true);b.addEventListener('click',()=>edit(t=>{t.c=i;}));$('shellRow').appendChild(b);return b;}); /* every shell, small, to pick from */
-const quickBtns=ST.quick.map(id=>{const b=document.createElement('button');b.type='button';b.className='sbtn';b.appendChild(stk(id,2));b.setAttribute('aria-label',ST.names[id]);b.title=ST.names[id];
+const quickBtns=ST.quick.map(id=>{const b=document.createElement('button');b.type='button';b.className='sbtn';b.appendChild(stk(id,2));b.setAttribute('aria-label',ST.list[id].name);b.title=ST.list[id].name;
   b.addEventListener('click',()=>pickSticker(id));$('quick').appendChild(b);return {b,id};});
 {const b=document.createElement('button');b.type='button';b.className='sbtn sbtn-more';b.id='moreBtn';b.innerHTML='<span>MORE</span>';b.setAttribute('aria-label','More stickers');$('quick').appendChild(b);} /* all 250 live behind this */
 
@@ -196,13 +193,13 @@ const quickBtns=ST.quick.map(id=>{const b=document.createElement('button');b.typ
 function autoName(t){if(S.named)return;let n;do n=pick(NAMES);while(n===t.n);t.n=n;flashName();}
 function flashName(){const el=$('tapeName');el.classList.remove('rolled');void el.offsetWidth;el.classList.add('rolled');}
 function edit(fn,newStart){
-  if(cur!==draft){ /* a tape from the shelf or the mail: changing it makes a remix */
+  if(cur!==draft){ /* a shelf tape or a shared one: changing it makes a remix */
     S.named=true; /* a remix keeps its name unless you change it */const from=cur.by&&cur.by!==cleanBy(S.by)?cur.by:cur.from;draft=cleanTape(Object.assign({},cur,{id:undefined,by:undefined,from}));delete draft.id;cur=draft;track('tape_remix');}
   const before=JSON.stringify(draft);fn(draft);draft=cleanTape(draft);cur=draft;
   if(JSON.stringify(draft)===before)return paint();
   savedId=null;save();paint();
   if(!isPlaying())play(cur);else restart();}
-function pickSticker(id){if(cur.t===id&&cur===draft)return;edit(t=>{t.t=id;});track('sticker_pick',{sticker:id});slap();}
+function pickSticker(id){if(cur.t===id&&cur===draft)return;edit(t=>{t.t=id;});track('sticker_select',{sticker:ST.list[id].slug},true);slap();}
 function slap(){const k=deckCass.querySelector('.stk');k.classList.remove('slap');void k.offsetWidth;k.classList.add('slap');} /* the sticker lands on the label */
 function pulse(){deckCass.classList.remove('pop');void deckCass.offsetWidth;deckCass.classList.add('pop');}
 
@@ -212,7 +209,7 @@ function paint(){
   for(const {b,st} of startBtns)b.setAttribute('aria-pressed',String(cur.s===st.s));
   for(const x of layerBtns){if(x.drums){const on=cur.d>0;x.b.setAttribute('aria-pressed',String(on));x.b.textContent=on?'ON':'OFF';}else x.b.setAttribute('aria-pressed',String(cur[x.L.k]===x.v));}
   for(const {b,id} of quickBtns)b.setAttribute('aria-pressed',String(cur.t===id));
-  shellBtns.forEach((b,i)=>b.setAttribute('aria-pressed',String(cur.c===i)));$('shellName').textContent=(LABELS[cur.c]||LABELS[0]).name;
+  shellBtns.forEach((b,i)=>b.setAttribute('aria-pressed',String(cur.c===i)));$('shellName').textContent=(SHELLS[cur.c]||SHELLS[0]).name;
   if(document.activeElement!==$('tapeName'))$('tapeName').value=cur.n;
   if(document.activeElement!==$('fromName'))$('fromName').value=S.by||'';
   $('vfdName').textContent=cur.n;$('vfdSide').textContent='SIDE A · '+startOf(cur.s).name;
@@ -224,11 +221,11 @@ function paint(){
 function paintPlay(){const on=isPlaying();$('play').setAttribute('aria-pressed',String(on));$('playT').textContent=on?'PAUSE':'PLAY';
   deckCass.classList.toggle('playing',on);
   document.querySelectorAll('.shelf-item').forEach(el=>{const p=on&&gen&&gen.tape&&gen.tape.id===el.dataset.id&&cur===gen.tape;el.querySelector('.cass').classList.toggle('playing',p);const b=el.querySelector('.sh-play');if(b)b.textContent=p?'❚❚ PAUSE':'▶ PLAY';});
-  if(mailEl){const p=on&&cur===mail;mailEl.classList.toggle('playing',p);$('mailPlay').textContent=p?'❚❚ PAUSE':'▶ PLAY';}}
+  if(sharedCass){const p=on&&cur===shared;sharedCass.classList.toggle('playing',p);$('sharedPlay').textContent=p?'❚❚ PAUSE':'▶ PLAY';}}
 
 /* ---------- name, from ---------- */
 $('tapeName').addEventListener('input',e=>{const v=e.target.value.toUpperCase();const pos=e.target.selectionStart;e.target.value=v;try{e.target.setSelectionRange(pos,pos);}catch(x){}
-  const n=cleanName(v);if(!n)return;S.named=true;if(cur===draft){if(draft.n===n)return;draft.n=n;savedId=null;save();paint();}else edit(t=>{t.n=n;});});
+  const n=cleanName(v);if(!n)return;S.named=true;track('tape_name',{},false);if(cur===draft){if(draft.n===n)return;draft.n=n;savedId=null;save();paint();}else edit(t=>{t.n=n;});});
 $('tapeName').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur();});
 $('tapeName').addEventListener('blur',()=>{if(!cleanName($('tapeName').value))$('tapeName').value=cur.n;});
 $('rollName').addEventListener('click',()=>{S.named=false;edit(t=>{autoName(t);});}); /* ↻ hands naming back to the machine */
@@ -239,20 +236,20 @@ $('play').addEventListener('click',()=>{if(isPlaying())pause();else if(isPaused(
 $('newTune').addEventListener('click',()=>{edit(t=>{t.r=seed();autoName(t);});track('new_tune',{},true);
   const b=$('newTune');b.disabled=true;setTimeout(()=>b.disabled=false,250);});
 
-/* ---------- save, send ---------- */
+/* ---------- save, share ---------- */
 function saveTape(){
-  if(cur!==draft){if(!S.tapes.some(t=>t.id===cur.id)){const k=Object.assign({},cur,{id:Math.random().toString(36).slice(2,10)});S.tapes.unshift(k);cur=k;if(mail&&mail!==k)mail=k;save();paint();track('tape_keep');}return cur;}
+  if(cur!==draft){if(!S.tapes.some(t=>t.id===cur.id)){const k=Object.assign({},cur,{id:Math.random().toString(36).slice(2,10)});S.tapes.unshift(k);cur=k;if(shared&&shared!==k)shared=k;save();paint();track('tape_save',{how:'keep'},true);}return cur;}
   if(savedId){const t=S.tapes.find(x=>x.id===savedId);if(t)return t;}
   const t=Object.assign({},draft,{id:Math.random().toString(36).slice(2,10)});const by=cleanBy(S.by);if(by&&!t.by)t.by=by;
-  S.tapes.unshift(t);S.tapes=S.tapes.slice(0,60);savedId=t.id;S.named=false;save();paint();pulse();track('tape_save',{start:startOf(t.s).name});return t;}
+  S.tapes.unshift(t);S.tapes=S.tapes.slice(0,60);savedId=t.id;S.named=false;save();paint();pulse();track('tape_save',{sound:startOf(t.s).name},true);return t;}
 $('saveBtn').addEventListener('click',()=>{saveTape();$('copyLink').textContent='COPY LINK';});
 async function copyText(v){try{await navigator.clipboard.writeText(v);return true;}catch(e){}try{const ta=document.createElement('textarea');ta.value=v;ta.style.cssText='position:fixed;opacity:0;top:0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok;}catch(e){return false;}}
-async function copyLinkFor(t,btn){const url=tapeURL(t);const ok=await copyText(url);track('tape_send',{how:'copy'},true);
+async function copyLinkFor(t,btn){const url=tapeURL(t);const ok=await copyText(url);track('tape_share',{how:'copy'},true);
   if(btn){const was=btn.textContent;btn.textContent=ok?'COPIED':'COPY FAILED';setTimeout(()=>btn.textContent=was,1800);}return {ok,url};}
 const deckTape=()=>cur===draft?S.tapes.find(x=>x.id===savedId)||cur:cur;
 $('copyLink').addEventListener('click',async()=>{const {ok,url}=await copyLinkFor(deckTape(),$('copyLink'));
   $('sentNote').textContent=ok?'Link copied. Whoever opens it hears your tape.':'Copy this link and send it:';$('sentLink').hidden=ok;$('sentLink').value=url;if(!ok)$('sentLink').select();});
-$('shareBtn').addEventListener('click',async()=>{const t=deckTape();try{await navigator.share({title:t.n+' · Small Beats',text:'I made you a tape: '+t.n,url:tapeURL(t)});track('tape_send',{how:'share'},true);}catch(e){}});
+$('shareBtn').addEventListener('click',async()=>{const t=deckTape();try{await navigator.share({title:t.n+' · Small Beats',text:'I made you a tape: '+t.n,url:tapeURL(t)});track('tape_share',{how:'share'},true);}catch(e){}});
 $('sentLink').addEventListener('focus',e=>e.target.select());
 $('savePic').addEventListener('click',()=>{const t=deckTape();shareCard(t).then(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(t.n.toLowerCase().replace(/[^a-z0-9]+/g,'-')||'tape')+'-small-beats.png';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);});});
 
@@ -274,27 +271,27 @@ function paintShelf(){const row=$('shelf');const ids=S.tapes.map(t=>t.id).join('
   paintPlay();}
 
 /* ---------- all stickers ---------- */
-let catSel=0;
-ST.cats.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='cat';b.textContent=c;b.setAttribute('role','tab');b.addEventListener('click',()=>{catSel=i;paintGrid(true);});$('cats').appendChild(b);});
+let stickerCategory=0;
+ST.categories.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='sticker-tab';b.textContent=c.name;b.setAttribute('role','tab');b.addEventListener('click',()=>{stickerCategory=i;paintGrid(true);});$('stickerTabs').appendChild(b);});
 function paintGrid(rebuild){if($('drawer').hidden)return;const g=$('grid');
-  [...$('cats').children].forEach((b,i)=>b.setAttribute('aria-selected',String(i===catSel)));
-  if(rebuild||g.dataset.cat!==String(catSel)){g.dataset.cat=catSel;g.textContent='';for(let i=catSel*25;i<catSel*25+25;i++){const b=document.createElement('button');b.type='button';b.className='sbtn';b.dataset.id=i;b.appendChild(stk(i,2));b.setAttribute('aria-label',ST.names[i]);b.title=ST.names[i];b.addEventListener('click',()=>pickSticker(i));g.appendChild(b);}}
+  [...$('stickerTabs').children].forEach((b,i)=>b.setAttribute('aria-selected',String(i===stickerCategory)));
+  if(rebuild||g.dataset.category!==String(stickerCategory)){g.dataset.category=stickerCategory;g.textContent='';for(const {id:i} of ST.list.filter(x=>x.category===ST.categories[stickerCategory].id)){const b=document.createElement('button');b.type='button';b.className='sbtn';b.dataset.id=i;b.appendChild(stk(i,2));b.setAttribute('aria-label',ST.list[i].name);b.title=ST.list[i].name;b.addEventListener('click',()=>pickSticker(i));g.appendChild(b);}}
   g.querySelectorAll('.sbtn').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.id===cur.t)));
-  if(rebuild){const tab=$('cats').children[catSel];if(tab)$('cats').scrollLeft=Math.max(0,tab.offsetLeft-$('cats').offsetLeft-16);}}
-$('moreBtn').addEventListener('click',()=>{catSel=Math.floor(cur.t/25);$('drawer').hidden=false;paintGrid(true);});
+  if(rebuild){const tab=$('stickerTabs').children[stickerCategory];if(tab)$('stickerTabs').scrollLeft=Math.max(0,tab.offsetLeft-$('stickerTabs').offsetLeft-16);}}
+$('moreBtn').addEventListener('click',()=>{stickerCategory=ST.categories.findIndex(c=>c.id===ST.list[cur.t].category);$('drawer').hidden=false;paintGrid(true);});
 $('drawerDone').addEventListener('click',()=>{$('drawer').hidden=true;});
 $('drawerScrim').addEventListener('click',()=>{$('drawer').hidden=true;});
 
-/* ---------- a tape in the mail ---------- */
-let mailEl=null;
-if(mail&&!BC){$('mail').hidden=false;mailEl=cassette(mail);$('mailCass').appendChild(mailEl);
-  $('mailBy').textContent=mail.by?'Mixed by '+mail.by+(mail.from?', remixed from '+mail.from:''):(mail.from?'Remixed from '+mail.from:'Somebody made this for you.');
-  $('mailPlay').addEventListener('click',()=>{if(isPlaying()&&cur===mail){pause();return;}const was=cur;cur=mail;paint();if(isPaused()&&gen.tape===mail)resume();else{play(mail);track('tape_open');}});
-  $('mailRemix').addEventListener('click',()=>{cur=mail;edit(()=>{});if(!isPlaying())play(cur);$('make').scrollIntoView({behavior:'smooth'});});
-  $('mailKeep').addEventListener('click',()=>{if(!S.tapes.some(t=>sameTape(t,mail))){const k=Object.assign({},mail,{id:Math.random().toString(36).slice(2,10)});S.tapes.unshift(k);mail=k;save();paint();}
-    $('mailKeep').textContent='On your shelf';$('mailKeep').disabled=true;});
-  if(S.tapes.some(t=>sameTape(t,mail))){$('mailKeep').textContent='On your shelf';$('mailKeep').disabled=true;}
-  cur=mail;$('hero').hidden=true;}
+/* ---------- a shared tape (opened from a link) ---------- */
+let sharedCass=null;
+if(shared&&!BC){$('shared').hidden=false;sharedCass=cassette(shared);$('sharedWrap').appendChild(sharedCass);
+  $('sharedBy').textContent=shared.by?'Mixed by '+shared.by+(shared.from?', remixed from '+shared.from:''):(shared.from?'Remixed from '+shared.from:'Somebody made this for you.');
+  $('sharedPlay').addEventListener('click',()=>{if(isPlaying()&&cur===shared){pause();return;}cur=shared;paint();if(isPaused()&&gen.tape===shared)resume();else{play(shared);track('tape_open');}});
+  $('sharedRemix').addEventListener('click',()=>{cur=shared;edit(()=>{});if(!isPlaying())play(cur);$('make').scrollIntoView({behavior:'smooth'});});
+  $('sharedKeep').addEventListener('click',()=>{if(!S.tapes.some(t=>sameTape(t,shared))){const k=Object.assign({},shared,{id:Math.random().toString(36).slice(2,10)});S.tapes.unshift(k);shared=k;save();paint();}
+    $('sharedKeep').textContent='On your shelf';$('sharedKeep').disabled=true;});
+  if(S.tapes.some(t=>sameTape(t,shared))){$('sharedKeep').textContent='On your shelf';$('sharedKeep').disabled=true;}
+  cur=shared;$('hero').hidden=true;}
 
 /* ---------- the display: a tape counter and a little level meter, in dots ---------- */
 const vu=$('vu'),vx=vu.getContext('2d');let fbuf=null;
@@ -336,7 +333,7 @@ function drawCassette(x,X,Y,W,t,sheet){const u=Math.max(1,Math.floor(W/CW)),{cel
 window.SB_drawCard=drawCard;window.SB_drawCassette=drawCassette; /* used to make the site's preview image */
 
 /* ---------- broadcast: just the tape, playing, for recordings ---------- */
-if(BC){document.documentElement.classList.add('broadcast');const t=mail||(Q.get('session')==='nine'?cleanTape(Object.assign({},E.NINE,{n:'NINE LIVES',t:237,c:1})):draft);cur=t;
+if(BC){document.documentElement.classList.add('broadcast');const t=shared||draft;cur=t;
   
   const site=document.createElement('p');site.className='bc-site';site.textContent='SMALLBEATS.COM';document.body.appendChild(site);
   if(Q.get('vol'))S.vol=Math.max(0,Math.min(1,+Q.get('vol')));
@@ -344,6 +341,6 @@ if(BC){document.documentElement.classList.add('broadcast');const t=mail||(Q.get(
   go();}
 
 paint();
-if(!BC)try{console.log('%cSMALL BEATS','font:700 14px monospace;color:#e8a33a');console.log('%cEverything you hear is made in this tab, a bar at a time.\nName a tape NINE LIVES and listen closely.','color:#a39a8b');}catch(e){}
+if(!BC)try{console.log('%cSMALL BEATS','font:700 14px monospace;color:#e8a33a');console.log('%cEverything you hear is made in this tab, a bar at a time. No recordings.','color:#a39a8b');}catch(e){}
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
