@@ -133,7 +133,7 @@ a{color:var(--amber)}
 @media (min-width:980px){.shell-row{flex-wrap:wrap;overflow:visible}.shell{width:56px}}
 
 /* ---- stickers: square pixels, integer scale only ---- */
-.stk{display:block;width:32px;height:32px;background-image:url(stickers.png?v=4);background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;flex:0 0 auto}
+.stk{display:block;width:32px;height:32px;background-image:url(stickers.png?v=5);background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;flex:0 0 auto}
 .stuck{filter:drop-shadow(2px 0 0 #fbf6ea) drop-shadow(-2px 0 0 #fbf6ea) drop-shadow(0 2px 0 #fbf6ea) drop-shadow(0 -2px 0 #fbf6ea) drop-shadow(2px 3px 0 rgba(0,0,0,.25))} /* die-cut edge */
 
 /* ---- the cassette: pixel art, with the sticker in the window ---- */
@@ -156,8 +156,8 @@ a{color:var(--amber)}
 /* ---- your tapes ---- */
 .shelf,.about{max-width:1180px;margin:0 auto;padding:28px var(--gut)}
 .shelf h2,.about h2{font:700 22px/1 Silk;letter-spacing:1px;margin:0 0 14px}
-.shelf-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px}
-.shelf-item{display:flex;flex-direction:column;align-items:center}
+.shelf-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:22px 28px}
+.shelf-item{position:relative;display:flex;flex-direction:column;align-items:center}
 .shelf-item .cass{width:100%;margin:8px 8px 14px}
 .shelf-item .row-btns{justify-content:center;gap:8px 10px}
 .shelf-item .pb{min-height:44px;font-size:12px;padding:0 10px}
@@ -183,6 +183,8 @@ a{color:var(--amber)}
 .sticker-tab[aria-selected=true]{background:var(--amber);color:var(--ink)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));grid-auto-rows:76px;gap:8px;overflow-y:auto;padding:6px 6px 8px;min-height:0}
 .grid .sbtn{aspect-ratio:auto;height:76px}
+.grid[data-cat=cats]{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
+@media (min-width:700px){.grid[data-cat=cats]{grid-template-columns:repeat(8,76px)}} /* four faces per coat: two coats a row */
 
 /* ---- broadcast: just the tape, for recordings ---- */
 .broadcast body{background:#1c100d}
@@ -246,3 +248,49 @@ a{color:var(--amber)}
 .striped .top{margin-bottom:30px} /* room for the stripe under the name */
 @media (max-width:620px){.striped .top{margin-bottom:62px}}
 .broadcast .stripe-wrap{display:none}
+
+/* ---------- the shelf: three up front, the rack, from friends ---------- */
+.shelf-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px}
+.shelf-head h2{margin:0}
+.shelf-head .pb{min-height:44px;font-size:12px}
+.shelf .shelf-row{margin-top:18px}
+.shelf-item .star,.rack-item .star{min-width:44px;padding:0;font-size:18px}
+.rack-h{font:400 13px/1 Silk;letter-spacing:2px;color:var(--muted);margin:30px 0 12px;padding-top:16px;border-top:2px dashed #4a332b}
+.rack{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px 22px}
+.rack-empty{margin:0}
+.rack-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:0 10px}
+/* a cassette seen from the side, as it sits in a rack */
+.spine{display:flex;align-items:center;gap:8px;min-width:0;height:46px;margin:3px;padding:0 8px 0 6px;border:0;cursor:pointer;text-align:left;color:var(--ink);
+  background:var(--sh);box-shadow:0 0 0 3px var(--line),inset 0 3px 0 var(--hi),inset 0 -4px 0 rgba(0,0,0,.2);transition:transform .15s steps(3)}
+.spine:hover{filter:brightness(1.06)}
+.spine:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+.spine-state{flex:0 0 auto;width:0;height:0;border-style:solid;border-width:6px 0 6px 9px;border-color:transparent transparent transparent var(--lab)}
+.rack-item.playing .spine-state{width:9px;height:12px;border:0;background:linear-gradient(90deg,var(--lab) 0 3px,transparent 3px 6px,var(--lab) 6px)}
+.spine-lab{flex:1;min-width:0;height:30px;display:flex;align-items:center;gap:8px;padding:0 8px;background:var(--lab);box-shadow:0 0 0 2px var(--line)}
+.spine-art{display:flex;gap:2px;flex:0 0 auto}.spine-art i{display:block;width:4px;height:18px}
+.spine-name{flex:1;min-width:0;font:900 17px/1 Doto,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spine-from{flex:0 1 auto;min-width:0;font:400 10px/1 Silk;letter-spacing:.5px;color:var(--acc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spine .stk{flex:0 0 auto}
+.rack-item.playing .spine,.rack-item.open .spine{transform:translateX(10px)} /* pulled out of the rack */
+.spine-acts{grid-column:1/-1;display:none;gap:8px 10px;padding:8px 0 6px 12px}
+.rack-item.open .spine-acts{display:flex}
+.spine-acts .pb{min-height:40px;font-size:12px;padding:0 12px}
+/* the shelf link */
+.backup{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-start;margin:16px 0 4px;padding:18px;background:var(--panel);box-shadow:0 0 0 4px var(--line)}
+.backup-text{flex:1 1 320px;min-width:0}
+.backup-text p{margin:0 0 10px;color:#d8cfbe;max-width:60ch}
+.backup .linkbox{margin:4px 4px 12px}
+.qr-wrap{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:240px;text-align:center}
+.qr-wrap canvas{display:block;width:232px;height:232px;image-rendering:pixelated;box-shadow:0 0 0 4px var(--line)}
+.qr-wrap .hint{font-size:13px}
+@media (max-width:620px){.qr-wrap{max-width:none;width:100%}.rack{grid-template-columns:1fr}}
+.undo{position:sticky;bottom:12px;display:flex;align-items:center;gap:14px;width:max-content;max-width:100%;margin:18px auto 0;padding:4px 16px;background:var(--panel2);box-shadow:0 0 0 3px var(--line);z-index:5}
+.undo span{color:var(--cream);font-size:14px}
+.shelf-in-rack{width:100%;max-width:520px;grid-template-columns:1fr;margin:6px 0 10px;text-align:left}
+.shelf-in-rack .spine{cursor:default}
+
+.star-badge{position:absolute;top:0;right:0;min-height:40px;min-width:40px;z-index:2}
+.shelf-item .row-btns{flex-wrap:nowrap;gap:8px}
+.shelf-item .row-btns .pb{white-space:nowrap;padding:0 10px}
+@media (max-width:420px){.shelf-row{grid-template-columns:1fr}.shelf-item .row-btns .pb{padding:0 9px;font-size:11px}}
+@media (max-width:359px){.shelf-item .row-btns{flex-wrap:wrap}}

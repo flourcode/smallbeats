@@ -56,7 +56,9 @@ const cleanBy=v=>String(v||'').replace(/[^\w &'.,!?\/-]/g,'').replace(/\s+/g,' '
 function cleanTape(t){if(!t||typeof t!=='object')return null;
   const s=clampInt(t.s,0,4,0),o={n:cleanName(t.n)||'MY TAPE',c:clampInt(t.c,0,SHELLS.length-1,0),d:clampInt(t.d,0,2,FEEL[s]),b:clampInt(t.b,0,3,0),k:clampInt(t.k,0,4,0),
     w:clampInt(t.w,0,3,0),p:clampInt(t.p,0,2,1),s,r:clampInt(t.r,1,2147483647,1),t:clampInt(t.t,0,ST.list.length-1,ST.quick[0])};
-  if(t.id&&/^[a-z0-9]{1,16}$/.test(t.id))o.id=t.id;const by=cleanBy(t.by),fr=cleanBy(t.from);if(by)o.by=by;if(fr)o.from=fr;return o;}
+  if(t.id&&/^[a-z0-9]{1,16}$/.test(t.id))o.id=t.id;const by=cleanBy(t.by),fr=cleanBy(t.from);if(by)o.by=by;if(fr)o.from=fr;
+  if(t.fav)o.fav=1;if(t.gift)o.gift=1; /* on your shelf only: starred, and sent to you by a friend */
+  return o;}
 const b64e=j=>btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 /* A tape link: ?tape= + base64url of [1, name, shell, drums, bass, keys, atmosphere, speed, sound, seed, sticker, by?, from?].
    Anything else is not a tape. See README, "Tape format". */
@@ -65,7 +67,9 @@ function encodeTape(t){const a=[TAPE_V,t.n,t.c,t.d,t.b,t.k,t.w,t.p,t.s,t.r,t.t];
 function decodeTape(code){try{const a=JSON.parse(decodeURIComponent(escape(atob(String(code).replace(/-/g,'+').replace(/_/g,'/')))));
     if(Array.isArray(a)&&a[0]===TAPE_V&&a.length>=11)return cleanTape({n:a[1],c:a[2],d:a[3],b:a[4],k:a[5],w:a[6],p:a[7],s:a[8],r:a[9],t:a[10],by:a[11],from:a[12]});
   }catch(e){}return null;}
-const tapeURL=t=>location.origin+location.pathname.replace(/[^/]*$/,'')+'?tape='+encodeTape(t);
+/* where links point: this site, or smallbeats.com when the page was opened as a file (a file has no address to share) */
+const siteURL=()=>/^https?:$/.test(location.protocol)?location.origin+location.pathname.replace(/[^/]*$/,''):'https://smallbeats.com/';
+const tapeURL=t=>siteURL()+'?tape='+encodeTape(t);
 const serial=t=>'SB-'+String(t.r%100000).padStart(5,'0');
 const sameMusic=(a,b)=>a&&b&&['d','b','k','w','p','s','r'].every(k=>a[k]===b[k]);
 const sameTape=(a,b)=>sameMusic(a,b)&&a.n===b.n&&a.t===b.t&&a.c===b.c;
@@ -73,13 +77,14 @@ const sameTape=(a,b)=>sameMusic(a,b)&&a.n===b.n&&a.t===b.t&&a.c===b.c;
 /* ---------- saved state ---------- */
 let S={vol:.8,by:'',tapes:[],draft:null};
 try{const v=JSON.parse(localStorage.getItem(STORE)||'null');if(v&&typeof v==='object')Object.assign(S,v);}catch(e){}
-S.tapes=(Array.isArray(S.tapes)?S.tapes:[]).map(cleanTape).filter(Boolean).slice(0,60);
+const MAX_TAPES=300; /* yours and your friends' together; each one is a couple of hundred bytes */
+S.tapes=(Array.isArray(S.tapes)?S.tapes:[]).map(cleanTape).filter(Boolean).slice(0,MAX_TAPES);
 const STARTERS=[ /* three tapes already on the shelf on a first visit, so the shelf, PLAY, REMIX and COPY LINK explain themselves */
-  {id:'grocery',n:'GROCERY RUN',c:9,d:1,b:1,k:3,w:0,p:1,s:1,r:1422687053,t:214},
+  {id:'grocery',n:'GROCERY RUN',c:6,d:1,b:1,k:3,w:0,p:1,s:1,r:1422687053,t:254,fav:1},
   {id:'sidequest',n:'SIDE QUEST',c:5,d:1,b:1,k:4,w:0,p:1,s:3,r:1469865583,t:196},
   {id:'sadurday',n:'SADURDAY BEATS',c:4,d:2,b:1,k:1,w:0,p:1,s:0,r:1469865583,t:56}];
-if(!S.seeded&&!BC){S.tapes=STARTERS.map(cleanTape).concat(S.tapes).slice(0,60);S.seeded=1;} /* once: throw them out and they stay gone */
-const FIRST_TAPE=STARTERS[0]; /* what a first visit opens on: house, warm bass, pad, the rainbow tape, the panda */
+if(!S.seeded&&!BC){S.tapes=STARTERS.map(cleanTape).concat(S.tapes).slice(0,MAX_TAPES);S.seeded=1;} /* once: throw them out and they stay gone */
+const FIRST_TAPE=Object.assign({},STARTERS[0],{fav:undefined}); /* what a first visit opens on: house, warm bass, pad, the smoked tape, the happy calico */
 let draft=cleanTape(S.draft)||cleanTape(FIRST_TAPE);delete draft.id;
 function save(){if(BC)return;S.draft=draft;try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
 let shared=null;{const c=Q.get('tape');if(c)shared=decodeTape(c);}
@@ -98,14 +103,16 @@ const isPaused=()=>!!gen&&!!actx&&actx.state==='suspended';
 function counterMs(){return heard+(isPlaying()&&runFrom?performance.now()-runFrom:0);}
 function pause(){if(!isPlaying())return;track('pause',{},true);heard+=performance.now()-runFrom;runFrom=0;actx.suspend().then(paintPlay,paintPlay);}
 function resume(){if(!isPaused())return;actx.resume().then(()=>{runFrom=performance.now();paintPlay();},paintPlay);}
-function start(t){const a=ensureAudio();stopGen(.12);const g=a.createGain();g.gain.value=0;g.connect(master);
-  const b=E.band(a,g,t);const now=a.currentTime;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+.25);
+function start(t,xf){const a=ensureAudio();stopGen(xf||.12);const g=a.createGain();g.gain.value=0;g.connect(master); /* xf: a longer crossfade, between tapes on the shelf */
+  const b=E.band(a,g,t);const now=a.currentTime;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+(xf||.25));
   b.tick(now+2.2);const timer=setInterval(()=>b.tick(a.currentTime+2.2),400);
   if(!runFrom)runFrom=performance.now();gen={b,g,timer,tape:t};paintPlay();}
 function stopGen(fade){if(!gen)return;const g=gen;gen=null;clearInterval(g.timer);try{const n=actx.currentTime;g.g.gain.cancelScheduledValues(n);g.g.gain.setValueAtTime(g.g.gain.value,n);g.g.gain.linearRampToValueAtTime(0,n+(fade||.4));
     setTimeout(()=>{g.b.src.forEach(s=>{try{s.stop();}catch(e){}});g.g.disconnect();},(fade||.4)*1000+150);}catch(e){}}
 function stop(){if(runFrom){heard+=performance.now()-runFrom;runFrom=0;}stopGen(.4);paintPlay();}
-function play(t){start(t||cur);track('play');}
+function play(t){PL=null;start(t||cur);track('play');}
+/* playing the whole shelf: each tape for a few minutes, then a slow crossfade into the next */
+let PL=null;const PL_SEC=180;
 let restartT=null;function restart(){if(!isPlaying())return;clearTimeout(restartT);restartT=setTimeout(()=>start(cur),40);} /* a burst of taps rebuilds once */
 
 /* ---------- stickers ---------- */
@@ -191,8 +198,9 @@ const quickBtns=ST.quick.map(id=>{const b=document.createElement('button');b.typ
 function autoName(t){if(S.named)return;let n;do n=pick(NAMES);while(n===t.n);t.n=n;flashName();}
 function flashName(){const el=$('tapeName');el.classList.remove('rolled');void el.offsetWidth;el.classList.add('rolled');}
 function edit(fn,newStart){
+  PL=null;
   if(cur!==draft){ /* a shelf tape or a shared one: changing it makes a remix */
-    S.named=true; /* a remix keeps its name unless you change it */const from=cur.by&&cur.by!==cleanBy(S.by)?cur.by:cur.from;draft=cleanTape(Object.assign({},cur,{id:undefined,by:undefined,from}));delete draft.id;cur=draft;track('tape_remix');}
+    S.named=true; /* a remix keeps its name unless you change it */const from=cur.by&&cur.by!==cleanBy(S.by)?cur.by:cur.from;draft=cleanTape(Object.assign({},cur,{id:undefined,by:undefined,from,fav:undefined,gift:undefined}));delete draft.id;cur=draft;track('tape_remix');}
   const before=JSON.stringify(draft);fn(draft);draft=cleanTape(draft);cur=draft;
   if(JSON.stringify(draft)===before)return paint();
   savedId=null;save();paint();
@@ -210,7 +218,7 @@ function paint(){
   shellBtns.forEach((b,i)=>b.setAttribute('aria-pressed',String(cur.c===i)));$('shellName').textContent=(SHELLS[cur.c]||SHELLS[0]).name;
   if(document.activeElement!==$('tapeName'))$('tapeName').value=cur.n;
   if(document.activeElement!==$('fromName'))$('fromName').value=S.by||'';
-  $('vfdName').textContent=cur.n;$('vfdSide').textContent='SIDE A · '+startOf(cur.s).name;
+  $('vfdName').textContent=cur.n;$('vfdSide').textContent=(PL?'SHELF '+(PL.i+1)+'/'+PL.ids.length:'SIDE A')+' · '+startOf(cur.s).name;
   const onShelf=cur===draft?!!savedId:S.tapes.some(t=>t.id===cur.id);
   $('saveRow').hidden=onShelf;$('shareRow').hidden=!onShelf;$('savePic').hidden=!onShelf;$('shareBtn').hidden=!navigator.share;
   $('saveBtn').lastChild.textContent=cur===draft?'SAVE TAPE':'KEEP THIS TAPE';$('saveBtn').classList.add('dirty');
@@ -218,7 +226,10 @@ function paint(){
   paintGrid();paintShelf();paintPlay();}
 function paintPlay(){const on=isPlaying();$('play').setAttribute('aria-pressed',String(on));$('playT').textContent=on?'PAUSE':'PLAY';
   deckCass.classList.toggle('playing',on);
-  document.querySelectorAll('.shelf-item').forEach(el=>{const p=on&&gen&&gen.tape&&gen.tape.id===el.dataset.id&&cur===gen.tape;el.querySelector('.cass').classList.toggle('playing',p);const b=el.querySelector('.sh-play');if(b)b.textContent=p?'❚❚ PAUSE':'▶ PLAY';});
+  const playingId=on&&gen&&gen.tape&&cur===gen.tape?gen.tape.id:null;
+  document.querySelectorAll('.shelf-item').forEach(el=>{const p=!!playingId&&playingId===el.dataset.id;el.querySelector('.cass').classList.toggle('playing',p);const b=el.querySelector('.sh-play');if(b)b.textContent=p?'❚❚ PAUSE':'▶ PLAY';});
+  document.querySelectorAll('.rack-item').forEach(el=>{const p=!!playingId&&playingId===el.dataset.id;el.classList.toggle('playing',p);el.classList.toggle('open',el.dataset.id===openId);});
+  $('playAll').textContent=PL&&on?'❚❚ PAUSE THE SHELF':'▶ PLAY THE SHELF';
   if(sharedCass){const p=on&&cur===shared;sharedCass.classList.toggle('playing',p);$('sharedPlay').textContent=p?'❚❚ PAUSE':'▶ PLAY';}}
 
 /* ---------- name, from ---------- */
@@ -239,7 +250,9 @@ function saveTape(){
   if(cur!==draft){if(!S.tapes.some(t=>t.id===cur.id)){const k=Object.assign({},cur,{id:Math.random().toString(36).slice(2,10)});S.tapes.unshift(k);cur=k;if(shared&&shared!==k)shared=k;save();paint();track('tape_save',{how:'keep'},true);}return cur;}
   if(savedId){const t=S.tapes.find(x=>x.id===savedId);if(t)return t;}
   const t=Object.assign({},draft,{id:Math.random().toString(36).slice(2,10)});const by=cleanBy(S.by);if(by&&!t.by)t.by=by;
-  S.tapes.unshift(t);S.tapes=S.tapes.slice(0,60);savedId=t.id;S.named=false;save();paint();pulse();track('tape_save',{sound:startOf(t.s).name},true);return t;}
+  S.tapes.unshift(t);S.tapes=S.tapes.slice(0,MAX_TAPES);savedId=t.id;S.named=false;save();keepStorage();paint();pulse();track('tape_save',{sound:startOf(t.s).name},true);return t;}
+/* ask the browser not to clear this site's storage when space runs low (quietly: Firefox would ask the visitor, so not there) */
+function keepStorage(){try{if(navigator.storage&&navigator.storage.persist&&!/Firefox/.test(navigator.userAgent))navigator.storage.persisted().then(p=>{if(!p)navigator.storage.persist();});}catch(e){}}
 $('saveBtn').addEventListener('click',()=>{saveTape();$('copyLink').textContent='COPY LINK';});
 async function copyText(v){try{await navigator.clipboard.writeText(v);return true;}catch(e){}try{const ta=document.createElement('textarea');ta.value=v;ta.style.cssText='position:fixed;opacity:0;top:0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok;}catch(e){return false;}}
 async function copyLinkFor(t,btn){const url=tapeURL(t);const ok=await copyText(url);track('tape_share',{how:'copy'},true);
@@ -251,29 +264,99 @@ $('shareBtn').addEventListener('click',async()=>{const t=deckTape();try{await na
 $('sentLink').addEventListener('focus',e=>e.target.select());
 $('savePic').addEventListener('click',()=>{const t=deckTape();shareCard(t).then(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(t.n.toLowerCase().replace(/[^a-z0-9]+/g,'-')||'tape')+'-small-beats.png';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);});});
 
-/* ---------- the shelf ---------- */
-function paintShelf(){const row=$('shelf');const ids=S.tapes.map(t=>t.id).join(',');
+/* ---------- the shelf ----------
+   Up front: your three newest tapes (starred ones first) as full cassettes. Behind them, the rack: the rest of yours as spines.
+   Then FROM FRIENDS: tapes people sent you. Tap a spine to play it and pull it out; tap again to pause. */
+const favFirst=a=>a.filter(t=>t.fav).concat(a.filter(t=>!t.fav));
+const mine=()=>favFirst(S.tapes.filter(t=>!t.gift)),friends=()=>favFirst(S.tapes.filter(t=>t.gift));
+let openId=null;
+const findTape=id=>S.tapes.find(x=>x.id===id);
+function playShelfTape(id){const tt=findTape(id);if(!tt)return;openId=id;if(isPlaying()&&cur===tt){pause();return;}cur=tt;paint();if(isPaused()&&gen.tape===tt)resume();else play(tt);}
+function remixTape(id){const tt=findTape(id);if(!tt)return;cur=tt;edit(()=>{});if(!isPlaying())play(cur);$('make').scrollIntoView({behavior:'smooth'});}
+function favTape(id){const tt=findTape(id);if(!tt)return;tt.fav=tt.fav?undefined:1;if(!tt.fav)delete tt.fav;save();paint();track('tape_fav',{on:!!tt.fav},true);}
+let undoT=null;
+function throwOut(id){const k=S.tapes.findIndex(x=>x.id===id);if(k<0)return;const t=S.tapes[k];
+  if(gen&&gen.tape&&gen.tape.id===id)stop();S.tapes.splice(k,1);if(savedId===id)savedId=null;if(cur.id===id)cur=draft;if(PL)PL.ids=PL.ids.filter(x=>x!==id);save();paint();
+  $('undoT').textContent='Threw out '+t.n+'.';$('undo').hidden=false;clearTimeout(undoT);undoT=setTimeout(()=>{$('undo').hidden=true;},7000);
+  $('undoBtn').onclick=()=>{if(!findTape(t.id)){S.tapes.splice(Math.min(k,S.tapes.length),0,t);save();paint();}$('undo').hidden=true;clearTimeout(undoT);};}
+function btn(label,c,fn,cls,aria){const b=document.createElement('button');b.type='button';b.className='pb'+(cls?' '+cls:'');b.style.setProperty('--c',c);b.textContent=label;if(aria)b.setAttribute('aria-label',aria);b.addEventListener('click',fn);return b;}
+function starBtn(t){const b=btn(t.fav?'★':'☆',t.fav?'var(--amber)':'var(--key)',()=>favTape(t.id),'star',t.fav?'Unstar '+t.n:'Star '+t.n);b.setAttribute('aria-pressed',String(!!t.fav));if(!t.fav)b.style.setProperty('--t','var(--cream)');return b;}
+function delBtn(t){const b=btn('✕','var(--key)',()=>throwOut(t.id),'',`Throw out ${t.n}`);b.style.setProperty('--t','var(--cream)');return b;}
+/* a cassette seen from the side, as it sits in a rack: the shell, a label with the name, the sticker on the end */
+function spine(t,still){const sh=SHELLS[t.c]||SHELLS[0],el=document.createElement(still?'div':'button');if(!still)el.type='button';el.className='spine';
+  el.style.cssText=`--sh:${sh.sh};--hi:${sh.hi};--lab:${sh.lab};--ink:${sh.ink};--acc:${sh.acc}`;
+  const cols=sh.art==='rainbow'?['#e8392b','#f6860b','#f5d23e','#4fc48d','#3b9ad9']:sh.art==='swoosh'?['#ef4f6c','#f6860b','#f5d23e']:(sh.cols&&sh.cols.length?sh.cols:[sh.acc]).slice(0,4);
+  el.innerHTML=`<span class="spine-state" aria-hidden="true"></span><span class="spine-lab"><span class="spine-art" aria-hidden="true">${cols.map(c=>`<i style="background:${c}"></i>`).join('')}</span><span class="spine-name">${escX(t.n)}</span>${t.gift?`<span class="spine-from">${escX(t.by?'from '+t.by:'from a friend')}</span>`:''}</span>`;
+  el.appendChild(stk(t.t,1));if(!still)el.setAttribute('aria-label',(t.gift?'From '+(t.by||'a friend')+': ':'')+t.n+', play');return el;}
+function rackItem(t){const it=document.createElement('div');it.className='rack-item';it.dataset.id=t.id;
+  const sp=spine(t);sp.addEventListener('click',()=>playShelfTape(t.id));it.appendChild(sp);it.appendChild(starBtn(t));
+  const acts=document.createElement('div');acts.className='spine-acts row-btns';
+  acts.appendChild(btn('REMIX','var(--amber)',()=>remixTape(t.id),'pb-sm'));
+  const cp=btn('COPY LINK','var(--blue)',()=>{const tt=findTape(t.id);if(tt)copyLinkFor(tt,cp);},'pb-sm');acts.appendChild(cp);acts.appendChild(delBtn(t));
+  it.appendChild(acts);return it;}
+function paintShelf(){const row=$('shelf');const sig=S.tapes.map(t=>t.id+(t.fav?'*':'')+(t.gift?'g':'')).join(',');
   $('tapes').hidden=!S.tapes.length;$('navTapes').hidden=!S.tapes.length;$('navCount').textContent=S.tapes.length;
-  if(row.dataset.ids===ids){row.querySelectorAll('.shelf-item').forEach(el=>{const t=S.tapes.find(x=>x.id===el.dataset.id);if(t)fillCass(el.querySelector('.cass'),t);});return;}
-  row.dataset.ids=ids;row.textContent='';
-  for(const t of S.tapes){const it=document.createElement('div');it.className='shelf-item';it.dataset.id=t.id;it.appendChild(cassette(t));
+  if(row.dataset.sig===sig){row.querySelectorAll('.shelf-item').forEach(el=>{const t=findTape(el.dataset.id);if(t)fillCass(el.querySelector('.cass'),t);});return;}
+  row.dataset.sig=sig;row.textContent='';$('rack').textContent='';$('friends').textContent='';
+  const m=mine(),front=m.slice(0,3),f=friends();
+  for(const t of front){const it=document.createElement('div');it.className='shelf-item';it.dataset.id=t.id;it.appendChild(cassette(t));
     const bs=document.createElement('div');bs.className='row-btns';
-    const mk=(label,c,fn,cls)=>{const b=document.createElement('button');b.type='button';b.className='pb'+(cls?' '+cls:'');b.style.setProperty('--c',c);b.textContent=label;b.addEventListener('click',fn);bs.appendChild(b);return b;};
-    mk('▶ PLAY','var(--green)',()=>{const tt=S.tapes.find(x=>x.id===t.id);if(!tt)return;if(isPlaying()&&cur===tt){pause();return;}cur=tt;paint();if(isPaused()&&gen.tape===tt)resume();else play(tt);},'sh-play');
-    mk('REMIX','var(--amber)',()=>{const tt=S.tapes.find(x=>x.id===t.id);if(!tt)return;cur=tt;edit(()=>{});if(!isPlaying())play(cur);$('make').scrollIntoView({behavior:'smooth'});});
-    const cp=mk('COPY LINK','var(--blue)',()=>{const tt=S.tapes.find(x=>x.id===t.id);if(tt)copyLinkFor(tt,cp);});
-    const del=mk('✕','var(--key)',()=>{if(del.dataset.arm!=='1'){del.dataset.arm='1';del.textContent='SURE?';del.style.setProperty('--c','var(--red)');setTimeout(()=>{del.dataset.arm='';del.textContent='✕';del.style.setProperty('--c','var(--key)');},2600);return;}
-      if(gen&&gen.tape&&gen.tape.id===t.id)stop();S.tapes=S.tapes.filter(x=>x.id!==t.id);if(savedId===t.id)savedId=null;if(cur.id===t.id)cur=draft;save();paint();});
-    del.style.setProperty('--t','var(--cream)');del.setAttribute('aria-label','Throw this tape out');
+    bs.appendChild(btn('▶ PLAY','var(--green)',()=>playShelfTape(t.id),'sh-play'));bs.appendChild(btn('REMIX','var(--amber)',()=>remixTape(t.id)));
+    const cp=btn('COPY LINK','var(--blue)',()=>{const tt=findTape(t.id);if(tt)copyLinkFor(tt,cp);});bs.appendChild(cp);bs.appendChild(delBtn(t));
+    const sb=starBtn(t);sb.classList.add('star-badge');it.appendChild(sb); /* the star sits on the cassette's corner */
     it.appendChild(bs);row.appendChild(it);}
+  for(const t of m.slice(3))$('rack').appendChild(rackItem(t));
+  for(const t of f)$('friends').appendChild(rackItem(t));
+  $('rackEmpty').hidden=m.length>3;$('friendsEmpty').hidden=f.length>0;
   paintPlay();}
+
+/* play the shelf: yours (starred first), then your friends', a few minutes each, round and round */
+function nextOnShelf(){if(!PL||!PL.ids.length){PL=null;return;}PL.i=(PL.i+1)%PL.ids.length;const t=findTape(PL.ids[PL.i]);if(!t){PL.ids.splice(PL.i,1);PL.i--;return nextOnShelf();}
+  cur=t;openId=t.id;start(t,2.5);PL.until=actx.currentTime+PL_SEC;paint();}
+$('playAll').addEventListener('click',()=>{if(PL){if(isPlaying())pause();else if(isPaused())resume();return;}
+  const ids=mine().concat(friends()).map(t=>t.id);if(!ids.length)return;ensureAudio();PL={ids,i:-1,until:0};nextOnShelf();track('play_all',{tapes:ids.length},true);});
+
+/* ---------- the shelf link: every tape in one link, so a shelf can move browsers without an account ----------
+   ?shelf= + "z" and base64url of the deflated JSON [1, [[name, shell, drums, bass, keys, texture, speed, sound, seed, sticker, by, from, flags], ...]]
+   (flags: 1 starred, 2 from a friend). Browsers that can't deflate use "j" and plain JSON. */
+const b64u=bytes=>{let b='';for(let i=0;i<bytes.length;i+=8192)b+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));return btoa(b).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');};
+const unb64u=v=>{const b=atob(String(v).replace(/-/g,'+').replace(/_/g,'/'));const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;};
+async function shelfCode(tapes){const json=JSON.stringify([1,tapes.map(t=>[t.n,t.c,t.d,t.b,t.k,t.w,t.p,t.s,t.r,t.t,t.by||'',t.from||'',(t.fav?1:0)|(t.gift?2:0)])]);
+  if(window.CompressionStream){try{const st=new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw'));return 'z'+b64u(new Uint8Array(await new Response(st).arrayBuffer()));}catch(e){}}
+  return 'j'+b64u(new TextEncoder().encode(json));}
+async function decodeShelf(code){try{code=String(code);let json;
+    if(code[0]==='z'){const st=new Blob([unb64u(code.slice(1))]).stream().pipeThrough(new DecompressionStream('deflate-raw'));json=await new Response(st).text();}
+    else if(code[0]==='j')json=new TextDecoder().decode(unb64u(code.slice(1)));else return null;
+    const a=JSON.parse(json);if(!Array.isArray(a)||a[0]!==1||!Array.isArray(a[1]))return null;
+    return a[1].slice(0,MAX_TAPES).map(x=>Array.isArray(x)?cleanTape({n:x[0],c:x[1],d:x[2],b:x[3],k:x[4],w:x[5],p:x[6],s:x[7],r:x[8],t:x[9],by:x[10],from:x[11],fav:x[12]&1,gift:x[12]&2}):null).filter(Boolean);
+  }catch(e){return null;}}
+let qrLoad=null;const loadQR=()=>qrLoad||(qrLoad=new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='qr.js';sc.onload=ok;sc.onerror=no;document.head.appendChild(sc);}));
+function drawQR(url){const cv=$('qr'),x=cv.getContext('2d');loadQR().then(()=>{let q;try{q=qrcode(0,'L');q.addData(url);q.make();}catch(e){cv.hidden=true;$('qrHint').textContent='Too many tapes for one QR code. Use the link instead.';return;}
+  const n=q.getModuleCount(),u=Math.max(2,Math.floor(232/(n+8))),S2=(n+8)*u;cv.width=cv.height=S2;cv.hidden=false;x.fillStyle='#f2e7d0';x.fillRect(0,0,S2,S2);x.fillStyle='#1d1c21';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))x.fillRect((c+4)*u,(r+4)*u,u,u);
+  $('qrHint').textContent="Point your phone's camera here to take your tapes with you.";}).catch(()=>{cv.hidden=true;});}
+async function refreshShelfLink(){const url=siteURL()+'?shelf='+await shelfCode(S.tapes);$('shelfLink').value=url;drawQR(url);return url;}
+$('shelfLinkBtn').addEventListener('click',async()=>{const open=$('backup').hidden;$('backup').hidden=!open;$('shelfLinkBtn').setAttribute('aria-expanded',String(open));
+  if(open){$('shelfNote').textContent='';await refreshShelfLink();track('shelf_link',{tapes:S.tapes.length},true);}});
+$('copyShelf').addEventListener('click',async()=>{const url=await refreshShelfLink();const ok=await copyText(url);
+  $('shelfNote').textContent=ok?'Copied. Paste it somewhere safe, like a note to yourself.':'Copy the link above and keep it somewhere safe.';if(!ok)$('shelfLink').select();});
+$('shelfLink').addEventListener('focus',e=>e.target.select());
+/* opening a shelf link: show what's in it, and add it on a tap */
+{const code=Q.get('shelf');if(code&&!BC)decodeShelf(code).then(list=>{if(!list||!list.length)return;
+  $('shelfIn').hidden=false;$('hero').hidden=true;$('shelfInKick').textContent=list.length===1?'A SHELF WITH ONE TAPE':'A SHELF OF '+list.length+' TAPES';
+  for(const t of list.slice(0,6))$('shelfInRack').appendChild(spine(t,true));$('shelfInMore').textContent=list.length>6?'and '+(list.length-6)+' more':'';
+  $('shelfInAdd').addEventListener('click',()=>{for(const t of list){const x=S.tapes.find(y=>sameTape(y,t));if(x&&t.fav)x.fav=1;} /* stars carry over onto tapes already here */
+    const fresh=list.filter(t=>!S.tapes.some(x=>sameTape(x,t)));
+    const added=fresh.map(t=>Object.assign({},t,{id:Math.random().toString(36).slice(2,10)}));S.tapes=added.concat(S.tapes).slice(0,MAX_TAPES);save();keepStorage();paint();
+    const dup=list.length-fresh.length;$('shelfInNote').textContent=(added.length?'Added '+added.length+(added.length===1?' tape':' tapes'):'Nothing new')+(dup?'. '+dup+(dup===1?' was':' were')+' already here.':'.');
+    $('shelfInAdd').disabled=true;track('shelf_restore',{tapes:added.length},true);$('tapes').scrollIntoView({behavior:'smooth'});});});}
 
 /* ---------- all stickers ---------- */
 let stickerCategory=0;
 ST.categories.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='sticker-tab';b.textContent=c.name;b.setAttribute('role','tab');b.addEventListener('click',()=>{stickerCategory=i;paintGrid(true);});$('stickerTabs').appendChild(b);});
 function paintGrid(rebuild){if($('drawer').hidden)return;const g=$('grid');
   [...$('stickerTabs').children].forEach((b,i)=>b.setAttribute('aria-selected',String(i===stickerCategory)));
-  if(rebuild||g.dataset.category!==String(stickerCategory)){g.dataset.category=stickerCategory;g.textContent='';for(const {id:i} of ST.list.filter(x=>x.category===ST.categories[stickerCategory].id)){const b=document.createElement('button');b.type='button';b.className='sbtn';b.dataset.id=i;b.appendChild(stk(i,2));b.setAttribute('aria-label',ST.list[i].name);b.title=ST.list[i].name;b.addEventListener('click',()=>pickSticker(i));g.appendChild(b);}}
+  if(rebuild||g.dataset.category!==String(stickerCategory)){g.dataset.category=stickerCategory;g.textContent='';const cat=ST.categories[stickerCategory];g.dataset.cat=cat.id;for(const i of cat.ids||ST.list.filter(x=>x.category===cat.id).map(x=>x.id)){const b=document.createElement('button');b.type='button';b.className='sbtn';b.dataset.id=i;b.appendChild(stk(i,2));b.setAttribute('aria-label',ST.list[i].name);b.title=ST.list[i].name;b.addEventListener('click',()=>pickSticker(i));g.appendChild(b);}}
   g.querySelectorAll('.sbtn').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.id===cur.t)));
   if(rebuild){const tab=$('stickerTabs').children[stickerCategory];if(tab)$('stickerTabs').scrollLeft=Math.max(0,tab.offsetLeft-$('stickerTabs').offsetLeft-16);}}
 $('moreBtn').addEventListener('click',()=>{stickerCategory=ST.categories.findIndex(c=>c.id===ST.list[cur.t].category);$('drawer').hidden=false;paintGrid(true);});
@@ -286,14 +369,19 @@ if(shared&&!BC){$('shared').hidden=false;sharedCass=cassette(shared);$('sharedWr
   $('sharedBy').textContent=shared.by?'Mixed by '+shared.by+(shared.from?', remixed from '+shared.from:''):(shared.from?'Remixed from '+shared.from:'Somebody made this for you.');
   $('sharedPlay').addEventListener('click',()=>{if(isPlaying()&&cur===shared){pause();return;}cur=shared;paint();if(isPaused()&&gen.tape===shared)resume();else{play(shared);track('tape_open');}});
   $('sharedRemix').addEventListener('click',()=>{cur=shared;edit(()=>{});if(!isPlaying())play(cur);$('make').scrollIntoView({behavior:'smooth'});});
-  $('sharedKeep').addEventListener('click',()=>{if(!S.tapes.some(t=>sameTape(t,shared))){const k=Object.assign({},shared,{id:Math.random().toString(36).slice(2,10)});S.tapes.unshift(k);shared=k;save();paint();}
-    $('sharedKeep').textContent='On your shelf';$('sharedKeep').disabled=true;});
-  if(S.tapes.some(t=>sameTape(t,shared))){$('sharedKeep').textContent='On your shelf';$('sharedKeep').disabled=true;}
+  /* a tape somebody else made goes straight onto your shelf, under FROM FRIENDS; one of your own just gets a KEEP button */
+  const have=S.tapes.find(t=>sameTape(t,shared)),me=cleanBy(S.by);
+  if(have)shared=have;else if(!(shared.by&&me&&shared.by===me)){const k=Object.assign({},shared,{id:Math.random().toString(36).slice(2,10),gift:1});S.tapes.unshift(k);S.tapes=S.tapes.slice(0,MAX_TAPES);shared=k;save();keepStorage();}
+  const kept=()=>{const g=findTape(shared.id);$('sharedKeep').textContent=g&&g.gift?'Saved on your shelf, under FROM FRIENDS':'On your shelf';};
+  $('sharedKeep').addEventListener('click',()=>{if(!findTape(shared.id||'')){const k=Object.assign({},shared,{id:Math.random().toString(36).slice(2,10)});S.tapes.unshift(k);shared=k;save();paint();}
+    kept();$('tapes').scrollIntoView({behavior:'smooth'});});
+  if(findTape(shared.id||''))kept();
   cur=shared;$('hero').hidden=true;}
 
 /* ---------- the display: a tape counter and a little level meter, in dots ---------- */
 const vu=$('vu'),vx=vu.getContext('2d');let fbuf=null;
 function frame(){requestAnimationFrame(frame);
+  if(PL&&isPlaying()&&actx.currentTime>=PL.until)nextOnShelf();
   const on=isPlaying();$('vfdCount').textContent=String(Math.floor(counterMs()/1000)%1000).padStart(3,'0');
   const W=vu.width,H=vu.height,n=20;vx.clearRect(0,0,W,H);
   if(an&&on){fbuf=fbuf||new Uint8Array(an.frequencyBinCount);an.getByteFrequencyData(fbuf);}
@@ -303,7 +391,7 @@ requestAnimationFrame(frame);
 
 /* ---------- share picture: the cassette on a card, 1200 x 630 ---------- */
 function loadImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src;});}
-async function shareCard(t){await document.fonts.ready;const sheet=await loadImg('stickers.png?v=4');const c=document.createElement('canvas');c.width=1200;c.height=630;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
+async function shareCard(t){await document.fonts.ready;const sheet=await loadImg('stickers.png?v=5');const c=document.createElement('canvas');c.width=1200;c.height=630;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
   drawCard(x,t,sheet);return new Promise(r=>c.toBlob(r,'image/png'));}
 function dieCut(x,sheet,id,dx,dy,s,edge){ /* the sticker with a white die-cut edge, as on the cassette */
   const sx=(id%25)*32,sy=Math.floor(id/25)*32,o=document.createElement('canvas');o.width=o.height=32*s+2*edge;const ox=o.getContext('2d');ox.imageSmoothingEnabled=false;

@@ -12,19 +12,19 @@
 <meta property="og:url" content="https://smallbeats.com/">
 <meta property="og:title" content="Small Beats · Make your own mixtape">
 <meta property="og:description" content="Pick a sound. Mix a few parts. Put a sticker on it. Send it to somebody.">
-<meta property="og:image" content="https://smallbeats.com/og.png?v=10">
+<meta property="og:image" content="https://smallbeats.com/og.png?v=11">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="A smoked pixel cassette with cyan, pink and yellow stripes, labelled SMALL BEATS with a wizard sticker, in front of two more tapes, next to the words Make your own mixtape.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Small Beats · Make your own mixtape">
 <meta name="twitter:description" content="Pick a sound. Mix a few parts. Put a sticker on it. Send it to somebody.">
-<meta name="twitter:image" content="https://smallbeats.com/og.png?v=10">
+<meta name="twitter:image" content="https://smallbeats.com/og.png?v=11">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="stickers.png?v=4" as="image">
+<link rel="preload" href="stickers.png?v=5" as="image">
 <link rel="stylesheet" href="app.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Small Beats","url":"https://smallbeats.com/","applicationCategory":"MusicApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"A tiny music machine for making mixtapes in your browser.","sameAs":["https://www.youtube.com/@smallbeatsfm"]}</script>
 </head>
@@ -48,6 +48,15 @@
       <button class="pb pb-big" type="button" id="sharedRemix" style="--c:var(--amber)">REMIX THIS TAPE</button>
     </div>
     <button class="linkish" type="button" id="sharedKeep">Keep it on my shelf</button>
+  </section>
+
+  <!-- a whole shelf, from a shelf link (?shelf=) -->
+  <section class="shared-tape shelf-in" id="shelfIn" hidden aria-label="A shelf of tapes">
+    <p class="kick" id="shelfInKick">A SHELF OF TAPES</p>
+    <div class="rack shelf-in-rack" id="shelfInRack"></div>
+    <p class="shared-by" id="shelfInMore"></p>
+    <div class="row-btns"><button class="pb pb-big" type="button" id="shelfInAdd" style="--c:var(--green)">PUT THEM ON MY SHELF</button></div>
+    <p class="note" id="shelfInNote" aria-live="polite"></p>
   </section>
 
   <section class="hero" id="hero">
@@ -113,9 +122,32 @@
   </section>
 
   <section class="shelf" id="tapes" aria-label="Your tapes" hidden>
-    <h2>YOUR TAPES</h2>
-    <p class="hint">They stay in this browser.</p>
+    <div class="shelf-head">
+      <h2>YOUR TAPES</h2>
+      <div class="row-btns">
+        <button class="pb pb-sm" type="button" id="playAll" style="--c:var(--green)">▶ PLAY THE SHELF</button>
+        <button class="pb pb-sm" type="button" id="shelfLinkBtn" style="--c:var(--blue)" aria-expanded="false" aria-controls="backup">SHELF LINK</button>
+      </div>
+    </div>
+    <p class="hint">Your tapes live in this browser. Your <b>shelf link</b> brings them to any other browser or phone.</p>
+    <div class="backup" id="backup" hidden>
+      <div class="backup-text">
+        <p class="step-h">YOUR SHELF LINK</p>
+        <p>Every tape on this shelf, in one link. Open it in any browser to bring them all along. Bookmark it or send it to yourself, and grab a fresh one after you save new tapes.</p>
+        <input type="text" class="linkbox" id="shelfLink" readonly aria-label="Your shelf link">
+        <div class="row-btns"><button class="pb pb-sm" type="button" id="copyShelf" style="--c:var(--blue)">COPY SHELF LINK</button></div>
+        <p class="note" id="shelfNote" aria-live="polite"></p>
+      </div>
+      <div class="qr-wrap"><canvas id="qr" width="232" height="232" aria-label="QR code of your shelf link" role="img"></canvas><p class="hint" id="qrHint">Point your phone's camera here to take your tapes with you.</p></div>
+    </div>
     <div class="shelf-row" id="shelf"></div>
+    <p class="rack-h">THE RACK</p>
+    <div class="rack" id="rack"></div>
+    <p class="hint rack-empty" id="rackEmpty">Save more tapes and they stack up here. Star the ones you love to keep them up front.</p>
+    <p class="rack-h">FROM FRIENDS</p>
+    <div class="rack" id="friends"></div>
+    <p class="hint rack-empty" id="friendsEmpty">Tapes people send you land here, with their name on them.</p>
+    <div class="undo" id="undo" hidden><span id="undoT"></span><button class="linkish" type="button" id="undoBtn">UNDO</button></div>
   </section>
 
   <section class="about" id="about">

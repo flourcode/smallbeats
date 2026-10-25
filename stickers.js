@@ -1,8 +1,11 @@
-/* Small Beats · stickers. stickers.png is the sticker pack's static sheet: 800 x 352, 25 columns x 11 rows of 32 x 32 px.
-   A sticker's id is its cell on the sheet (row x 25 + col) and is what a tape stores. Never move a sticker to
-   another cell. Each row is one category. Row 10 is our own: the Small Beats cat (a warm grey tabby in headphones) and three more tabbies, drawn for this site. quick: the 15 shown first under the tape (a 16th tile opens the rest). */
+/* Small Beats · stickers. stickers.png is an 800 x 352 sheet, 25 columns x 11 rows of 32 x 32 px.
+   A sticker's id is its cell on the sheet (row x 25 + col) and is what a tape stores. Never move a sticker to another cell.
+   Rows 0-9 are the sticker pack (CC0), one category per row, except that the pack's cats (200-208) were redrawn as ours.
+   CATS is ours: five coats (tabby, orange, black, calico, siamese) in four faces each, at 200-208 and 250-260;
+   its "ids" sets the order in the tray. 250 is the Small Beats cat, the tabby in headphones.
+   quick: the 15 shown first under the tape (a 16th tile opens the rest). */
 window.STICKERS={
-  categories:[{"id":"smileys","name":"SMILEYS"},{"id":"love","name":"LOVE"},{"id":"sad","name":"SAD"},{"id":"angry","name":"ANGRY"},{"id":"shocked","name":"SHOCKED"},{"id":"silly","name":"SILLY"},{"id":"sleepy","name":"SLEEPY"},{"id":"characters","name":"CHARACTERS"},{"id":"animals","name":"ANIMALS"},{"id":"symbols","name":"SYMBOLS"},{"id":"tabbies","name":"TABBIES"}],
+  categories:[{"id":"smileys","name":"SMILEYS"},{"id":"love","name":"LOVE"},{"id":"sad","name":"SAD"},{"id":"angry","name":"ANGRY"},{"id":"shocked","name":"SHOCKED"},{"id":"silly","name":"SILLY"},{"id":"sleepy","name":"SLEEPY"},{"id":"characters","name":"CHARACTERS"},{"id":"animals","name":"ANIMALS"},{"id":"cats","name":"CATS","ids":[251,252,253,250,200,201,202,203,204,205,206,207,208,254,255,256,257,258,259,260]},{"id":"symbols","name":"SYMBOLS"}],
   quick:[175,9,25,126,150,56,100,125,225,236,237,241,247,200,214,186],
   list:[
     {"id":0,"slug":"big_grin","name":"Big grin","category":"smileys","row":0,"col":0},
@@ -205,15 +208,15 @@ window.STICKERS={
     {"id":197,"slug":"crown","name":"Crown","category":"characters","row":7,"col":22},
     {"id":198,"slug":"vampire","name":"Vampire","category":"characters","row":7,"col":23},
     {"id":199,"slug":"zombie","name":"Zombie","category":"characters","row":7,"col":24},
-    {"id":200,"slug":"cat","name":"Cat","category":"animals","row":8,"col":0},
-    {"id":201,"slug":"happy_cat","name":"Happy cat","category":"animals","row":8,"col":1},
-    {"id":202,"slug":"laughing_cat","name":"Laughing cat","category":"animals","row":8,"col":2},
-    {"id":203,"slug":"cat_heart_eyes","name":"Cat heart eyes","category":"animals","row":8,"col":3},
-    {"id":204,"slug":"smug_cat","name":"Smug cat","category":"animals","row":8,"col":4},
-    {"id":205,"slug":"kissing_cat","name":"Kissing cat","category":"animals","row":8,"col":5},
-    {"id":206,"slug":"shocked_cat","name":"Shocked cat","category":"animals","row":8,"col":6},
-    {"id":207,"slug":"crying_cat","name":"Crying cat","category":"animals","row":8,"col":7},
-    {"id":208,"slug":"annoyed_cat","name":"Annoyed cat","category":"animals","row":8,"col":8},
+    {"id":200,"slug":"orange_cat","name":"Orange cat","category":"cats","row":8,"col":0},
+    {"id":201,"slug":"happy_orange_cat","name":"Happy orange cat","category":"cats","row":8,"col":1},
+    {"id":202,"slug":"sleepy_orange_cat","name":"Sleepy orange cat","category":"cats","row":8,"col":2},
+    {"id":203,"slug":"orange_cat_with_headphones","name":"Orange cat with headphones","category":"cats","row":8,"col":3},
+    {"id":204,"slug":"black_cat","name":"Black cat","category":"cats","row":8,"col":4},
+    {"id":205,"slug":"happy_black_cat","name":"Happy black cat","category":"cats","row":8,"col":5},
+    {"id":206,"slug":"sleepy_black_cat","name":"Sleepy black cat","category":"cats","row":8,"col":6},
+    {"id":207,"slug":"black_cat_with_headphones","name":"Black cat with headphones","category":"cats","row":8,"col":7},
+    {"id":208,"slug":"calico","name":"Calico","category":"cats","row":8,"col":8},
     {"id":209,"slug":"see_no_evil","name":"See no evil","category":"animals","row":8,"col":9},
     {"id":210,"slug":"hear_no_evil","name":"Hear no evil","category":"animals","row":8,"col":10},
     {"id":211,"slug":"speak_no_evil","name":"Speak no evil","category":"animals","row":8,"col":11},
@@ -255,8 +258,15 @@ window.STICKERS={
     {"id":247,"slug":"music_notes","name":"Music notes","category":"symbols","row":9,"col":22},
     {"id":248,"slug":"zzz","name":"Zzz","category":"symbols","row":9,"col":23},
     {"id":249,"slug":"speech_bubble","name":"Speech bubble","category":"symbols","row":9,"col":24},
-    {"id":250,"slug":"tabby_headphones","name":"Small Beats cat","category":"tabbies","row":10,"col":0},
-    {"id":251,"slug":"tabby","name":"Tabby cat","category":"tabbies","row":10,"col":1},
-    {"id":252,"slug":"happy_tabby","name":"Happy tabby","category":"tabbies","row":10,"col":2},
-    {"id":253,"slug":"sleepy_tabby","name":"Sleepy tabby","category":"tabbies","row":10,"col":3}
+    {"id":250,"slug":"tabby_headphones","name":"Small Beats cat","category":"cats","row":10,"col":0},
+    {"id":251,"slug":"tabby","name":"Tabby","category":"cats","row":10,"col":1},
+    {"id":252,"slug":"happy_tabby","name":"Happy tabby","category":"cats","row":10,"col":2},
+    {"id":253,"slug":"sleepy_tabby","name":"Sleepy tabby","category":"cats","row":10,"col":3},
+    {"id":254,"slug":"happy_calico","name":"Happy calico","category":"cats","row":10,"col":4},
+    {"id":255,"slug":"sleepy_calico","name":"Sleepy calico","category":"cats","row":10,"col":5},
+    {"id":256,"slug":"calico_with_headphones","name":"Calico with headphones","category":"cats","row":10,"col":6},
+    {"id":257,"slug":"siamese","name":"Siamese","category":"cats","row":10,"col":7},
+    {"id":258,"slug":"happy_siamese","name":"Happy siamese","category":"cats","row":10,"col":8},
+    {"id":259,"slug":"sleepy_siamese","name":"Sleepy siamese","category":"cats","row":10,"col":9},
+    {"id":260,"slug":"siamese_with_headphones","name":"Siamese with headphones","category":"cats","row":10,"col":10}
   ]};

@@ -23,6 +23,7 @@ Then open http://localhost:8000. Analytics stays off on localhost. The service w
 | `app.js` | Mixer, tape, stickers, shelf, sharing, share picture, broadcast mode |
 | `engine.js` | The music engine (`window.SBE.band`) |
 | `stickers.js`, `stickers.png` | Sticker metadata and the sticker sheet |
+| `qr.js` | QR code generator (Kazuhiko Arase, MIT), loaded only when the shelf link is opened |
 | `app.css` | All styles |
 | `analytics.js` | Google Analytics 4 (`G-QY4M7NZD76`); empty the ID to switch it off |
 | `privacy.html`, `terms.html`, `404.html` | The other pages |
@@ -40,9 +41,21 @@ Then open http://localhost:8000. Analytics stays off on localhost. The service w
 
 **Names.** A new tape gets a random name, and it rolls again when you change the sound or hit NEW TUNE (the field flashes). Typing your own name stops that; ↻ hands it back. After a save, the next tape rolls again.
 
-**First visit.** The shelf starts with three tapes, `STARTERS` in `app.js`: GROCERY RUN (house, Rainbow, panda), SIDE QUEST (8-bit, Lavender, wizard), SADURDAY BEATS (lo-fi, Sunset, crying face). They're added once. The player opens on GROCERY RUN.
+**First visit.** The shelf starts with three tapes, `STARTERS` in `app.js`: GROCERY RUN (house, Smoked, happy calico), SIDE QUEST (8-bit, Lavender, wizard), SADURDAY BEATS (lo-fi, Sunset, crying face). They're added once. The player opens on GROCERY RUN.
 
 **Web Audio.** `band(ctx, destination, recipe)` builds one tape's sound and returns `{src, tick(until), bpm}`. The app calls `tick()` every 400 ms to schedule bars about two seconds ahead. Drums are synthesized noise and oscillators, the bass and keys are FM, subtractive and plucked-string (Karplus-Strong) voices, and 8-bit uses pulse waves. The seed picks a key, a mood, chord changes and a hook, and every part follows the same chords, so any combination fits. A lo-fi tape runs through a soft cassette chain (saturation, wow and flutter, a little hiss). Hiss (tape noise, a faint hum and the odd tick of dust), rain and fire are generated too, with random timing so they never loop. TIGHT drums play dead straight; SWING leans on the offbeats. Changing a part rebuilds the band with a short crossfade. Pause suspends the audio context, so the tune picks up where it stopped. On iPhone the audio session is set to playback, so it plays with the ring switch on silent.
+
+## The shelf
+
+- **Up front:** your three newest tapes as full cassettes, starred ones first. Each has PLAY, REMIX, COPY LINK, ✕ and a star on its corner.
+- **The rack:** the rest of your tapes as spines (the cassette seen from the side: shell colour, the name, the sticker on the end). Tap a spine to play it; it slides out and shows REMIX, COPY LINK and ✕.
+- **From friends:** a tape somebody else made goes onto your shelf as soon as you open its link (`gift`), with "from NAME" on its spine. Opening a link to one of your own tapes (same "mixed by") just offers KEEP.
+- **Stars:** `fav` on the tape. Starred tapes move to the front of their section.
+- **Throwing out:** one tap, then UNDO for seven seconds. No confirm dialogs.
+- **PLAY THE SHELF:** plays yours (starred first), then your friends', three minutes each with a slow crossfade, round and round. The display shows SHELF 2/7. Touching anything else stops it.
+- Up to 300 tapes in all. The first visit starts with three (GROCERY RUN starred), so the shelf explains itself. When you save a tape the site asks the browser, quietly, to keep its storage (not in Firefox, which would show a prompt).
+
+**The shelf link** is the backup, with no accounts. SHELF LINK shows one link (and a QR code) holding every tape; opening it in any browser shows the tapes and a PUT THEM ON MY SHELF button, which adds the ones that aren't there yet and carries stars over. Format: `?shelf=z` + base64url of the raw-deflated JSON `[1, [[name, shell, drums, bass, keys, texture, speed, sound, seed, sticker, by, from, flags], ...]]`, flags 1 starred and 2 from a friend. Browsers without `CompressionStream` write `j` + the plain JSON instead. Ten tapes make a link of about 400 characters; past a few dozen tapes the QR code gets too dense and the panel says to use the link.
 
 ## Tape format
 
@@ -71,7 +84,7 @@ Anything that doesn't decode to this is ignored and the page opens normally. A l
 
 ## Stickers
 
-`stickers.png` is an 800 × 352 sheet, 25 columns × 11 rows of 32 × 32. Rows 0–9 are the sticker pack (CC0, commercial use, no attribution needed). Row 10 is our own: the Small Beats cat (a warm grey tabby in headphones) and three more tabbies, drawn for this site in the pack's style (`TABBIES` in the tray). Each entry in `stickers.js` is `{id, slug, name, category, row, col}`, where `id = row × 25 + col`. That id is what a tape stores, so a sticker must never move to another cell. Each row is a category: smileys, love, sad, angry, shocked, silly, sleepy, characters, animals, symbols, tabbies. `quick` lists the 15 shown under the tape; the last tile opens the rest in a tray. When the sheet changes, bump `stickers.png?v=` everywhere it's referenced. Stickers are drawn at whole-number scales only, with `image-rendering: pixelated` and a white die-cut edge. On the cassette the sticker sits between the hubs: 96 px on a computer, 64 px on a phone.
+`stickers.png` is an 800 × 352 sheet, 25 columns × 11 rows of 32 × 32. Rows 0–9 are the sticker pack (CC0, commercial use, no attribution needed). The CATS tab is ours, drawn for this site: five coats (warm tabby, orange, black, calico, siamese) in four faces (normal, happy, sleepy, headphones). They sit in the pack's old cat cells (200–208, redrawn) and in row 10 (250–260); the category's `ids` list sets their order in the tray. Each entry in `stickers.js` is `{id, slug, name, category, row, col}`, where `id = row × 25 + col`. That id is what a tape stores, so a sticker must never move to another cell. Each row is a category: smileys, love, sad, angry, shocked, silly, sleepy, characters, animals, symbols, plus CATS. `quick` lists the 15 shown under the tape; the last tile opens the rest in a tray. When the sheet changes, bump `stickers.png?v=` everywhere it's referenced. Stickers are drawn at whole-number scales only, with `image-rendering: pixelated` and a white die-cut edge. On the cassette the sticker sits between the hubs: 96 px on a computer, 64 px on a phone.
 
 ## Cassettes
 
@@ -92,7 +105,7 @@ No keyboard shortcuts, no dialogs, and nothing that stops the music: the sticker
 
 ## Analytics
 
-GA4 with Consent Mode (ads storage always denied; analytics storage denied in the EEA, UK and Switzerland), not loaded with Do Not Track or Global Privacy Control. Events: `play`, `pause`, `genre_select`, `part_toggle`, `new_tune`, `sticker_select`, `tape_name`, `tape_save`, `tape_share`, `tape_open`, `tape_remix`.
+GA4 with Consent Mode (ads storage always denied; analytics storage denied in the EEA, UK and Switzerland), not loaded with Do Not Track or Global Privacy Control. Events: `play`, `pause`, `genre_select`, `part_toggle`, `new_tune`, `sticker_select`, `tape_name`, `tape_save`, `tape_share`, `tape_open`, `tape_remix`, `tape_fav`, `play_all`, `shelf_link`, `shelf_restore`.
 
 ## Deploy
 
