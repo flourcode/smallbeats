@@ -6,33 +6,34 @@
 <title>Small Beats · Make your own mixtape</title>
 <meta name="description" content="A tiny music machine in your browser. Pick a sound, mix a few parts, put a sticker on it and send the tape to somebody.">
 <link rel="canonical" href="https://smallbeats.com/">
-<meta name="theme-color" content="#15130f">
+<meta name="theme-color" content="#2a1915">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Small Beats">
 <meta property="og:url" content="https://smallbeats.com/">
 <meta property="og:title" content="Small Beats · Make your own mixtape">
 <meta property="og:description" content="Pick a sound. Mix a few parts. Put a sticker on it. Send it to somebody.">
-<meta property="og:image" content="https://smallbeats.com/og.png?v=6">
+<meta property="og:image" content="https://smallbeats.com/og.png?v=10">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="A smoked pixel cassette with cyan, pink and yellow stripes, labelled SMALL BEATS with a wizard sticker, in front of two more tapes, next to the words Make your own mixtape.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Small Beats · Make your own mixtape">
 <meta name="twitter:description" content="Pick a sound. Mix a few parts. Put a sticker on it. Send it to somebody.">
-<meta name="twitter:image" content="https://smallbeats.com/og.png?v=6">
+<meta name="twitter:image" content="https://smallbeats.com/og.png?v=10">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="stickers.png" as="image">
+<link rel="preload" href="stickers.png?v=4" as="image">
 <link rel="stylesheet" href="app.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Small Beats","url":"https://smallbeats.com/","applicationCategory":"MusicApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"A tiny music machine for making mixtapes in your browser.","sameAs":["https://www.youtube.com/@smallbeatsfm"]}</script>
 </head>
-<body>
+<body class="striped">
+<div class="stripe-wrap" aria-hidden="true"><canvas class="stripe" id="stripe"></canvas></div>
 <a class="skip" href="#make">Skip to the machine</a>
 
 <header class="top">
-  <a class="brand" href="/" aria-label="Small Beats home"><picture><source media="(max-width:620px)" srcset="icons/logo-2.png 1x, icons/logo-4.png 2x"><img class="brand-logo" src="icons/logo-3.png" srcset="icons/logo-3.png 1x, icons/logo-6.png 2x" alt="Small Beats"></picture></a>
+  <a class="brand" href="/" aria-label="Small Beats home"><picture><source media="(max-width:620px)" srcset="icons/mark-2.png 1x, icons/mark-4.png 2x"><img class="brand-logo" src="icons/mark-3.png" srcset="icons/mark-3.png 1x, icons/mark-6.png 2x" alt="" width="96" height="96"></picture><span class="brand-word">SMALL BEATS</span></a>
   <nav class="nav" aria-label="Main"><a href="#make">MAKE</a><a href="#tapes" id="navTapes" hidden>TAPES<b class="nav-n" id="navCount"></b></a><a href="#about">ABOUT</a><a href="https://www.youtube.com/@smallbeatsfm" target="_blank" rel="noopener">YOUTUBE</a></nav>
 </header>
 
@@ -67,7 +68,7 @@
       </div>
 
       <div class="step">
-        <p class="step-h"><b>1</b> PICK A SOUND</p>
+        <p class="step-h"><b>1</b> START HERE</p>
         <div class="starts" role="group" aria-label="Pick a sound" id="starts"></div>
       </div>
 

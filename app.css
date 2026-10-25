@@ -7,8 +7,8 @@
 
 :root{
   color-scheme:dark;
-  --bg:#15130f;--panel:#24211c;--panel2:#2d2924;--key:#3a352f;--line:#0c0a08;
-  --cream:#efe6d2;--muted:#bbb2a3;--ink:#17140f;
+  --bg:#2a1915;--panel:#3a251e;--panel2:#452e26;--key:#55403a;--line:#140b08;
+  --cream:#efe6d2;--muted:#c9b7a3;--ink:#17140f;
   --amber:#e8a33a;--orange:#d9733a;--yellow:#f0c94a;--teal:#3fa79a;--blue:#6a9ad1;--purple:#9a82c2;--red:#d0604f;--green:#7fb069;--paper:#d9cfbb;
   --px:4px; /* one "pixel" of the hardware */
   --gut:16px;
@@ -24,9 +24,10 @@ a{color:var(--amber)}
 
 /* ---- header ---- */
 .top{display:flex;align-items:center;justify-content:space-between;gap:4px 12px;max-width:1180px;margin:0 auto;padding:10px var(--gut);flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:8px;color:var(--cream);text-decoration:none;font:700 20px/1 Silk;letter-spacing:1px}
-.brand-logo{display:block;width:168px;height:99px;image-rendering:pixelated} /* the logo tape: Rainbow, SMALL BEATS, the wizard; drawn at whole-pixel sizes */
-@media (max-width:620px){.brand-logo{width:112px;height:66px}}
+.brand{display:flex;align-items:center;gap:14px;color:var(--cream);text-decoration:none}
+.brand-logo{display:block;width:96px;height:96px;image-rendering:pixelated} /* the Small Beats cat: a grey tabby in headphones, at whole-pixel sizes */
+.brand-word{font:400 26px/1 Silk;letter-spacing:2px;white-space:nowrap;text-shadow:3px 3px 0 var(--line)}
+@media (max-width:620px){.brand{gap:8px}.brand-logo{width:64px;height:64px}.brand-word{font-size:15px;letter-spacing:1px;text-shadow:2px 2px 0 var(--line)}}
 .nav{display:flex;gap:4px 18px;flex-wrap:wrap}
 .nav a{color:var(--muted);text-decoration:none;font:700 13px/1 Silk;letter-spacing:1px;padding:10px 2px}
 .nav a:hover{color:var(--cream)}
@@ -62,9 +63,9 @@ a{color:var(--amber)}
 @media (min-width:980px){.deck{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start}}
 .machine{position:relative;background:var(--panel);padding:22px 18px 16px;
   box-shadow:0 -4px 0 0 var(--line),0 4px 0 0 var(--line),-4px 0 0 0 var(--line),4px 0 0 0 var(--line),inset 0 4px 0 0 rgba(255,255,255,.07),inset 0 -6px 0 0 rgba(0,0,0,.3)}
-.screw{position:absolute;width:8px;height:8px;background:#56504a;box-shadow:inset 2px 2px 0 rgba(255,255,255,.18),inset -2px -2px 0 rgba(0,0,0,.4)}
+.screw{position:absolute;width:8px;height:8px;background:#6b5348;box-shadow:inset 2px 2px 0 rgba(255,255,255,.18),inset -2px -2px 0 rgba(0,0,0,.4)}
 .s1{left:8px;top:8px}.s2{right:8px;top:8px}.s3{left:8px;bottom:8px}.s4{right:8px;bottom:8px}
-.deck-print{display:flex;justify-content:space-between;gap:10px;margin:14px 0 0;font:700 10px/1 Silk;letter-spacing:1.5px;color:#6f675d}
+.deck-print{display:flex;justify-content:space-between;gap:10px;margin:14px 0 0;font:700 10px/1 Silk;letter-spacing:1.5px;color:#8a7366}
 .step{margin-top:16px}
 .step-h{margin:0 0 10px;font:700 13px/1 Silk;letter-spacing:1.5px;color:var(--muted);display:flex;align-items:center;gap:10px}
 .step-h b{display:inline-grid;place-items:center;width:22px;height:22px;background:var(--cream);color:var(--ink);font-size:12px}
@@ -97,7 +98,7 @@ a{color:var(--amber)}
 
 /* ---- the tape side: one bench where the tape gets made ---- */
 .tapeside{min-width:0}
-.bench{position:relative;background:#2b2722;padding:22px 18px 18px;box-shadow:0 -4px 0 0 var(--line),0 4px 0 0 var(--line),-4px 0 0 0 var(--line),4px 0 0 0 var(--line),inset 0 4px 0 0 rgba(255,255,255,.07),inset 0 -6px 0 0 rgba(0,0,0,.3)}
+.bench{position:relative;background:#3a251e;padding:22px 18px 18px;box-shadow:0 -4px 0 0 var(--line),0 4px 0 0 var(--line),-4px 0 0 0 var(--line),4px 0 0 0 var(--line),inset 0 4px 0 0 rgba(255,255,255,.07),inset 0 -6px 0 0 rgba(0,0,0,.3)}
 .bench .step:first-of-type{margin-top:6px}
 .linkbox{width:calc(100% - 8px);font:400 14px/1.3 ui-monospace,Menlo,monospace;color:var(--ink);background:var(--cream);border:0;padding:10px;margin:10px 4px 0;box-shadow:0 0 0 4px var(--line)}
 .cass-wrap{display:flex;justify-content:center}
@@ -105,7 +106,7 @@ a{color:var(--amber)}
 
 .sbtn{position:relative;aspect-ratio:1;min-height:56px;overflow:hidden;border:0;padding:0;cursor:pointer;background:var(--panel2);display:grid;place-items:center;
   box-shadow:0 0 0 2px var(--line);-webkit-tap-highlight-color:transparent}
-.sbtn:hover{background:#38332d}
+.sbtn:hover{background:#523a31}
 .sbtn[aria-pressed=true]{background:var(--cream);box-shadow:0 0 0 2px var(--line),0 0 0 6px var(--amber)}
 .linkish{background:none;border:0;color:var(--amber);font:700 13px/1 Silk;letter-spacing:1px;padding:14px 0;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
 .namebox{display:flex;gap:8px;align-items:center}
@@ -113,7 +114,7 @@ a{color:var(--amber)}
   box-shadow:0 0 0 4px var(--line),inset 0 4px 0 rgba(0,0,0,.12)}
 .namebox.from{margin-top:14px;padding-right:60px}
 .namebox.from input{font:400 16px/1.2 Plex;text-transform:none;letter-spacing:0;padding:11px 12px}
-.namebox input::placeholder{color:#8a8172;opacity:1}
+.namebox input::placeholder{color:#9c8676;opacity:1}
 .row-btns{display:flex;flex-wrap:wrap;gap:12px 14px;align-items:center}
 .rec{width:10px;height:10px;background:#5c1d16;display:inline-block}
 .dirty .rec{background:#ff3b2a;box-shadow:0 0 8px #ff3b2a}
@@ -132,7 +133,7 @@ a{color:var(--amber)}
 @media (min-width:980px){.shell-row{flex-wrap:wrap;overflow:visible}.shell{width:56px}}
 
 /* ---- stickers: square pixels, integer scale only ---- */
-.stk{display:block;width:32px;height:32px;background-image:url(stickers.png);background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;flex:0 0 auto}
+.stk{display:block;width:32px;height:32px;background-image:url(stickers.png?v=4);background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;flex:0 0 auto}
 .stuck{filter:drop-shadow(2px 0 0 #fbf6ea) drop-shadow(-2px 0 0 #fbf6ea) drop-shadow(0 2px 0 #fbf6ea) drop-shadow(0 -2px 0 #fbf6ea) drop-shadow(2px 3px 0 rgba(0,0,0,.25))} /* die-cut edge */
 
 /* ---- the cassette: pixel art, with the sticker in the window ---- */
@@ -163,7 +164,7 @@ a{color:var(--amber)}
 .about-cols{display:grid;gap:10px 36px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
 .about h3{font:700 14px/1.3 Silk;letter-spacing:1px;color:var(--amber);margin:12px 0 6px}
 .about p{margin:0 0 12px;color:#d8cfbe;max-width:60ch}
-.foot{max-width:1180px;margin:0 auto;padding:22px var(--gut) 40px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;color:var(--muted);font-size:14px;border-top:2px solid #2a2622}
+.foot{max-width:1180px;margin:0 auto;padding:22px var(--gut) 40px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;color:var(--muted);font-size:14px;border-top:2px solid #3a251e}
 .foot nav{display:flex;gap:6px 18px;flex-wrap:wrap}
 .foot a{color:var(--muted)}
 .foot p{margin:0}
@@ -184,14 +185,14 @@ a{color:var(--amber)}
 .grid .sbtn{aspect-ratio:auto;height:76px}
 
 /* ---- broadcast: just the tape, for recordings ---- */
-.broadcast body{background:#0d0b09}
+.broadcast body{background:#1c100d}
 .broadcast .top,.broadcast .hero,.broadcast .machine,.broadcast .tapeside .step,.broadcast .namebar,.broadcast .savebar,.broadcast .stickers,.broadcast .shells,.broadcast .bench-h,.broadcast .bench .screw,.broadcast .shelf,.broadcast .about,.broadcast .foot,.broadcast .shared-tape,.broadcast .skip{display:none!important}
 .broadcast .deck{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:0}
 .broadcast .bench{background:none;box-shadow:none;padding:0}
 .broadcast .tapeside{width:min(70vw,120vh)}
 .broadcast .cass{width:100%;margin:0}
 .broadcast .cass-svg svg{filter:none}
-.bc-site{position:fixed;left:0;right:0;bottom:4vh;text-align:center;font:700 2.2vw/1 Silk;letter-spacing:.3vw;color:#8b8274}
+.bc-site{position:fixed;left:0;right:0;bottom:4vh;text-align:center;font:700 2.2vw/1 Silk;letter-spacing:.3vw;color:#9c8676}
 
 /* ---- the bench: tape, its name and the save button together; stickers and shells under them ---- */
 .bench-h{margin-bottom:4px}
@@ -207,8 +208,8 @@ a{color:var(--amber)}
 .stickers .step-h,.shells .step-h{margin-bottom:8px}
 .shells{margin-top:12px}
 .shell-row{flex-wrap:nowrap!important;overflow-x:auto!important}
-.sbtn-more{font:400 12px/1 Silk;letter-spacing:1px;color:var(--amber);background:#221f1b;box-shadow:0 0 0 2px var(--line),inset 0 0 0 2px #3a352f}
-.sbtn-more:hover{background:#2e2a25}
+.sbtn-more{font:400 12px/1 Silk;letter-spacing:1px;color:var(--amber);background:#2f1d17;box-shadow:0 0 0 2px var(--line),inset 0 0 0 2px #55403a}
+.sbtn-more:hover{background:#3d271f}
 #shareRow .linkish{padding:8px 4px}
 
 /* phones: the tape comes first, stickers in one swipeable row, then the machine, then name and save */
@@ -235,3 +236,13 @@ a{color:var(--amber)}
 @keyframes rolled{0%{background:var(--yellow)}100%{background:var(--cream)}}
 @media (prefers-reduced-motion:reduce){#tapeName.rolled{animation:none}}
 @media (max-width:620px){.top{flex-wrap:nowrap}.nav{gap:4px 14px;justify-content:flex-end}.nav a[href="#make"],.nav a[href="/#make"]{display:none}.nav a{font-size:12px}} /* phones: logo and links on one line */
+@media (max-width:420px){.nav a[href*="youtube"]{display:none}} /* YouTube is in the footer and About */
+@media (max-width:359px){.nav a[href="#about"]{display:none}.brand-word{font-size:13px}}
+
+/* the five-colour stripe across the top (drawn by drawStripe in app.js). Computers: behind the logo, bending up before the links. Phones: one straight band under the header */
+.stripe-wrap{position:absolute;left:0;right:0;top:0;overflow:hidden;pointer-events:none;z-index:0}
+.stripe{display:block;image-rendering:pixelated}
+.striped .top{position:relative;z-index:1}
+.striped .top{margin-bottom:30px} /* room for the stripe under the name */
+@media (max-width:620px){.striped .top{margin-bottom:62px}}
+.broadcast .stripe-wrap{display:none}

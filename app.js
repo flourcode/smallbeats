@@ -1,5 +1,5 @@
 /* Small Beats · the mixer, the tape and the shelf.
-   One loop: PICK A SOUND → MIX IT → NEW TUNE → STICKER → NAME → SAVE → SHARE → (they) PLAY → REMIX → SHARE.
+   One loop: START HERE (a sound) → MIX IT → NEW TUNE → STICKER → NAME → SAVE → SHARE → (they) PLAY → REMIX → SHARE.
    The deck always plays one cassette: your draft, a tape off your shelf, or one somebody sent you. Touch any control while
    somebody else's tape (or a saved one) is in the deck and it quietly becomes a remix of it: nothing asks, nothing stops.
    No keyboard shortcuts, no dialogs, no accounts. Tapes live in this browser; a link carries the whole recipe. */
@@ -15,17 +15,17 @@ const BC=/^(video|live)$/.test(Q.get('broadcast')||'');
 const STARTS=[ /* s is the engine's start-sound number; rec is where it starts. The order on screen is the spec's */
   {name:'LO-FI',s:0,c:'var(--amber)',rec:{d:2,b:1,k:1,w:0,p:1}},
   {name:'AMBIENT',s:2,c:'var(--blue)',rec:{d:0,b:0,k:3,w:0,p:0}},
-  {name:'HOUSE',s:1,c:'var(--red)',rec:{d:3,b:3,k:3,w:0,p:1}},
-  {name:'8-BIT',s:3,c:'var(--teal)',rec:{d:2,b:1,k:4,w:0,p:1}},
-  {name:'DUB',s:4,c:'var(--purple)',rec:{d:4,b:2,k:1,w:0,p:1}}];
+  {name:'HOUSE',s:1,c:'var(--red)',rec:{d:1,b:3,k:3,w:0,p:1}},
+  {name:'8-BIT',s:3,c:'var(--teal)',rec:{d:1,b:1,k:4,w:0,p:1}},
+  {name:'DUB',s:4,c:'var(--purple)',rec:{d:2,b:2,k:1,w:0,p:1}}];
 const startOf=s=>STARTS.find(x=>x.s===s)||STARTS[0];
-const DRUM_ON=[2,3,1,2,4]; /* which drums come in when you switch drums on, by start sound */
+const FEEL=[2,1,2,1,2]; /* how the drums come in, by start sound: swing for lo-fi, ambient and dub, tight for house and 8-bit */
 const LAYERS=[
-  {k:'d',name:'DRUMS',drums:true},
+  {k:'d',name:'DRUMS',opts:[[1,'TIGHT'],[2,'SWING']],c:'var(--green)'}, /* the kit comes with the sound; this is the feel */
   {k:'b',name:'BASS',opts:[[1,'WARM'],[2,'DEEP'],[3,'SYNTH']],c:'var(--orange)'},
   {k:'k',name:'KEYS',opts:[[1,'RHODES'],[2,'GUITAR'],[3,'PAD'],[4,'8-BIT']],c:'var(--yellow)'},
-  {k:'w',name:'ATMOSPHERE',opts:[[1,'RAIN'],[2,'OCEAN'],[3,'FIRE']],c:'var(--blue)'},
-  {k:'p',name:'SPEED',opts:[[0,'SLOW'],[1,'EASY'],[2,'FAST']],c:'var(--paper)',fixed:true}];
+  {k:'w',name:'TEXTURE',opts:[[2,'HISS'],[1,'RAIN'],[3,'FIRE']],c:'var(--blue)'},
+  {k:'p',name:'SPEED',opts:[[0,'SLOW'],[1,'STEADY'],[2,'FAST']],c:'var(--paper)',fixed:true}];
 const SHELLS=[ /* fourteen 80s cassette shells (no real brands). A tape stores its shell's place in this list, so restyle freely but never reorder */
   {name:'70S TRIPLE',sh:'#e7dcc3',hi:'#f4ecd9',lab:'#fff7e6',strip:'#fff7e6',ink:'#3b2a1e',acc:'#c8571b',art:'triple',cols:['#c8571b','#e8902f','#f2c14e'],side:'A',len:'90'},
   {name:'MIAMI',sh:'#232227',hi:'#3a3940',lab:'#2e2c33',strip:'#2e2c33',ink:'#f2c94c',acc:'#ff5fa2',art:'neon',cols:['#ff5fa2','#3ee0e8'],side:'A',len:'60'},
@@ -54,7 +54,7 @@ const clampInt=(v,lo,hi,d)=>{v=Math.round(+v);return Number.isFinite(v)?Math.max
 const cleanName=v=>String(v||'').replace(/[\u0000-\u001f<>]/g,'').replace(/\s+/g,' ').trim().slice(0,24);
 const cleanBy=v=>String(v||'').replace(/[^\w &'.,!?\/-]/g,'').replace(/\s+/g,' ').trim().slice(0,24)||undefined;
 function cleanTape(t){if(!t||typeof t!=='object')return null;
-  const s=clampInt(t.s,0,4,0),o={n:cleanName(t.n)||'MY TAPE',c:clampInt(t.c,0,SHELLS.length-1,0),d:clampInt(t.d,0,4,DRUM_ON[s]),b:clampInt(t.b,0,3,0),k:clampInt(t.k,0,4,0),
+  const s=clampInt(t.s,0,4,0),o={n:cleanName(t.n)||'MY TAPE',c:clampInt(t.c,0,SHELLS.length-1,0),d:clampInt(t.d,0,2,FEEL[s]),b:clampInt(t.b,0,3,0),k:clampInt(t.k,0,4,0),
     w:clampInt(t.w,0,3,0),p:clampInt(t.p,0,2,1),s,r:clampInt(t.r,1,2147483647,1),t:clampInt(t.t,0,ST.list.length-1,ST.quick[0])};
   if(t.id&&/^[a-z0-9]{1,16}$/.test(t.id))o.id=t.id;const by=cleanBy(t.by),fr=cleanBy(t.from);if(by)o.by=by;if(fr)o.from=fr;return o;}
 const b64e=j=>btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -75,8 +75,8 @@ let S={vol:.8,by:'',tapes:[],draft:null};
 try{const v=JSON.parse(localStorage.getItem(STORE)||'null');if(v&&typeof v==='object')Object.assign(S,v);}catch(e){}
 S.tapes=(Array.isArray(S.tapes)?S.tapes:[]).map(cleanTape).filter(Boolean).slice(0,60);
 const STARTERS=[ /* three tapes already on the shelf on a first visit, so the shelf, PLAY, REMIX and COPY LINK explain themselves */
-  {id:'grocery',n:'GROCERY RUN',c:9,d:3,b:1,k:3,w:0,p:1,s:1,r:1422687053,t:214},
-  {id:'sidequest',n:'SIDE QUEST',c:5,d:2,b:1,k:4,w:0,p:1,s:3,r:1469865583,t:196},
+  {id:'grocery',n:'GROCERY RUN',c:9,d:1,b:1,k:3,w:0,p:1,s:1,r:1422687053,t:214},
+  {id:'sidequest',n:'SIDE QUEST',c:5,d:1,b:1,k:4,w:0,p:1,s:3,r:1469865583,t:196},
   {id:'sadurday',n:'SADURDAY BEATS',c:4,d:2,b:1,k:1,w:0,p:1,s:0,r:1469865583,t:56}];
 if(!S.seeded&&!BC){S.tapes=STARTERS.map(cleanTape).concat(S.tapes).slice(0,60);S.seeded=1;} /* once: throw them out and they stay gone */
 const FIRST_TAPE=STARTERS[0]; /* what a first visit opens on: house, warm bass, pad, the rainbow tape, the panda */
@@ -110,7 +110,7 @@ let restartT=null;function restart(){if(!isPlaying())return;clearTimeout(restart
 
 /* ---------- stickers ---------- */
 function stk(id,scale,cls){const el=document.createElement('i');el.className='stk'+(cls?' '+cls:'');paintStk(el,id,scale);el.setAttribute('aria-hidden','true');return el;}
-function paintStk(el,id,scale){const s=scale||1,r=Math.floor(id/25),c=id%25;el.style.width=el.style.height=32*s+'px';el.style.backgroundSize=800*s+'px '+320*s+'px';el.style.backgroundPosition=(-c*32*s)+'px '+(-r*32*s)+'px';}
+function paintStk(el,id,scale){const s=scale||1,r=Math.floor(id/25),c=id%25;el.style.width=el.style.height=32*s+'px';el.style.backgroundSize=800*s+'px '+352*s+'px';el.style.backgroundPosition=(-c*32*s)+'px '+(-r*32*s)+'px';}
 
 /* ---------- the cassette ----------
    A flat pixel-art cassette, 56 x 33 cells, drawn as SVG. The sticker is stuck straight onto the label in the middle, at a whole-number
@@ -152,7 +152,7 @@ const escX=v=>String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt
 function cassSVG(t,phase,noName){const {cells,sh}=cassPix(t,phase);let o='';
   for(let y=0;y<CH2;y++){let x=0;while(x<CW){const v=cells[y*CW+x];if(!v){x++;continue;}let w=1;while(x+w<CW&&cells[y*CW+x+w]===v)w++;o+=`<rect x="${x}" y="${y}" width="${w+.02}" height="1.02" fill="${v}"/>`;x+=w;}} /* runs, not single cells */
   const nm=escX(t.n.toUpperCase()),K=sh.ink,tx=(x,y,sz,v,anc,fill)=>`<text x="${x}" y="${y}" text-anchor="${anc||'middle'}" font-family="Doto,monospace" font-weight="900" font-size="${sz}" fill="${fill||K}">${v}</text>`;let deco='';
-  if(nm.length<=14){if(sh.side)deco+=`<rect x="6.3" y="5.2" width="3.4" height="3.6" fill="none" stroke="${sh.acc}" stroke-width=".45"/>`+tx(8,8.2,2.9,sh.side,'middle',sh.acc);if(sh.len)deco+=tx(49.6,8.4,3.4,sh.len,'end',sh.acc);}
+  if(nm.length<=14){if(sh.side)deco+=`<rect x="6.3" y="5.2" width="3.4" height="3.6" fill="none" stroke="${sh.acc}" stroke-width=".45"/>`+tx(8,8.2,2.9,sh.side,'middle',sh.acc);if(sh.len&&!t.brand)deco+=tx(49.6,8.4,3.4,sh.len,'end',sh.acc);}
   deco+=tx(10,22.6,1.45,sh.art==='sound'?'SOUND':'SIDE '+(sh.side||'A'),'middle',sh.art==='split'?'#ffffff':K)+tx(45.5,22.6,1.45,'STEREO','middle',sh.art==='split'?'#ffffff':K);
   deco+=tx(4.4,32.3,1.3,serial(t),'start',sh.clear?sh.hi:'#a8a49a');
   return `<svg viewBox="0 0 ${CW} ${CH2}" aria-hidden="true"><g shape-rendering="crispEdges">${o}</g>${noName?'':tx(28,8.6,nm.length>16?3.1:3.8,nm)}${deco}</svg>`;}
@@ -176,9 +176,7 @@ const startBtns=STARTS.map(st=>{const b=document.createElement('button');b.type=
 const layerBtns=[];
 for(const L of LAYERS){const row=document.createElement('div');row.className='layer';row.innerHTML='<span class="layer-name">'+L.name+'</span><div class="layer-keys" role="group" aria-label="'+L.name+'"></div>';
   const keys=row.querySelector('.layer-keys');
-  if(L.drums){const b=document.createElement('button');b.type='button';b.className='pb key';b.style.setProperty('--on','var(--green)');
-    b.addEventListener('click',()=>{track('part_toggle',{part:'drums'},true);edit(t=>{t.d=t.d?0:DRUM_ON[t.s];});});keys.appendChild(b);layerBtns.push({L,b,drums:true});}
-  else for(const [v,label] of L.opts){const b=document.createElement('button');b.type='button';b.className='pb key';b.textContent=label;b.style.setProperty('--on',L.c);
+  for(const [v,label] of L.opts){const b=document.createElement('button');b.type='button';b.className='pb key';b.textContent=label;b.style.setProperty('--on',L.c);
     b.addEventListener('click',()=>{track('part_toggle',{part:L.name.toLowerCase(),value:label.toLowerCase()},true);edit(t=>{t[L.k]=L.fixed?v:(t[L.k]===v?0:v);});});keys.appendChild(b);layerBtns.push({L,b,v});}
   $('layers').appendChild(row);}
 
@@ -207,7 +205,7 @@ function pulse(){deckCass.classList.remove('pop');void deckCass.offsetWidth;deck
 function paint(){
   fillCass(deckCass,cur);
   for(const {b,st} of startBtns)b.setAttribute('aria-pressed',String(cur.s===st.s));
-  for(const x of layerBtns){if(x.drums){const on=cur.d>0;x.b.setAttribute('aria-pressed',String(on));x.b.textContent=on?'ON':'OFF';}else x.b.setAttribute('aria-pressed',String(cur[x.L.k]===x.v));}
+  for(const x of layerBtns)x.b.setAttribute('aria-pressed',String(cur[x.L.k]===x.v));
   for(const {b,id} of quickBtns)b.setAttribute('aria-pressed',String(cur.t===id));
   shellBtns.forEach((b,i)=>b.setAttribute('aria-pressed',String(cur.c===i)));$('shellName').textContent=(SHELLS[cur.c]||SHELLS[0]).name;
   if(document.activeElement!==$('tapeName'))$('tapeName').value=cur.n;
@@ -305,7 +303,7 @@ requestAnimationFrame(frame);
 
 /* ---------- share picture: the cassette on a card, 1200 x 630 ---------- */
 function loadImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src;});}
-async function shareCard(t){await document.fonts.ready;const sheet=await loadImg('stickers.png');const c=document.createElement('canvas');c.width=1200;c.height=630;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
+async function shareCard(t){await document.fonts.ready;const sheet=await loadImg('stickers.png?v=4');const c=document.createElement('canvas');c.width=1200;c.height=630;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
   drawCard(x,t,sheet);return new Promise(r=>c.toBlob(r,'image/png'));}
 function dieCut(x,sheet,id,dx,dy,s,edge){ /* the sticker with a white die-cut edge, as on the cassette */
   const sx=(id%25)*32,sy=Math.floor(id/25)*32,o=document.createElement('canvas');o.width=o.height=32*s+2*edge;const ox=o.getContext('2d');ox.imageSmoothingEnabled=false;
@@ -313,8 +311,8 @@ function dieCut(x,sheet,id,dx,dy,s,edge){ /* the sticker with a white die-cut ed
   ox.globalCompositeOperation='source-in';ox.fillStyle='#fbf6ea';ox.fillRect(0,0,o.width,o.height);ox.globalCompositeOperation='source-over';ox.drawImage(sheet,sx,sy,32,32,edge,edge,32*s,32*s);
   x.drawImage(o,dx-edge,dy-edge);}
 function drawCard(x,t,sheet){
-  x.fillStyle='#15130f';x.fillRect(0,0,1200,630);
-  for(let yy=10;yy<630;yy+=20)for(let xx=10;xx<1200;xx+=20){x.fillStyle='#1d1a16';x.fillRect(xx,yy,4,4);} /* dot texture */
+  x.fillStyle='#2a1915';x.fillRect(0,0,1200,630);
+  for(let yy=10;yy<630;yy+=20)for(let xx=10;xx<1200;xx+=20){x.fillStyle='#35211b';x.fillRect(xx,yy,4,4);} /* dot texture */
   drawCassette(x,70,130,620,t,sheet);
   if(sheet)dieCut(x,sheet,t.t,770,90,5,6);
   x.fillStyle='#efe6d2';x.font='400 40px Silk';const words=t.n.split(' ');let line='',y=320;const lines=[];for(const w of words){const c=line?line+' '+w:w;if(x.measureText(c).width>390&&line){lines.push(line);line=w;}else line=c;}lines.push(line);
@@ -327,10 +325,29 @@ function drawCassette(x,X,Y,W,t,sheet){const u=Math.max(1,Math.floor(W/CW)),{cel
   x.fillStyle=sh.ink;x.font='900 '+(t.n.length>16?3.1:3.8)*u+'px Doto';x.textAlign='center';x.fillText(t.n.toUpperCase(),X+28*u,Y+8.6*u);
   x.font='900 '+1.3*u+'px Doto';x.textAlign='left';x.fillStyle=sh.clear?sh.hi:'#a8a49a';x.fillText(serial(t),X+4.4*u,Y+32.3*u);x.textAlign='start';
   const nm=t.n.toUpperCase(),T=(tx,ty,sz,v,al,f)=>{x.font='900 '+sz*u+'px Doto';x.textAlign=al;x.fillStyle=f;x.fillText(v,X+tx*u,Y+ty*u);};
-  if(nm.length<=14){if(sh.side){x.strokeStyle=sh.acc;x.lineWidth=.45*u;x.strokeRect(X+6.3*u,Y+5.2*u,3.4*u,3.6*u);T(8,8.2,2.9,sh.side,'center',sh.acc);}if(sh.len)T(49.6,8.4,3.4,sh.len,'right',sh.acc);}
+  if(nm.length<=14){if(sh.side){x.strokeStyle=sh.acc;x.lineWidth=.45*u;x.strokeRect(X+6.3*u,Y+5.2*u,3.4*u,3.6*u);T(8,8.2,2.9,sh.side,'center',sh.acc);}if(sh.len&&!t.brand)T(49.6,8.4,3.4,sh.len,'right',sh.acc);}
   const lf=sh.art==='split'?'#ffffff':sh.ink;T(10,22.6,1.45,sh.art==='sound'?'SOUND':'SIDE '+(sh.side||'A'),'center',lf);T(45.5,22.6,1.45,'STEREO','center',lf);x.textAlign='start';
   if(sheet){const s=Math.max(1,Math.floor(W*.215/32));dieCut(x,sheet,t.t,Math.round(X+28*u-16*s),Math.round(Y+17*u-16*s),s,Math.max(2,Math.round(s*.75)));}}
 window.SB_drawCard=drawCard;window.SB_drawCassette=drawCassette; /* used to make the site's preview image */
+
+
+/* ---------- the stripe across the top ---------- */
+const STRIPE=['#f2e7d0','#e9b44c','#e2734a','#c23b4b','#8a5a3c']; /* cream, gold, orange, red, brown */
+function drawStripe(){const cv=$('stripe');if(!cv||BC)return;
+  const P=4,ST=2,GAP=1,BAND=5*ST+4*GAP,W=document.documentElement.clientWidth,phone=W<=620; /* in 4px cells */
+  const top=document.querySelector('.top').getBoundingClientRect(),sy=window.scrollY,logo=document.querySelector('.brand-logo').getBoundingClientRect(),nav=document.querySelector('.nav').getBoundingClientRect();
+  const word=document.querySelector('.brand-word').getBoundingClientRect(),cw=Math.ceil(W/P),y0=phone?Math.round((top.bottom+sy+4)/P):Math.ceil((word.bottom+sy+12)/P),ch=y0+BAND+1; /* computers: under the name, behind the cat's chin */
+  const xc=phone?cw+99:Math.round((nav.left-28)/P)-BAND-6,rin=6,cy=y0-rin; /* and up before the links */
+  cv.width=cw;cv.height=ch;cv.style.width=cw*P+'px';cv.style.height=ch*P+'px';const x=cv.getContext('2d');
+  const col=d=>{const k=Math.floor(d);if(k<0||k>=BAND)return null;const o=k%(ST+GAP);return o<ST?STRIPE[Math.floor(k/(ST+GAP))]:null;};
+  for(let j=0;j<ch;j++)for(let i=0;i<cw;i++){let c;
+    if(i<xc)c=j>=y0?col(j-y0):null;                         /* the straight run */
+    else if(j>=cy)c=col(Math.hypot(i-xc+.5,j-cy+.5)-rin);   /* the bend */
+    else c=col(i-xc-rin);                                    /* up and off the top */
+    if(c){x.fillStyle=c;x.fillRect(i,j,1,1);}}}
+let stripeT;addEventListener('resize',()=>{clearTimeout(stripeT);stripeT=setTimeout(drawStripe,120);});
+const logoImg=document.querySelector('.brand-logo');if(logoImg.complete)drawStripe();else logoImg.addEventListener('load',drawStripe);
+if(document.fonts)document.fonts.ready.then(drawStripe);
 
 /* ---------- broadcast: just the tape, playing, for recordings ---------- */
 if(BC){document.documentElement.classList.add('broadcast');const t=shared||draft;cur=t;

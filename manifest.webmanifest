@@ -4,8 +4,8 @@
  "description": "Make your own mixtape. A tiny music machine in your browser.",
  "start_url": "/",
  "display": "standalone",
- "background_color": "#15130f",
- "theme_color": "#15130f",
+ "background_color": "#2a1915",
+ "theme_color": "#2a1915",
  "icons": [
   {
    "src": "icons/icon-192.png",

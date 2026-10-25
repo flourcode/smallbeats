@@ -28,13 +28,13 @@ Then open http://localhost:8000. Analytics stays off on localhost. The service w
 | `privacy.html`, `terms.html`, `404.html` | The other pages |
 | `sw.js`, `manifest.webmanifest` | Offline copy and home-screen install |
 | `og.png` | Link preview image, 1200 × 630 |
-| `favicon.ico`, `icons/` | Tab icon, app icons, and `logo-2/3/4/6.png`: the logo tape at 2, 3, 4 and 6 px per pixel |
+| `favicon.ico`, `icons/` | Tab and app icons, and `mark-2/3/4/6.png`: the Small Beats cat at 2, 3, 4 and 6 px per pixel for the header |
 | `fonts/` | Silkscreen (labels and keys), Doto (the display and tape labels), IBM Plex Sans (body), with licenses |
 | `CNAME`, `robots.txt`, `sitemap.xml` | Hosting and search |
 
 ## How it works
 
-**The loop.** 1 PICK A SOUND → 2 MIX IT → NEW TUNE → 3 MAKE IT YOURS (sticker, shell, name) → SAVE TAPE → COPY LINK / SHARE TAPE → they PLAY → REMIX → share again.
+**The loop.** 1 START HERE (pick a sound) → 2 MIX IT → NEW TUNE → 3 MAKE IT YOURS (sticker, shell, name) → SAVE TAPE → COPY LINK / SHARE TAPE → they PLAY → REMIX → share again.
 
 **State.** One draft (the tape you're making), the shelf (saved tapes), and what's in the player: the draft, a shelf tape, or a shared tape opened from a link. Touching any control while a shelf or shared tape is playing turns it into a new draft, a remix, credited "remixed from" its maker (one generation deep). Everything is kept in `localStorage` under `smallBeats`.
 
@@ -42,14 +42,14 @@ Then open http://localhost:8000. Analytics stays off on localhost. The service w
 
 **First visit.** The shelf starts with three tapes, `STARTERS` in `app.js`: GROCERY RUN (house, Rainbow, panda), SIDE QUEST (8-bit, Lavender, wizard), SADURDAY BEATS (lo-fi, Sunset, crying face). They're added once. The player opens on GROCERY RUN.
 
-**Web Audio.** `band(ctx, destination, recipe)` builds one tape's sound and returns `{src, tick(until), bpm}`. The app calls `tick()` every 400 ms to schedule bars about two seconds ahead. Drums are synthesized noise and oscillators, the bass and keys are FM, subtractive and plucked-string (Karplus-Strong) voices, and 8-bit uses pulse waves. The seed picks a key, a mood, chord changes and a hook, and every part follows the same chords, so any combination fits. A lo-fi tape runs through a soft cassette chain (saturation, wow and flutter, a little hiss). Rain, ocean and fire are generated too, with random timing so they never loop. Changing a part rebuilds the band with a short crossfade. Pause suspends the audio context, so the tune picks up where it stopped. On iPhone the audio session is set to playback, so it plays with the ring switch on silent.
+**Web Audio.** `band(ctx, destination, recipe)` builds one tape's sound and returns `{src, tick(until), bpm}`. The app calls `tick()` every 400 ms to schedule bars about two seconds ahead. Drums are synthesized noise and oscillators, the bass and keys are FM, subtractive and plucked-string (Karplus-Strong) voices, and 8-bit uses pulse waves. The seed picks a key, a mood, chord changes and a hook, and every part follows the same chords, so any combination fits. A lo-fi tape runs through a soft cassette chain (saturation, wow and flutter, a little hiss). Hiss (tape noise, a faint hum and the odd tick of dust), rain and fire are generated too, with random timing so they never loop. TIGHT drums play dead straight; SWING leans on the offbeats. Changing a part rebuilds the band with a short crossfade. Pause suspends the audio context, so the tune picks up where it stopped. On iPhone the audio session is set to playback, so it plays with the ring switch on silent.
 
 ## Tape format
 
 A tape link is `https://smallbeats.com/?tape=` + base64url of a JSON array:
 
 ```
-[1, name, shell, drums, bass, keys, atmosphere, speed, sound, seed, sticker, by?, from?]
+[1, name, shell, drums, bass, keys, texture, speed, sound, seed, sticker, by?, from?]
 ```
 
 | Field | Values |
@@ -57,12 +57,12 @@ A tape link is `https://smallbeats.com/?tape=` + base64url of a JSON array:
 | `1` | format version |
 | name | up to 24 characters |
 | shell | 0–13, the cassette look (`SHELLS` in `app.js`; never reorder) |
-| drums | 0 off, or the kit: 1 soft, 2 lo-fi, 3 house, 4 dub |
+| drums | 0 off, 1 tight (straight), 2 swing. The kit comes with the sound: soft for ambient, lo-fi for lo-fi and 8-bit, house, dub |
 | bass | 0 off, 1 warm, 2 deep, 3 synth |
 | keys | 0 off, 1 Rhodes, 2 guitar, 3 pad, 4 8-bit |
-| atmosphere | 0 off, 1 rain, 2 ocean, 3 fire |
-| speed | 0 slow, 1 easy, 2 fast |
-| sound | 0 lo-fi, 1 house, 2 ambient, 3 8-bit, 4 dub (sets groove, tempo and drum kit) |
+| texture | 0 off, 1 rain, 2 hiss, 3 fire (shown as HISS, RAIN, FIRE) |
+| speed | 0 slow, 1 steady, 2 fast |
+| sound | 0 lo-fi, 1 house, 2 ambient, 3 8-bit, 4 dub (sets groove, tempo and drum kit; drums come in SWING for lo-fi, ambient and dub, TIGHT for house and 8-bit) |
 | seed | 1–2147483647, the tune |
 | sticker | 0–249, a sticker id |
 | by, from | optional "mixed by" and "remixed from" names, 24 characters |
@@ -71,7 +71,7 @@ Anything that doesn't decode to this is ignored and the page opens normally. A l
 
 ## Stickers
 
-`stickers.png` is the pack's static sheet: 800 × 320, 25 columns × 10 rows of 32 × 32 (CC0, commercial use, no attribution needed). Each entry in `stickers.js` is `{id, slug, name, category, row, col}`, where `id = row × 25 + col`. That id is what a tape stores, so a sticker must never move to another cell. Each row is a category: smileys, love, sad, angry, shocked, silly, sleepy, characters, animals, symbols. `quick` lists the 15 shown under the tape; the last tile opens all 250 in a tray. Stickers are drawn at whole-number scales only, with `image-rendering: pixelated` and a white die-cut edge. On the cassette the sticker sits between the hubs: 96 px on a computer, 64 px on a phone.
+`stickers.png` is an 800 × 352 sheet, 25 columns × 11 rows of 32 × 32. Rows 0–9 are the sticker pack (CC0, commercial use, no attribution needed). Row 10 is our own: the Small Beats cat (a warm grey tabby in headphones) and three more tabbies, drawn for this site in the pack's style (`TABBIES` in the tray). Each entry in `stickers.js` is `{id, slug, name, category, row, col}`, where `id = row × 25 + col`. That id is what a tape stores, so a sticker must never move to another cell. Each row is a category: smileys, love, sad, angry, shocked, silly, sleepy, characters, animals, symbols, tabbies. `quick` lists the 15 shown under the tape; the last tile opens the rest in a tray. When the sheet changes, bump `stickers.png?v=` everywhere it's referenced. Stickers are drawn at whole-number scales only, with `image-rendering: pixelated` and a white die-cut edge. On the cassette the sticker sits between the hubs: 96 px on a computer, 64 px on a phone.
 
 ## Cassettes
 
@@ -82,7 +82,9 @@ Pixel art on a 56 × 33 grid (`cassPix` in `app.js`): a shell with stepped corne
 - **Computers:** the mixer on the left, the tape bench on the right: tape, name with "mixed by (optional)", SAVE TAPE, then stickers and shells. SAVE TAPE is above the fold on a 1366 × 768 laptop.
 - **Phones:** tape first, a swipeable row of stickers, then the mixer, then name, save and shells.
 
-No keyboard shortcuts, no dialogs, and nothing that stops the music: the sticker tray slides over the page, and YouTube links open in a new tab. Always dark.
+No keyboard shortcuts, no dialogs, and nothing that stops the music: the sticker tray slides over the page, and YouTube links open in a new tab. Always dark: a deep brown (`--bg:#2a1915`) so the tapes pop, with the display kept near-black.
+
+**The stripe.** Five pixel stripes (cream, gold, orange, red, brown; `STRIPE` in `app.js`) drawn in 4 px cells on a canvas by `drawStripe()`. On computers it runs under the name, behind the cat's chin, and bends up before the links; on phones it's one straight band under the header. It redraws on resize and is hidden in broadcast mode.
 
 ## Broadcast mode (YouTube recordings)
 
@@ -97,3 +99,10 @@ GA4 with Consent Mode (ads storage always denied; analytics storage denied in th
 Upload the folder to any static host. `CNAME` is for GitHub Pages. The service worker is network-first, so a deploy shows up on the next visit; change `CACHE` in `sw.js` only if its caching logic changes. When `og.png` changes, bump its `?v=` in `index.html` so social sites refetch it.
 
 Contact: hello@smallbeats.com
+
+## Brand
+
+- **Logo:** the Small Beats cat (a grey tabby in headphones, sticker 250) next to the SMALL BEATS wordmark in Silkscreen. Site header. The cat alone is the favicon, app icon and YouTube avatar.
+- **Brand tape:** the Smoked cassette labelled SMALL BEATS with the cat on it and no "90" (`brand:1` on the tape object hides it). Link preview and YouTube banner.
+- **Colours:** deep brown `#2a1915` and the five-colour stripe. The cat is a warm grey (`#b0a79e`, light `#ded7ce`, shadow `#867c74`) with dark stripes (`#342c2c`).
+- Users' tapes can wear any sticker; the cat is just one of them.

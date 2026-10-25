@@ -1,8 +1,8 @@
-/* Small Beats · stickers. stickers.png is the sticker pack's static sheet: 800 x 320, 25 columns x 10 rows of 32 x 32 px.
-   A sticker's id is its cell on the sheet (row x 25 + col, 0 to 249) and is what a tape stores. Never move a sticker to
-   another cell. Each row is one category. quick: the 15 shown first under the tape (a 16th tile opens the rest). */
+/* Small Beats · stickers. stickers.png is the sticker pack's static sheet: 800 x 352, 25 columns x 11 rows of 32 x 32 px.
+   A sticker's id is its cell on the sheet (row x 25 + col) and is what a tape stores. Never move a sticker to
+   another cell. Each row is one category. Row 10 is our own: the Small Beats cat (a warm grey tabby in headphones) and three more tabbies, drawn for this site. quick: the 15 shown first under the tape (a 16th tile opens the rest). */
 window.STICKERS={
-  categories:[{"id":"smileys","name":"SMILEYS"},{"id":"love","name":"LOVE"},{"id":"sad","name":"SAD"},{"id":"angry","name":"ANGRY"},{"id":"shocked","name":"SHOCKED"},{"id":"silly","name":"SILLY"},{"id":"sleepy","name":"SLEEPY"},{"id":"characters","name":"CHARACTERS"},{"id":"animals","name":"ANIMALS"},{"id":"symbols","name":"SYMBOLS"}],
+  categories:[{"id":"smileys","name":"SMILEYS"},{"id":"love","name":"LOVE"},{"id":"sad","name":"SAD"},{"id":"angry","name":"ANGRY"},{"id":"shocked","name":"SHOCKED"},{"id":"silly","name":"SILLY"},{"id":"sleepy","name":"SLEEPY"},{"id":"characters","name":"CHARACTERS"},{"id":"animals","name":"ANIMALS"},{"id":"symbols","name":"SYMBOLS"},{"id":"tabbies","name":"TABBIES"}],
   quick:[175,9,25,126,150,56,100,125,225,236,237,241,247,200,214,186],
   list:[
     {"id":0,"slug":"big_grin","name":"Big grin","category":"smileys","row":0,"col":0},
@@ -254,5 +254,9 @@ window.STICKERS={
     {"id":246,"slug":"exclamation","name":"Exclamation","category":"symbols","row":9,"col":21},
     {"id":247,"slug":"music_notes","name":"Music notes","category":"symbols","row":9,"col":22},
     {"id":248,"slug":"zzz","name":"Zzz","category":"symbols","row":9,"col":23},
-    {"id":249,"slug":"speech_bubble","name":"Speech bubble","category":"symbols","row":9,"col":24}
+    {"id":249,"slug":"speech_bubble","name":"Speech bubble","category":"symbols","row":9,"col":24},
+    {"id":250,"slug":"tabby_headphones","name":"Small Beats cat","category":"tabbies","row":10,"col":0},
+    {"id":251,"slug":"tabby","name":"Tabby cat","category":"tabbies","row":10,"col":1},
+    {"id":252,"slug":"happy_tabby","name":"Happy tabby","category":"tabbies","row":10,"col":2},
+    {"id":253,"slug":"sleepy_tabby","name":"Sleepy tabby","category":"tabbies","row":10,"col":3}
   ]};

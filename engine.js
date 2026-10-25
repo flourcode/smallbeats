@@ -1,21 +1,21 @@
 /* Small Beats · the music engine.
    Everything you hear is synthesized here with Web Audio while it plays: drums, bass, keys, the hook, and the
-   rain, ocean or fire outside. Nothing is a recording.
+   tape hiss, rain or fire underneath. Nothing is a recording.
    band(audioContext, destination, recipe) returns {src, tick(until), bpm, ...}. Call tick() a few seconds ahead of
    the audio clock; it schedules bars up to that time.
    A recipe (see README, "Tape format"):
      s  starting sound   0 lo-fi, 1 house, 2 ambient, 3 8-bit, 4 dub (sets the groove, tempo and drum kit)
-     d  drums            0 off, else the kit: 1 soft, 2 lo-fi, 3 house, 4 dub
+     d  drums            0 off, 1 tight (straight), 2 swing
      b  bass             0 off, 1 warm, 2 deep, 3 synth
      k  keys             0 off, 1 Rhodes, 2 guitar, 3 pad, 4 8-bit
-     w  atmosphere       0 off, 1 rain, 2 ocean, 3 fire
-     p  speed            0 slow, 1 easy, 2 fast
+     w  texture          0 off, 1 rain, 2 hiss, 3 fire
+     p  speed            0 slow, 1 steady, 2 fast
      r  seed             picks the key, the mood, the chord changes and the hook */
 (function(){
 "use strict";
 const SB=window.SBE={};
 const clampInt=(v,lo,hi,d)=>{v=Math.round(+v);return Number.isFinite(v)?Math.max(lo,Math.min(hi,v)):d;};
-function normT(t){t=t||{};return {d:clampInt(t.d,0,4,1),b:clampInt(t.b,0,3,0),k:clampInt(t.k,0,4,1),w:clampInt(t.w,0,3,0),p:clampInt(t.p,0,2,1),s:clampInt(t.s,0,4,0),r:clampInt(t.r,1,2147483647,1)};}
+function normT(t){t=t||{};return {d:clampInt(t.d,0,2,1),b:clampInt(t.b,0,3,0),k:clampInt(t.k,0,4,1),w:clampInt(t.w,0,3,0),p:clampInt(t.p,0,2,1),s:clampInt(t.s,0,4,0),r:clampInt(t.r,1,2147483647,1)};}
 function makeNoise(a,sec,kind){const n=Math.round(a.sampleRate*sec),b=a.createBuffer(2,n,a.sampleRate);
   for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);let last=0;for(let i=0;i<n;i++){const w=Math.random()*2-1;if(kind==='brown'){last=(last+.02*w)/1.02;d[i]=last*3.5;}else d[i]=w;}
     if(kind==='brown'){const s=d[0],e=d[n-1];for(let i=0;i<n;i++)d[i]-=s+(e-s)*i/(n-1);}} /* ends meet, so the loop never clicks */
@@ -34,18 +34,15 @@ const SOUNDS={
       while(tn<until){tap(tn,rnd(.02,.045));if(Math.random()<.25)tap(tn+rnd(.04,.09),rnd(.012,.03));tn+=-Math.log(1-Math.random())/3.6;}
       while(pn<until){const o=a.createOscillator(),g=a.createGain(),f=rnd(1500,2600);o.frequency.setValueAtTime(f,pn);o.frequency.exponentialRampToValueAtTime(f*.7,pn+.08); /* a droplet */
         g.gain.setValueAtTime(0,pn);g.gain.linearRampToValueAtTime(.006,pn+.004);g.gain.exponentialRampToValueAtTime(.0001,pn+.12);o.connect(g).connect(dest);o.start(pn);o.stop(pn+.14);pn+=rnd(3,8);}}};}, /* a few taps a second, at random */
-  /* ocean: slow swells. A wave every ten seconds or so; each one rises gently, softly breaks and takes its time draining back */
-  ocean:(a,dest)=>{const white=makeNoise(a,9,'white');let tn=a.currentTime+.5,sea=rnd(.55,.75);
-    const bed=a.createBufferSource();bed.buffer=makeNoise(a,9,'brown');bed.loop=true;const bl=a.createBiquadFilter();bl.type='lowpass';bl.frequency.value=240;const bg=a.createGain();bg.gain.value=.17;bed.connect(bl).connect(bg).connect(dest);bed.start(); /* the far-off surf underneath */
-    const wave=(t0,size)=>{const rise=rnd(4,6.5),fall=rnd(7,11),peak=.24+.3*size;
-      const src=a.createBufferSource();src.buffer=white;const lp=a.createBiquadFilter();lp.type='lowpass';lp.Q.value=.3;const g=a.createGain();const pan=a.createStereoPanner?a.createStereoPanner():null;
-      lp.frequency.setValueAtTime(170,t0);lp.frequency.exponentialRampToValueAtTime(550+1300*size,t0+rise);lp.frequency.setTargetAtTime(220,t0+rise,fall/2.5);
-      g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(peak*.5,t0+rise*.7);g.gain.linearRampToValueAtTime(peak,t0+rise);g.gain.setTargetAtTime(0,t0+rise,fall/3.2);
-      let n=src.connect(lp).connect(g);if(pan){pan.pan.value=rnd(-.25,.25);n=n.connect(pan);}n.connect(dest);src.start(t0,rnd(0,2),rise+fall*1.7);
-      if(size>.6){const f=a.createBufferSource();f.buffer=white;const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=rnd(2400,3200);const fg=a.createGain(),fl=rnd(2,3.5); /* a hush of foam on the bigger ones */
-        fg.gain.setValueAtTime(0,t0+rise*.8);fg.gain.linearRampToValueAtTime(.02+.035*size,t0+rise+.4);fg.gain.setTargetAtTime(0,t0+rise+.4,fl/3);f.connect(hp).connect(fg).connect(dest);f.start(t0+rise*.8,rnd(0,4),fl+1.5);}
-      return rise+fall;};
-    return {src:[bed],tick(until){while(tn<until){sea=Math.min(.9,Math.max(.4,sea+rnd(-.06,.06)));const size=Math.min(1,sea*rnd(.75,1.15));tn+=wave(tn,size)*rnd(.62,.85);}}};},
+  /* hiss: the cassette itself. A soft, slightly wavering bed of tape noise with the highs rolled off, a faint mains hum
+     and, now and then, a tiny tick of dust on the heads */
+  hiss:(a,dest)=>{const white=makeNoise(a,7,'white'),s=a.createBufferSource();s.buffer=white;s.loop=true;const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=900;
+    const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=7000;lp.Q.value=.5;const bed=a.createGain();bed.gain.value=.06;s.connect(hp).connect(lp).connect(bed).connect(dest);s.start();
+    const hum=a.createOscillator();hum.frequency.value=60;const hg=a.createGain();hg.gain.value=.0035;hum.connect(hg).connect(dest);hum.start();
+    let tn=a.currentTime+rnd(.5,2);const sway={t:a.currentTime};
+    return {src:[s,hum],tick(until){swayGain(a,bed,.06,.12,until,sway);
+      while(tn<until){const c=a.createBufferSource();c.buffer=white;const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=rnd(2500,5000);f.Q.value=1.5;const cg=a.createGain(),len=rnd(.004,.01);
+        cg.gain.setValueAtTime(0,tn);cg.gain.linearRampToValueAtTime(rnd(.015,.035),tn+.001);cg.gain.exponentialRampToValueAtTime(.0001,tn+len);c.connect(f).connect(cg).connect(dest);c.start(tn,rnd(0,6),len+.02);tn+=-Math.log(1-Math.random())/.7;}}};},
   /* fireplace: a low, slowly flickering roar, a faint hiss and a sparse scatter of small, soft crackles; the odd pop is muffled */
   fire:(a,dest)=>{const white=makeNoise(a,6,'white');const s=a.createBufferSource();s.buffer=makeNoise(a,8,'brown');s.loop=true;const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=360;const roar=a.createGain();roar.gain.value=.5;s.connect(lp).connect(roar).connect(dest);s.start();
     const w=a.createBufferSource();w.buffer=white;w.loop=true;const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=2400;bp.Q.value=.6;const hiss=a.createGain();hiss.gain.value=.01;w.connect(bp).connect(hiss).connect(dest);w.start();
@@ -93,7 +90,7 @@ function pulseWave(a,duty){a.__pw=a.__pw||{};if(a.__pw[duty])return a.__pw[duty]
   for(let i=1;i<n;i++)re[i]=2/(i*Math.PI)*Math.sin(i*Math.PI*duty);return a.__pw[duty]=a.createPeriodicWave(re,im);}
 let SATC=null;
 function band(a,dest,tp0){const tp=normT(tp0);
-  const D=tp.d,BS=tp.b,KO=tp.k===0,K=tp.k-1,G=tp.p,chip=tp.s===3,DT=D===0?[2,3,0,2,4][tp.s]:D,ambient=DT===0; /* DT: the groove the start sound sets. Take the drums out and the tempo and feel stay */
+  const D=tp.d?[2,3,1,2,4][tp.s]:0,FEEL=tp.d,BS=tp.b,KO=tp.k===0,K=tp.k-1,G=tp.p,chip=tp.s===3,DT=D===0?[2,3,0,2,4][tp.s]:D,ambient=DT===0; /* DT: the groove the start sound sets. Take the drums out and the tempo and feel stay */
   /* K: 0 Rhodes, 1 guitar, 2 pad, 3 8-bit. The starting sound alone sets the groove, the tempo and (for 8-bit) the chip
      drum kit. DT is that groove: take the drums out and the tempo and feel stay. */
   /* the feel every part plays in: 0 free (no drums), 2 lo-fi (soft drums too), 3 house */
@@ -101,7 +98,7 @@ function band(a,dest,tp0){const tp=normT(tp0);
   /* the name picks the key, the mood, the changes and the hook */
   const SEEDSTR='seed:'+tp.r,RN=seeded(SEEDSTR); /* the tape's seed */const kpc=Math.floor(RN()*12),hook=makeHook(RN),M=Math.floor(RN()*3),pa=Math.floor(RN()*1e6),pb=Math.floor(RN()*1e6);
   const [scName,progStr]=HARMONY[M],SC=SCALE[scName],progs=progStr.map(parseProg),progA=progs[pa%progs.length],progB=progs.length>1?progs[(pa%progs.length+1+pb%(progs.length-1))%progs.length]:progA;
-  const bpm=TEMPO[DT][G]*(chip&&D<3?1.22:1),beat=60/bpm,step=beat/4,barDur=16*step,swing=SWING[DT][G]*(chip?.4:1),bpc=ambient&&G<2?2:1,bright=[1,.85,.72][M],low=0;
+  const bpm=TEMPO[DT][G]*(chip&&D<3?1.22:1),beat=60/bpm,step=beat/4,barDur=16*step,swing=D?(FEEL===1?0:Math.max(SWING[DT][G]*(chip?.4:1),.14)):SWING[DT][G]*(chip?.4:1), /* D: the sound's own kit (1 soft, 2 lo-fi, 3 house, 4 dub). TIGHT plays dead straight; SWING leans on the offbeats */bpc=ambient&&G<2?2:1,bright=[1,.85,.72][M],low=0;
   const white=makeNoise(a,3,'white'),srcs=[];
   /* signal chain: parts -> (pump) -> drive -> recording filters -> out; room and echo are recorded with the parts */
   const bq=(type,f,q)=>{const b=a.createBiquadFilter();b.type=type;b.frequency.value=f;if(q!=null)b.Q.value=q;return b;};
@@ -124,7 +121,7 @@ function band(a,dest,tp0){const tp=normT(tp0);
   const epBus=a.createGain();epBus.gain.value=1;tremG.connect(epBus.gain);epBus.connect(inG); /* the electric piano's tremolo, once for all its notes */
   /* atmosphere happens in your room, not on the tape */
   const layers=[];const lay=(id,g)=>{const lg=a.createGain();lg.gain.value=g*.63/TAPE_LEVEL;lg.connect(dest);const l=SOUNDS[id](a,lg);srcs.push(...l.src);layers.push(l);};
-  if(tp.w===1)lay('rain',.5);if(tp.w===2)lay('ocean',.45);if(tp.w===3)lay('fire',.35);
+  if(tp.w===1)lay('rain',.5);if(tp.w===2)lay('hiss',.5);if(tp.w===3)lay('fire',.35);
   /* helpers */
   const now0=()=>a.currentTime;const loose=(t,lo,hi)=>Math.max(now0(),t+rnd(lo,hi));
   const out=(node,pan,rv,dl,to)=>{let n=node;if(a.createStereoPanner&&pan){const p=a.createStereoPanner();p.pan.value=pan;n.connect(p);n=p;}n.connect(to||inG);
