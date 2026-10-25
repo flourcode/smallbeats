@@ -26,7 +26,8 @@ a{color:var(--amber)}
 /* ---- header ---- */
 .top{display:flex;align-items:center;justify-content:space-between;gap:4px 12px;max-width:1180px;margin:0 auto;padding:10px var(--gut);flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:8px;color:var(--cream);text-decoration:none;font:700 20px/1 Silk;letter-spacing:1px}
-.brand-mark{width:42px;height:26px;display:block;flex:0 0 auto;background:url(icons/mark.png) 0 0/42px 26px no-repeat;image-rendering:pixelated} /* the Rainbow tape, 21 x 13 pixels at 2x */
+.brand-logo{display:block;width:168px;height:99px;image-rendering:pixelated} /* the logo tape: Rainbow, SMALL BEATS, the wizard; drawn at whole-pixel sizes */
+@media (max-width:620px){.brand-logo{width:112px;height:66px}}
 .nav{display:flex;gap:4px 18px;flex-wrap:wrap}
 .nav a{color:var(--muted);text-decoration:none;font:700 13px/1 Silk;letter-spacing:1px;padding:10px 2px}
 .nav a:hover{color:var(--cream)}
@@ -244,3 +245,4 @@ a{color:var(--amber)}
 #tapeName.rolled{animation:rolled .6s steps(3,end)}
 @keyframes rolled{0%{background:var(--yellow)}100%{background:var(--cream)}}
 @media (prefers-reduced-motion:reduce){#tapeName.rolled{animation:none}}
+@media (max-width:620px){.top{flex-wrap:nowrap}.nav{gap:4px 14px;justify-content:flex-end}.nav a[href="#make"],.nav a[href="/#make"]{display:none}.nav a{font-size:12px}} /* phones: logo and links on one line */

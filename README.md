@@ -17,7 +17,8 @@ A static site: no server, no build step, no accounts. Upload the folder as is.
 | `analytics.js` | Google Analytics 4 (`G-QY4M7NZD76`). Empty the ID to switch it off |
 | `privacy.html`, `terms.html`, `404.html` | The other pages |
 | `sw.js`, `manifest.webmanifest`, `icons/` | Offline copy and home-screen install |
-| `og.png` | The link preview image (1200 × 630) |
+| `og.png` | The link preview image (1200 × 630): MAKE YOUR OWN MIXTAPE. and the logo tape in front of two others |
+| `icons/logo-*.png` | The logo: the Smoked tape labelled SMALL BEATS with the wizard sticker, at cell sizes 2, 3, 4 and 6 px (the header uses 3 on computers and 2 on phones, with the double size for sharp screens). `mark.png` is the tiny hand-drawn version for the browser tab |
 | `CNAME` | `smallbeats.com` (for GitHub Pages) |
 
 ## The loop
@@ -36,11 +37,11 @@ PICK → MIX → NEW TUNE → STICKER → NAME → SAVE → COPY LINK → (they)
 - **A tape in the mail** (`?tape=…`): the cassette, PLAY, REMIX THIS TAPE, and "keep it on my shelf". Touching any control while someone else's tape (or one from your shelf) is in the deck turns it into a remix: same recipe, credited "remixed from" its maker. Lineage is one generation deep.
 - The display shows SIDE A, the start sound, a tape counter and the tape name. The little level meter only lights while music is playing.
 
-A first visit opens on **GROCERY RUN**: HOUSE with house drums, synth bass and pad at the easy speed, the Rainbow cassette and the unicorn sticker (`FIRST_TAPE` in `app.js`). After that, the page reopens on whatever you were last working on.
+A first visit opens on **GROCERY RUN**: HOUSE with house drums, warm bass and pad at the easy speed, the Rainbow cassette and the panda sticker (`FIRST_TAPE` in `app.js`). After that, the page reopens on whatever you were last working on.
 
 ## First visit
 
-The shelf starts with three tapes: GROCERY RUN (house, Rainbow, unicorn), SADURDAY BEATS (lo-fi, Sunset, crying face) and SIDE QUEST (8-bit, Lavender, wizard), as `STARTERS` in `app.js`. They're added once; throw one out and it stays gone. The deck opens on GROCERY RUN.
+The shelf starts with three tapes: GROCERY RUN (house, warm bass, pad, Rainbow, panda), SIDE QUEST (8-bit, Lavender, wizard) and SADURDAY BEATS (lo-fi, Sunset, crying face), as `STARTERS` in `app.js`. They're added once; throw one out and it stays gone. The deck opens on GROCERY RUN.
 
 ## Names
 

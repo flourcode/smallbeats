@@ -3,7 +3,7 @@
    Updates need no version bump: every request goes to the network first (revalidating, not trusting the HTTP cache), so
    anyone online gets exactly what's deployed, and the offline copy refreshes as they go. The cache is only used offline. */
 const CACHE = 'smallbeats-v1';
-const SHELL = ['./', './index.html', './privacy.html', './terms.html', './404.html', './app.css', './app.js', './engine.js', './stickers.js', './stickers.png', './analytics.js', './fonts/silkscreen-400.woff2', './fonts/doto-900.woff2', './fonts/doto-700.woff2', './fonts/plex-400.woff2', './fonts/plex-600.woff2', './manifest.webmanifest', './icons/mark.png', './icons/icon-192.png', './icons/icon-512.png', './icons/favicon-32.png', './icons/apple-touch-icon.png'];
+const SHELL = ['./', './index.html', './privacy.html', './terms.html', './404.html', './app.css', './app.js', './engine.js', './stickers.js', './stickers.png', './analytics.js', './fonts/silkscreen-400.woff2', './fonts/doto-900.woff2', './fonts/doto-700.woff2', './fonts/plex-400.woff2', './fonts/plex-600.woff2', './manifest.webmanifest', './icons/mark.png', './icons/logo-2.png', './icons/logo-3.png', './icons/logo-4.png', './icons/logo-6.png', './icons/icon-192.png', './icons/icon-512.png', './icons/favicon-32.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });

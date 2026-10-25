@@ -77,11 +77,11 @@ let S={vol:.8,by:'',tapes:[],draft:null};
 try{const v=JSON.parse(localStorage.getItem(STORE)||'null');if(v&&typeof v==='object')Object.assign(S,v);}catch(e){}
 S.tapes=(Array.isArray(S.tapes)?S.tapes:[]).map(cleanTape).filter(Boolean).slice(0,60);
 const STARTERS=[ /* three tapes already on the shelf on a first visit, so the shelf, PLAY, REMIX and COPY LINK explain themselves */
-  {id:'grocery',n:'GROCERY RUN',c:9,d:3,b:3,k:3,w:0,p:1,s:1,r:1422687053,t:224,i:1},
-  {id:'sadurday',n:'SADURDAY BEATS',c:4,d:2,b:1,k:1,w:0,p:1,s:0,r:1469865583,t:56,i:1},
-  {id:'sidequest',n:'SIDE QUEST',c:5,d:2,b:1,k:4,w:0,p:1,s:3,r:1469865583,t:196,i:1}];
+  {id:'grocery',n:'GROCERY RUN',c:9,d:3,b:1,k:3,w:0,p:1,s:1,r:1422687053,t:214,i:1},
+  {id:'sidequest',n:'SIDE QUEST',c:5,d:2,b:1,k:4,w:0,p:1,s:3,r:1469865583,t:196,i:1},
+  {id:'sadurday',n:'SADURDAY BEATS',c:4,d:2,b:1,k:1,w:0,p:1,s:0,r:1469865583,t:56,i:1}];
 if(!S.seeded&&!BC){S.tapes=STARTERS.map(cleanTape).concat(S.tapes).slice(0,60);S.seeded=1;} /* once: throw them out and they stay gone */
-const FIRST_TAPE=STARTERS[0]; /* what a first visit opens on: house, synth bass, pad, the rainbow tape, the unicorn */
+const FIRST_TAPE=STARTERS[0]; /* what a first visit opens on: house, warm bass, pad, the rainbow tape, the panda */
 let draft=cleanTape(S.draft)||cleanTape(FIRST_TAPE);delete draft.id;
 function save(){if(BC)return;S.draft=draft;try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
 let mail=null;{const c=Q.get('tape');if(c)mail=decodeTape(c);}
