@@ -91,7 +91,7 @@ Per-tape link previews would need a server. Every link shows `og.png` for now; S
 - Point smallbeats.com at the host (the `CNAME` file is for GitHub Pages).
 - Set up `hello@smallbeats.com`; it's in the about section, the footer and the legal pages.
 - In Google Analytics, add a web data stream for smallbeats.com (or a new property, and change the ID in `analytics.js`).
-- YouTube links point to `@catnip_fm`. Change the handle in YouTube Studio, then search and replace `@catnip_fm`.
+- YouTube: `https://www.youtube.com/@smallbeatsfm`, linked in the header, the about section and every footer (new tab, so the music keeps playing), and as `sameAs` in the home page's structured data. Channel art is in the `youtube/` folder of the brand pack.
 
 ## Credits
 
