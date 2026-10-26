@@ -104,13 +104,17 @@ function counterMs(){return heard+(isPlaying()&&runFrom?performance.now()-runFro
 function pause(){if(!isPlaying())return;track('pause',{},true);heard+=performance.now()-runFrom;runFrom=0;actx.suspend().then(paintPlay,paintPlay);}
 function resume(){if(!isPaused())return;actx.resume().then(()=>{runFrom=performance.now();paintPlay();},paintPlay);}
 function start(t,xf){const a=ensureAudio();stopGen(xf||.12);const g=a.createGain();g.gain.value=0;g.connect(master); /* xf: a longer crossfade, between tapes on the shelf */
-  const b=E.band(a,g,t);const now=a.currentTime;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+(xf||.25));
+  VIS.hits=[];VIS.hops=[];VIS.bars=[];const b=E.band(a,g,Object.assign({},t,{onHit:noteHit}));VIS.step=b.step;const now=a.currentTime;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+(xf||.25));
   b.tick(now+2.2);const timer=setInterval(()=>b.tick(a.currentTime+2.2),400);
   if(!runFrom)runFrom=performance.now();gen={b,g,timer,tape:t};paintPlay();}
 function stopGen(fade){if(!gen)return;const g=gen;gen=null;clearInterval(g.timer);try{const n=actx.currentTime;g.g.gain.cancelScheduledValues(n);g.g.gain.setValueAtTime(g.g.gain.value,n);g.g.gain.linearRampToValueAtTime(0,n+(fade||.4));
     setTimeout(()=>{g.b.src.forEach(s=>{try{s.stop();}catch(e){}});g.g.disconnect();},(fade||.4)*1000+150);}catch(e){}}
 function stop(){if(runFrom){heard+=performance.now()-runFrom;runFrom=0;}stopGen(.4);paintPlay();}
 function play(t){PL=null;start(t||cur);track('play');}
+/* what the visuals know about the music: note hits (for the step lights), and beats 1 and 3 (for the sticker hop) */
+const VIS={hits:[],hops:[],bars:[],step:.125};
+function noteHit(p,t){if(p==='bar'){VIS.hops.push(t,t+8*VIS.step);if(BC)VIS.bars.push(t);}else if(BC)VIS.hits.push([p,t]);}
+const calm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* playing the whole shelf: each tape for a few minutes, then a slow crossfade into the next */
 let PL=null;const PL_SEC=180;
 let restartT=null;function restart(){if(!isPlaying())return;clearTimeout(restartT);restartT=setTimeout(()=>start(cur),40);} /* a burst of taps rebuilds once */
@@ -144,9 +148,9 @@ function cassPix(t,phase){const cells=new Array(CW*CH2);const P=(x,y,v)=>{if(x>=
   if(art==='pinkband'){R(5,13,46,8,'#f2a3c4');}
   /* the window: smoky plastic with the two tape packs and their hubs, closer in, the way a real cassette's are */
   const WX=12,WY=13,WW=32,WH=9;RB(WX,WY,WW,WH,K,1);RB(WX+1,WY+1,WW-2,WH-2,'#4a4550',1);R(WX+2,WY+1,WW-4,1,'#5c5763');
-  const disk=(cx,cy,r,v)=>{for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++)if(dx*dx+dy*dy<=r*r+r*.6)P(cx+dx,cy+dy,v);};
+  const disk=(cx,cy,r,v)=>{const n=Math.ceil(r);for(let dy=-n;dy<=n;dy++)for(let dx=-n;dx<=n;dx++)if(dx*dx+dy*dy<=r*r+r*.6)P(cx+dx,cy+dy,v);};
   const HY=WY+4,HL=WX+6,HR=WX+WW-7;
-  disk(HL,HY,3,'#6b4630');disk(HR,HY,2,'#6b4630');R(HL,HY+3,HR-HL,1,'#6b4630');               /* the tape: more wound on the left */
+  const pr=Math.max(0,Math.min(1,t._prog||0));disk(HL,HY,3-pr,'#6b4630');disk(HR,HY,2+pr,'#6b4630'); /* as it plays the tape winds from left to right */R(HL,HY+3,HR-HL,1,'#6b4630');               /* the tape: more wound on the left */
   const hub=cx=>{disk(cx,HY,2,'#f1e7cf');P(cx,HY,K);const a=phase*Math.PI/6;
     for(let k=0;k<3;k++){const th=a+k*2*Math.PI/3;P(cx+Math.round(Math.cos(th)*1.6),HY+Math.round(Math.sin(th)*1.6),K);}}; /* three teeth that step round while it plays */
   hub(HL);hub(HR);
@@ -159,14 +163,14 @@ const escX=v=>String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt
 function cassSVG(t,phase,noName){const {cells,sh}=cassPix(t,phase);let o='';
   for(let y=0;y<CH2;y++){let x=0;while(x<CW){const v=cells[y*CW+x];if(!v){x++;continue;}let w=1;while(x+w<CW&&cells[y*CW+x+w]===v)w++;o+=`<rect x="${x}" y="${y}" width="${w+.02}" height="1.02" fill="${v}"/>`;x+=w;}} /* runs, not single cells */
   const nm=escX(t.n.toUpperCase()),K=sh.ink,tx=(x,y,sz,v,anc,fill)=>`<text x="${x}" y="${y}" text-anchor="${anc||'middle'}" font-family="Doto,monospace" font-weight="900" font-size="${sz}" fill="${fill||K}">${v}</text>`;let deco='';
-  if(nm.length<=14){if(sh.side)deco+=`<rect x="6.3" y="5.2" width="3.4" height="3.6" fill="none" stroke="${sh.acc}" stroke-width=".45"/>`+tx(8,8.2,2.9,sh.side,'middle',sh.acc);if(sh.len&&!t.brand)deco+=tx(49.6,8.4,3.4,sh.len,'end',sh.acc);}
-  deco+=tx(10,22.6,1.45,sh.art==='sound'?'SOUND':'SIDE '+(sh.side||'A'),'middle',sh.art==='split'?'#ffffff':K)+tx(45.5,22.6,1.45,'STEREO','middle',sh.art==='split'?'#ffffff':K);
+  if(nm.length<=14){if(sh.side)deco+=`<rect x="6.3" y="5.2" width="3.4" height="3.6" fill="none" stroke="${sh.acc}" stroke-width=".45"/>`+tx(8,8.2,2.9,t._side||sh.side,'middle',sh.acc);if(sh.len&&!t.brand)deco+=tx(49.6,8.4,3.4,sh.len,'end',sh.acc);}
+  deco+=tx(10,22.6,1.45,sh.art==='sound'?'SOUND':'SIDE '+(t._side||sh.side||'A'),'middle',sh.art==='split'?'#ffffff':K)+tx(45.5,22.6,1.45,'STEREO','middle',sh.art==='split'?'#ffffff':K);
   deco+=tx(4.4,32.3,1.3,serial(t),'start',sh.clear?sh.hi:'#a8a49a');
   return `<svg viewBox="0 0 ${CW} ${CH2}" aria-hidden="true"><g shape-rendering="crispEdges">${o}</g>${noName?'':tx(28,8.6,nm.length>16?3.1:3.8,nm)}${deco}</svg>`;}
 const cassRO=window.ResizeObserver?new ResizeObserver(es=>{for(const e of es)sizeStk(e.target);}):null;
 const stkScale=w=>Math.max(1,Math.floor(w*.215/32)); /* as big as fits between the hubs at a whole-number scale: 96 px on a computer, 64 on a phone */
 function sizeStk(el){const w=el.clientWidth;if(!w)return;const cell=w/CW,fixed=el.dataset.scale?+el.dataset.scale:0,s=fixed||stkScale(w); /* a sticker, not cover art */
-  const k=el.querySelector('.stk');if(!k)return;if(+k.dataset.s!==s){k.dataset.s=s;paintStk(k,+k.dataset.id,s);}k.style.left=Math.round(28*cell-16*s)+'px';k.style.top=Math.round(17*cell-16*s)+'px';}
+  const k=el.querySelector('.stk');if(!k)return;if(+k.dataset.s!==s){k.dataset.s=s;paintStk(k,+k.dataset.id,s);k.style.setProperty('--s',s);}k.style.left=Math.round(28*cell-16*s)+'px';k.style.top=Math.round(17*cell-16*s)+'px';}
 function cassette(t){const el=document.createElement('div');el.className='cass';el.innerHTML='<div class="cass-svg"></div><i class="stk stuck" aria-hidden="true"></i>';fillCass(el,t);if(cassRO)cassRO.observe(el);return el;}
 function fillCass(el,t){el._t=t;el.querySelector('.cass-svg').innerHTML=cassSVG(t,el._ph||0,!!el._edit);if(el._edit){const sh=SHELLS[t.c]||SHELLS[0],inp=el._edit;inp.style.color=sh.ink;inp.style.fontSize=(t.n.length>16?5.5:6.79)+'cqw';if(document.activeElement!==inp)inp.value=t.n;}const k=el.querySelector('.stk');k.dataset.id=t.t;k.dataset.s='';sizeStk(el);if(!k.dataset.s)paintStk(k,t.t,2);
   el.setAttribute('role','img');el.setAttribute('aria-label','Cassette: '+t.n+', with a '+ST.list[t.t].name.toLowerCase()+' sticker'+(t.by?', mixed by '+t.by:''));}
@@ -378,9 +382,19 @@ if(shared&&!BC){$('shared').hidden=false;sharedCass=cassette(shared);$('sharedWr
   if(findTape(shared.id||''))kept();
   cur=shared;$('hero').hidden=true;}
 
+/* ---------- cats blink ---------- */
+if(!calm&&ST.blink)setInterval(()=>{const now=performance.now();document.querySelectorAll('.cass .stk.stuck').forEach(k=>{const id=+k.dataset.id,b=ST.blink[id];if(b===undefined)return;
+  if(!k._blink)k._blink=now+3000+Math.random()*5000;if(now<k._blink)return;k._blink=now+5000+Math.random()*3000;
+  const sc=+k.dataset.s||2;paintStk(k,b,sc);setTimeout(()=>{if(+k.dataset.id===id)paintStk(k,id,+k.dataset.s||sc);},150);});},250);
+/* a sticker squashes when you pick it */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.sbtn');if(!b||calm)return;const k=b.querySelector('.stk');if(!k)return;k.classList.remove('squish');void k.offsetWidth;k.classList.add('squish');});
+
 /* ---------- the display: a tape counter and a little level meter, in dots ---------- */
 const vu=$('vu'),vx=vu.getContext('2d');let fbuf=null;
 function frame(){requestAnimationFrame(frame);
+  if(actx){const now=actx.currentTime;let hop=false;while(VIS.hops.length&&VIS.hops[0]<=now){VIS.hops.shift();hop=true;}
+    if(hop&&isPlaying()&&!calm)document.querySelectorAll('.cass.playing .stk.stuck').forEach(k=>{k.classList.remove('hop');void k.offsetWidth;k.classList.add('hop');});} /* the sticker hops on beats 1 and 3 */
+  if(BC)bcFrame();
   if(PL&&isPlaying()&&actx.currentTime>=PL.until)nextOnShelf();
   const on=isPlaying();$('vfdCount').textContent=String(Math.floor(counterMs()/1000)%1000).padStart(3,'0');
   const W=vu.width,H=vu.height,n=20;vx.clearRect(0,0,W,H);
@@ -391,7 +405,7 @@ requestAnimationFrame(frame);
 
 /* ---------- share picture: the cassette on a card, 1200 x 630 ---------- */
 function loadImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src;});}
-async function shareCard(t){await document.fonts.ready;const sheet=await loadImg('stickers.png?v=5');const c=document.createElement('canvas');c.width=1200;c.height=630;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
+async function shareCard(t){await document.fonts.ready;const sheet=await loadImg('stickers.png?v=6');const c=document.createElement('canvas');c.width=1200;c.height=630;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
   drawCard(x,t,sheet);return new Promise(r=>c.toBlob(r,'image/png'));}
 function dieCut(x,sheet,id,dx,dy,s,edge){ /* the sticker with a white die-cut edge, as on the cassette */
   const sx=(id%25)*32,sy=Math.floor(id/25)*32,o=document.createElement('canvas');o.width=o.height=32*s+2*edge;const ox=o.getContext('2d');ox.imageSmoothingEnabled=false;
@@ -438,12 +452,85 @@ const logoImg=document.querySelector('.brand-logo');if(logoImg.complete)drawStri
 if(document.fonts)document.fonts.ready.then(drawStripe);
 
 /* ---------- broadcast: just the tape, playing, for recordings ---------- */
-if(BC){document.documentElement.classList.add('broadcast');const t=shared||draft;cur=t;
-  
-  const site=document.createElement('p');site.className='bc-site';site.textContent='SMALLBEATS.COM';document.body.appendChild(site);
+/* Broadcast mode, for recordings and streams (the Studio, /studio.html, builds these addresses):
+   ?broadcast=video&tape=…[&tape=…] plays one tape, or several in turn, EACH minutes apiece (default 10) with a slow
+   crossfade, round and round; &shuffle=1 mixes up the order; &vol=0.8 sets the volume; &ask=0 never asks for tape links.
+   Made to be left on for hours and glanced at: the cassette winds its tape across and turns over to the other side
+   each turn, an LED meter and a row of drum-machine step lights follow the music, the tape's texture drifts across the
+   background (rain, embers, hiss), MIXED BY credits come and go, the next tape is announced, the light warms and dims
+   very slowly over two hours, and everything shifts a few pixels now and then so nothing burns into a screen. */
+let BQ=null,bcFrame=()=>{};
+if(BC){document.documentElement.classList.add('broadcast');
+  const list=Q.getAll('tape').map(decodeTape).filter(Boolean),tapes=(list.length?list:[draft]).map(t=>Object.assign({},t,{_side:'A',_prog:0,_plays:0}));
+  if(Q.get('shuffle')==='1')for(let i=tapes.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[tapes[i],tapes[j]]=[tapes[j],tapes[i]];}
+  const each=60*Math.max(1,Math.min(240,+Q.get('each')||10)),ask=Q.get('ask')!=='0';
+  const el=(tag,cls,parent)=>{const e=document.createElement(tag);e.className=cls;(parent||document.body).appendChild(e);return e;};
+  const sky=el('canvas','bc-sky');document.body.prepend(sky);
+  const side=document.querySelector('.tapeside'),deck=el('div','bc-deck',side),steps=el('canvas','bc-steps',deck),eq=el('canvas','bc-eq',deck);
+  const credit=el('p','bc-credit',side),site=el('p','bc-site',side),tag=el('p','bc-tag'),next=el('p','bc-next');
   if(Q.get('vol'))S.vol=Math.max(0,Math.min(1,+Q.get('vol')));
-  const go=()=>{play(t);if(actx.state!=='running'){const b=document.createElement('button');b.className='pb pb-big';b.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);--c:var(--green);z-index:9';b.textContent='▶ START';b.onclick=()=>{actx.resume();b.remove();};document.body.appendChild(b);}};
-  go();}
+  const say=(e,txt)=>{e.classList.remove('in','out');void e.offsetWidth;e.textContent=txt;if(txt)e.classList.add('in');};
+  const fade=e=>{if(e.classList.contains('in')){e.classList.remove('in');e.classList.add('out');}};
+  const credLine=t=>t.by?'MIXED BY '+t.by.toUpperCase()+(t.from?' · REMIXED FROM '+t.from.toUpperCase():''):'';
+  let segStart=0,segN=0,said=0;
+  const show=t=>{cur=t;paint();say(credit,credLine(t));site.textContent=t.by?'MAKE YOURS AT SMALLBEATS.COM':'SMALLBEATS.COM';fade(tag);fade(next);said=0;};
+  tapes[0]._plays=1;show(tapes[0]);BQ={tapes,i:0,each,until:0};
+  const go=()=>{play(tapes[0]);segStart=actx.currentTime;BQ.until=segStart+each;
+    if(actx.state!=='running'){const b=document.createElement('button');b.className='pb pb-big';b.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);--c:var(--green);z-index:9';b.textContent='▶ START';b.onclick=()=>{actx.resume();b.remove();};document.body.appendChild(b);}};
+  go();
+  /* the turn: the next tape (or, with one tape, the same one turned over) */
+  window.SB_bcNext=()=>{segN++;const old=BQ.tapes[BQ.i];
+    if(BQ.tapes.length>1){BQ.i=(BQ.i+1)%BQ.tapes.length;const t=BQ.tapes[BQ.i];t._plays=(t._plays||0)+1;t._side=t._plays%2?'A':'B';t._prog=0; /* each time a tape comes round again, it plays its other side */start(t,3);show(t);}
+    else{old._side=old._side==='A'?'B':'A';old._prog=0;show(old);} /* one tape: it just turns over and keeps playing */
+    segStart=actx.currentTime;BQ.until=segStart+BQ.each;};
+  /* canvases at the screen's real pixels */
+  const fit=c=>{const r=c.getBoundingClientRect(),d=window.devicePixelRatio||1,w=Math.max(1,Math.round(r.width*d)),h=Math.max(1,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h;}return c.getContext('2d');};
+  const EQC=['#8a5a3c','#8a5a3c','#e9b44c','#e9b44c','#e9b44c','#e2734a','#e2734a','#e2734a','#c23b4b','#f2e7d0'] /* the stripe's colours, brown at the bottom up to a cream tip */,DIM='rgba(242,231,208,.07)';
+  const NB=24,NR=10,lev=new Float32Array(NB),peak=new Float32Array(NB),hold=new Float32Array(NB);let fb=null;
+  const ROWS=[['k','KICK','#c23b4b'],['s','SNARE','#e2734a'],['h','HATS','#e9b44c'],['b','BASS','#f2e7d0'],['n','KEYS','#55d6c2']];
+  const lit={};for(const [k] of ROWS)lit[k]=new Float32Array(16);let barAt=0,lastT=0;
+  const drops=[],embers=[];let skyT=0,driftT=0,shiftT=0,shiftK=0;
+  bcFrame=()=>{if(!actx)return;const now=actx.currentTime,on=isPlaying(),dt=Math.min(.1,Math.max(0,now-lastT));lastT=now;
+    const t=BQ.tapes[BQ.i],into=now-segStart;
+    /* the turn, the reels, the credits */
+    if(on&&now>=BQ.until)window.SB_bcNext();
+    const pr=Math.max(0,Math.min(1,into/BQ.each));if(Math.abs((t._prog||0)-pr)>.01){t._prog=pr;fillCass(deckCass,t);}
+    if(on){if(into>60&&credit.classList.contains('in')&&said===0){fade(credit);if(t.by)say(tag,'♪ '+t.n+' · MIXED BY '+t.by.toUpperCase());else say(tag,'♪ '+t.n);said=1;}
+      const askNow=ask&&(BQ.tapes.length>1?segN%3===2:segN%2===1); /* now and then, ask for tape links */
+      if(askNow&&said===1&&into>120){say(credit,'DROP YOUR TAPE LINK IN THE COMMENTS');said=2;}
+      if(said===2&&into>150){fade(credit);said=3;}
+      if(BQ.tapes.length>1&&BQ.until-now<30&&!next.classList.contains('in'))say(next,'NEXT · '+BQ.tapes[(BQ.i+1)%BQ.tapes.length].n);}
+    /* the step lights: a running light across the bar, and every hit lighting its step */
+    while(VIS.bars.length&&VIS.bars[0]<=now)barAt=VIS.bars.shift();
+    while(VIS.hits.length&&VIS.hits[0][1]<=now){const [p,ht]=VIS.hits.shift();const k=((Math.round((ht-barAt)/VIS.step))%16+16)%16;if(lit[p])lit[p][k]=1;}
+    const rows=ROWS.filter(([k])=>k==='b'?t.b>0:k==='n'?t.k>0:t.d>0);
+    {const x=fit(steps),W=steps.width,H=steps.height;x.clearRect(0,0,W,H);const nr=Math.max(rows.length,1),lab=W*.17,cw=(W-lab)/16.6,ch=Math.min(cw,H/(nr+.9)),pad=ch*.18;
+      const cur16=Math.floor((now-barAt)/VIS.step)%16;x.font=Math.max(11,Math.round(ch*.5))+'px Silk';x.textBaseline='middle';
+      rows.forEach(([k,name,c],r)=>{const y=r*ch;x.fillStyle='rgba(242,231,208,.45)';x.fillText(name,0,y+ch/2);
+        for(let i=0;i<16;i++){const cx=lab+i*cw+Math.floor(i/4)*cw*.2,v=lit[k][i];x.fillStyle=DIM;x.fillRect(cx+pad,y+pad,cw-2*pad,ch-2*pad);
+          if(v>0.02){x.globalAlpha=v;x.fillStyle=c;x.fillRect(cx+pad,y+pad,cw-2*pad,ch-2*pad);x.globalAlpha=1;}lit[k][i]=Math.max(0,v-dt*2.6);}});
+      const y=nr*ch+ch*.25;for(let i=0;i<16;i++){const cx=lab+i*cw+Math.floor(i/4)*cw*.2;x.fillStyle=on&&i===cur16?'#e8a33a':'rgba(242,231,208,.12)';x.fillRect(cx+cw*.3,y,cw*.4,ch*.3);}}
+    /* the LED meter */
+    {const x=fit(eq),W=eq.width,H=eq.height;x.clearRect(0,0,W,H);if(an&&on){fb=fb||new Uint8Array(an.frequencyBinCount);an.getByteFrequencyData(fb);}
+      const bw=W/NB,dh=H/NR,r=Math.min(bw,dh)*.34;
+      for(let i=0;i<NB;i++){const v=on&&fb?Math.pow(fb[Math.min(fb.length-1,1+Math.floor(Math.pow(i/NB,1.7)*70))]/255,1.8)*(1+i/NB*.8):0; /* tamed, and the highs lifted a little */lev[i]=Math.max(lev[i]*Math.pow(.02,dt),v);
+        const n=Math.round(lev[i]*NR*1.05);if(n>=peak[i]){peak[i]=n;hold[i]=.7;}else if((hold[i]-=dt)<0){peak[i]=Math.max(0,peak[i]-dt*9);}
+        for(let j=0;j<NR;j++){const cx=i*bw+bw/2,cy=H-(j+.5)*dh;x.beginPath();x.arc(cx,cy,r,0,7);x.fillStyle=j<n?EQC[j]:(j===Math.round(peak[i])-1&&peak[i]>=1?EQC[j]:DIM);x.fill();}}}
+    /* the weather of the tape's texture, very soft, in big pixels */
+    if((skyT+=dt)>.05){skyT=0;const x=fit(sky),P=Math.max(4,Math.round(sky.width/320)),W=Math.ceil(sky.width/P),H=Math.ceil(sky.height/P);x.clearRect(0,0,sky.width,sky.height);
+      if(!calm){if(t.w===1){while(drops.length<70)drops.push({x:Math.random()*W,y:Math.random()*H,v:30+Math.random()*30});
+          x.fillStyle='rgba(170,185,220,.22)';for(const d of drops){d.y+=d.v*.05;d.x-=d.v*.01;if(d.y>H){d.y=-3;d.x=Math.random()*W*1.1;}x.fillRect(Math.round(d.x)*P,Math.round(d.y)*P,P,P*3);}}
+        else drops.length=0;
+        if(t.w===3){for(let i=0;i<W;i++){const h=4+3*Math.sin(now*1.7+i*.45)+2*Math.sin(now*.9-i*.21)+Math.random()*1.5; /* a low, flickering glow, like a fire just out of shot */
+            for(let j=0;j<h;j++){x.fillStyle=`rgba(${j<2?233:226},${j<2?150:115},${j<2?70:74},${.2*(1-j/h)})`;x.fillRect(i*P,(H-1-j)*P,P,P);}}
+          if(Math.random()<.25)embers.push({x:Math.random()*W,y:H-2,l:1});for(const e of embers){e.y-=.5;e.x+=Math.sin(e.y*.3)*.3;e.l-=.012;}
+          for(let i=embers.length-1;i>=0;i--){const e=embers[i];if(e.l<=0){embers.splice(i,1);continue;}x.fillStyle=`rgba(233,180,76,${e.l*.5})`;x.fillRect(Math.round(e.x)*P,Math.round(e.y)*P,P,P);}}
+        else embers.length=0;
+        if(t.w===2){x.fillStyle='rgba(242,231,208,.06)';for(let i=0;i<W*H*.004;i++)x.fillRect(Math.floor(Math.random()*W)*P,Math.floor(Math.random()*H)*P,P,P);}}}
+    /* over two hours the light warms and dims a little, then comes back */
+    if((driftT+=dt)>5){driftT=0;const f=(1-Math.cos(2*Math.PI*(now/7200)))/2,mix=(a,b)=>Math.round(a+(b-a)*f);document.body.style.background=`rgb(${mix(34,20)},${mix(21,11)},${mix(16,9)})`;}
+    /* every four minutes everything moves a few pixels, so nothing sits still long enough to burn in */
+    if((shiftT+=dt)>240){shiftT=0;shiftK=(shiftK+1)%4;const o=[[0,0],[4,-3],[-3,4],[3,3]][shiftK];document.documentElement.style.setProperty('--bx',o[0]+'px');document.documentElement.style.setProperty('--by',o[1]+'px');}};}
 
 paint();
 if(!BC)try{console.log('%cSMALL BEATS','font:700 14px monospace;color:#e8a33a');console.log('%cEverything you hear is made in this tab, a bar at a time. No recordings.','color:#a39a8b');}catch(e){}

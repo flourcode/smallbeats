@@ -27,6 +27,7 @@ Then open http://localhost:8000. Analytics stays off on localhost. The service w
 | `app.css` | All styles |
 | `analytics.js` | Google Analytics 4 (`G-QY4M7NZD76`); empty the ID to switch it off |
 | `privacy.html`, `terms.html`, `404.html` | The other pages |
+| `studio.html` | The Studio: builds broadcast addresses for OBS (unlisted, noindex) |
 | `sw.js`, `manifest.webmanifest` | Offline copy and home-screen install |
 | `og.png` | Link preview image, 1200 × 630 |
 | `favicon.ico`, `icons/` | Tab and app icons, and `mark-2/3/4/6.png`: the Small Beats cat at 2, 3, 4 and 6 px per pixel for the header |
@@ -86,6 +87,13 @@ Anything that doesn't decode to this is ignored and the page opens normally. A l
 
 `stickers.png` is an 800 × 352 sheet, 25 columns × 11 rows of 32 × 32. Rows 0–9 are the sticker pack (CC0, commercial use, no attribution needed). The CATS tab is ours, drawn for this site: five coats (warm tabby, orange, black, calico, siamese) in four faces (normal, happy, sleepy, headphones). They sit in the pack's old cat cells (200–208, redrawn) and in row 10 (250–260); the category's `ids` list sets their order in the tray. Each entry in `stickers.js` is `{id, slug, name, category, row, col}`, where `id = row × 25 + col`. That id is what a tape stores, so a sticker must never move to another cell. Each row is a category: smileys, love, sad, angry, shocked, silly, sleepy, characters, animals, symbols, plus CATS. `quick` lists the 15 shown under the tape; the last tile opens the rest in a tray. When the sheet changes, bump `stickers.png?v=` everywhere it's referenced. Stickers are drawn at whole-number scales only, with `image-rendering: pixelated` and a white die-cut edge. On the cassette the sticker sits between the hubs: 96 px on a computer, 64 px on a phone.
 
+## Motion
+
+- **The hop:** while a tape plays, its sticker hops up by one of its own pixels on beats 1 and 3, in time with the music.
+- **Cats blink:** an open-eyed cat on a cassette closes its eyes for a moment every 5 to 8 seconds (`blink` in `stickers.js` pairs each with its closed-eye frame; 261-265 are blink frames for the headphone cats and never appear in the tray).
+- **The squash:** a sticker squashes when you pick it.
+All three are off for anyone whose device asks for reduced motion.
+
 ## Cassettes
 
 Pixel art on a 56 × 33 grid (`cassPix` in `app.js`): a shell with stepped corners, a label with the name strip, the shell's print (stripes, swoosh, rainbow…), a window with two hubs whose teeth step round while it plays, and the bottom trapezoid. Drawn as SVG on the page and on a canvas for the share picture and `og.png`.
@@ -99,9 +107,21 @@ No keyboard shortcuts, no dialogs, and nothing that stops the music: the sticker
 
 **The stripe.** Five pixel stripes (cream, gold, orange, red, brown; `STRIPE` in `app.js`) drawn in 4 px cells on a canvas by `drawStripe()`. On computers it runs under the name, behind the cat's chin, and bends up before the links; on phones it's one straight band under the header. It redraws on resize and is hidden in broadcast mode.
 
-## Broadcast mode (YouTube recordings)
+## Broadcast mode and the Studio (YouTube recordings)
 
-`/?broadcast=video&tape=…` shows only the cassette, very large, playing, with SMALLBEATS.COM underneath. Without `tape` it plays the visitor's current draft. `&vol=0.8` sets the volume. In OBS, add a Browser source at 1920 × 1080 with "Control audio via OBS". Nothing is counted in analytics in broadcast mode.
+**The Studio** is `/studio.html`: not linked from the site and not indexed. It builds the broadcast address for you. Pick tapes from your shelf (it reads this browser's shelf) and/or paste tape links people sent you, choose 16:9 or 9:16 (Shorts), set the minutes per tape and the volume, and watch a preview. Then COPY ADDRESS into OBS, or OPEN IN A NEW WINDOW to record the screen.
+
+**What's on screen** (made to be left on for hours and glanced at):
+- the cassette, its reels turning, the tape winding from the left reel to the right over each turn; at the turn it plays the other side (SIDE A / B), and a new tape crossfades in;
+- drum-machine step lights (KICK, SNARE, HATS, BASS, KEYS, for the parts that are on) with a running light across the bar, lit by the real notes, and an LED meter in the stripe colours with slowly falling peaks;
+- the tape's texture, softly, in big pixels behind it all: rain falling, the glow and embers of a fire just out of shot, or a faint hiss of grain;
+- credits that come and go: MIXED BY in big letters for the first minute, then a small tag in the top-left corner; NEXT · NAME in the top-right 30 seconds before a turn; every third turn (every other one with a single tape), DROP YOUR TAPE LINK IN THE COMMENTS (`&ask=0` turns that off);
+- over two hours the background warms and dims a little and comes back, and every four minutes everything shifts a few pixels so nothing burns into a screen.
+The engine reports every note it schedules (`onHit` on the recipe), which is what the step lights and the sticker hop follow.
+
+**The Studio also writes the YouTube chapters:** give it the video's length and it lists each turn with its time, tape and maker, then each tape's link, ready for the description (not with shuffle, since the order isn't known).
+
+**The address:** `/?broadcast=video&tape=…[&tape=…][&each=10][&shuffle=1][&vol=0.8][&ask=0]` shows only the cassette, very large, playing. Several tapes take turns, `each` minutes apiece (1 to 240, default 10), with a slow crossfade, round and round. Under the cassette: MIXED BY whoever made the tape (and REMIXED FROM, if any), then MAKE YOURS AT SMALLBEATS.COM. A tape without a maker just shows SMALLBEATS.COM. Without a tape it plays the visitor's current draft. The layout works in any shape; in portrait the credits sit higher, clear of the captions Shorts and Reels put at the bottom. In OBS: a Browser source at 1920 × 1080 (or 1080 × 1920) with "Control audio via OBS". Nothing is counted in analytics in broadcast mode.
 
 ## Analytics
 

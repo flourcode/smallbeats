@@ -6,6 +6,7 @@
    quick: the 15 shown first under the tape (a 16th tile opens the rest). */
 window.STICKERS={
   categories:[{"id":"smileys","name":"SMILEYS"},{"id":"love","name":"LOVE"},{"id":"sad","name":"SAD"},{"id":"angry","name":"ANGRY"},{"id":"shocked","name":"SHOCKED"},{"id":"silly","name":"SILLY"},{"id":"sleepy","name":"SLEEPY"},{"id":"characters","name":"CHARACTERS"},{"id":"animals","name":"ANIMALS"},{"id":"cats","name":"CATS","ids":[251,252,253,250,200,201,202,203,204,205,206,207,208,254,255,256,257,258,259,260]},{"id":"symbols","name":"SYMBOLS"}],
+  blink:{"251":253,"250":261,"200":202,"203":262,"204":206,"207":263,"208":255,"256":264,"257":259,"260":265}, /* cats blink: an open-eyed cat and its closed-eye frame (261-265 are blink frames only, never in the tray) */
   quick:[175,9,25,126,150,56,100,125,225,236,237,241,247,200,214,186],
   list:[
     {"id":0,"slug":"big_grin","name":"Big grin","category":"smileys","row":0,"col":0},

@@ -133,7 +133,7 @@ a{color:var(--amber)}
 @media (min-width:980px){.shell-row{flex-wrap:wrap;overflow:visible}.shell{width:56px}}
 
 /* ---- stickers: square pixels, integer scale only ---- */
-.stk{display:block;width:32px;height:32px;background-image:url(stickers.png?v=5);background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;flex:0 0 auto}
+.stk{display:block;width:32px;height:32px;background-image:url(stickers.png?v=6);background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;flex:0 0 auto}
 .stuck{filter:drop-shadow(2px 0 0 #fbf6ea) drop-shadow(-2px 0 0 #fbf6ea) drop-shadow(0 2px 0 #fbf6ea) drop-shadow(0 -2px 0 #fbf6ea) drop-shadow(2px 3px 0 rgba(0,0,0,.25))} /* die-cut edge */
 
 /* ---- the cassette: pixel art, with the sticker in the window ---- */
@@ -194,7 +194,32 @@ a{color:var(--amber)}
 .broadcast .tapeside{width:min(70vw,120vh)}
 .broadcast .cass{width:100%;margin:0}
 .broadcast .cass-svg svg{filter:none}
-.bc-site{position:fixed;left:0;right:0;bottom:4vh;text-align:center;font:700 2.2vw/1 Silk;letter-spacing:.3vw;color:#9c8676}
+.bc-sky{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:0;pointer-events:none;image-rendering:pixelated}
+.broadcast .deck{position:relative;z-index:1;transform:translate(var(--bx,0),var(--by,0));transition:transform 4s ease-in-out}
+.bc-deck{display:flex;gap:5%;align-items:flex-start;margin:4% 0 0;aspect-ratio:56/9}
+.bc-steps{flex:1.3;height:100%;display:block}
+.bc-eq{flex:1;height:100%;display:block}
+.bc-credit,.bc-site{margin:0;text-align:center;font-family:Silk;letter-spacing:.5vmin}
+.bc-credit{min-height:1em;margin-top:4.5%;font-size:3.4vmin;line-height:1;color:#efe6d2;text-shadow:.4vmin .4vmin 0 #140b08;opacity:0}
+.bc-site{margin-top:2.2%;font-size:2.6vmin;color:#9c8676}
+.bc-tag,.bc-next{position:fixed;z-index:2;top:4vmin;margin:0;max-width:44vw;font:400 1.8vmin/1.3 Silk;letter-spacing:.3vmin;color:#c9b7a3;opacity:0;transform:translate(var(--bx,0),var(--by,0))}
+.bc-tag{left:4vmin}.bc-next{right:4vmin;text-align:right;color:#e8a33a}
+.bc-credit.in,.bc-tag.in,.bc-next.in{animation:bcIn 1.6s ease-out forwards}
+.bc-credit.out,.bc-tag.out,.bc-next.out{animation:bcOut 1.6s ease-in forwards}
+@keyframes bcIn{from{opacity:0}to{opacity:1}}
+@keyframes bcOut{from{opacity:1}to{opacity:0}}
+/* broadcast ignores the phone layout (which flattens the bench), so a small preview or a tall Short still gets the whole cassette */
+.broadcast .deck{display:flex!important}
+.broadcast .tapeside{display:block!important;width:min(56vw,88vh)}
+.broadcast .cass-wrap{display:block!important;width:100%;margin:0}
+@media (orientation:portrait){.broadcast .tapeside{width:88vw;margin-bottom:18vh} /* the stack sits above where Shorts and Reels put their captions */
+  .bc-deck{flex-direction:column;aspect-ratio:auto;gap:3vmin}.bc-steps{flex:none;width:100%;aspect-ratio:56/16.5}.bc-eq{flex:none;width:80%;align-self:center;aspect-ratio:56/15}
+  .bc-tag,.bc-next{max-width:80vw}.bc-next{top:auto;bottom:4vmin;right:auto;left:4vmin;text-align:left}}
+.stk.hop{animation:hop .14s step-end}
+@keyframes hop{0%{transform:translateY(calc(-1px * var(--s,2)))}100%{transform:none}} /* one of the sticker's own pixels, on the beat */
+.stk.squish{animation:squish .22s steps(2,end)}
+@keyframes squish{0%{transform:scale(1.15,.85)}50%{transform:scale(.92,1.08)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.stk.hop,.stk.squish{animation:none}}
 
 /* ---- the bench: tape, its name and the save button together; stickers and shells under them ---- */
 .bench-h{margin-bottom:4px}

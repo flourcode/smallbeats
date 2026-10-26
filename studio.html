@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Small Beats Studio</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="stylesheet" href="app.css">
+<style>
+  /* Small Beats Studio: builds broadcast addresses for OBS and recordings. Not linked from the site, not indexed. */
+  .studio{max-width:1240px;margin:0 auto;padding:10px var(--gut) 48px;display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:28px;align-items:start}
+  @media (max-width:900px){.studio{grid-template-columns:1fr}}
+  .studio h1{grid-column:1/-1;font:400 clamp(24px,4vw,34px)/1.1 Silk;letter-spacing:2px;margin:6px 0 0}
+  .studio .lede{grid-column:1/-1;margin:-14px 0 0;color:var(--muted);max-width:70ch}
+  .panel{background:var(--panel);box-shadow:0 0 0 4px var(--line);padding:18px;display:grid;gap:20px}
+  fieldset{border:0;margin:0;padding:0;display:grid;gap:8px;min-width:0}
+  legend{font:400 12px/1.4 Silk;letter-spacing:2px;color:var(--amber);padding:0;margin-bottom:8px}
+  .seg{display:flex;flex-wrap:wrap;gap:0 6px}
+  .seg .pb{min-height:40px;font-size:12px;padding:0 12px}
+  .seg .pb[aria-pressed=true]{--c:var(--amber)}
+  textarea,input[type=text],input[type=number]{font:400 13px/1.5 ui-monospace,Menlo,monospace;color:var(--ink);background:var(--cream);border:0;padding:8px 10px;box-shadow:0 0 0 3px var(--line);width:100%;margin:3px}
+  input[type=number]{width:80px;font:400 15px/1.2 Plex,system-ui}
+  textarea{resize:vertical;width:calc(100% - 6px)}
+  input[type=text]{width:calc(100% - 6px)}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;color:var(--cream);font-size:15px}
+  .chk{display:flex;align-items:center;gap:8px;color:var(--cream);font-size:15px;cursor:pointer}
+  .chk input{width:18px;height:18px;accent-color:var(--amber)}
+  .mine{display:grid;gap:4px;max-height:280px;overflow:auto;padding:4px}
+  .mine label{display:flex;align-items:center;gap:10px;padding:4px 6px;background:var(--panel2);cursor:pointer;color:var(--cream);font:900 15px/1 Doto,monospace}
+  .mine label small{font:400 12px Plex,system-ui;color:var(--muted);margin-left:auto}
+  .mine .stk{width:32px;height:32px}
+  .hint{margin:0}
+  input[type=range]{width:100%;accent-color:var(--amber)}
+  .out{display:grid;gap:14px;position:sticky;top:16px}
+  .preview{background:#000;box-shadow:0 0 0 4px var(--line);aspect-ratio:16/9;width:100%;overflow:hidden;margin:0 auto}
+  .preview.vertical{aspect-ratio:9/16;width:auto;height:min(70vh,640px)}
+  .preview iframe{display:block;border:0;width:100%;height:100%}
+  .url{font:400 13px/1.45 ui-monospace,Menlo,monospace;color:var(--ink);background:var(--cream);padding:10px 12px;word-break:break-all;box-shadow:0 0 0 4px var(--line);margin:4px}
+  .obs{background:var(--panel);box-shadow:0 0 0 4px var(--line);padding:14px 18px;color:#d8cfbe;margin:4px}
+  .obs ol{margin:6px 0 0;padding-left:20px}
+  .obs li{margin:4px 0}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/" aria-label="Small Beats home"><img class="brand-logo" src="icons/mark-3.png" srcset="icons/mark-3.png 1x, icons/mark-6.png 2x" alt="" width="96" height="96"><span class="brand-word">SMALL BEATS</span></a>
+</header>
+<main class="studio">
+  <h1>STUDIO</h1>
+  <p class="lede">Build a broadcast address for OBS or a screen recording: just the cassette, very big, playing, with MIXED BY credits. Pick tapes from your shelf or paste links people sent you.</p>
+
+  <form class="panel" id="f" autocomplete="off" onsubmit="return false">
+    <fieldset>
+      <legend>FRAME</legend>
+      <div class="seg" id="frame"><button class="pb" type="button" data-v="wide" aria-pressed="true">16:9 YOUTUBE</button><button class="pb" type="button" data-v="vertical" aria-pressed="false">9:16 SHORTS</button></div>
+    </fieldset>
+    <fieldset>
+      <legend>FROM YOUR SHELF</legend>
+      <div class="mine" id="mine"></div>
+      <p class="hint" id="mineHint"></p>
+    </fieldset>
+    <fieldset>
+      <legend>TAPE LINKS</legend>
+      <textarea id="links" rows="4" placeholder="Paste tape links, one per line" spellcheck="false"></textarea>
+      <p class="hint" id="linksHint">Links people sent you, or comments under a video. Each one is credited MIXED BY whoever made it.</p>
+    </fieldset>
+    <fieldset id="turns">
+      <legend>TAKING TURNS</legend>
+      <div class="row">Each tape plays for <input type="number" id="each" min="1" max="240" step="1" value="10"> minutes, then crossfades into the next.</div>
+      <label class="chk"><input type="checkbox" id="shuffle">Shuffle the order</label>
+    </fieldset>
+    <fieldset>
+      <legend>ON SCREEN</legend>
+      <label class="chk"><input type="checkbox" id="ask" checked>Now and then, ask viewers to drop their tape links in the comments</label>
+    </fieldset>
+    <fieldset id="chapBox">
+      <legend>YOUTUBE CHAPTERS</legend>
+      <div class="row">For a video <input type="number" id="len" min="10" max="720" step="5" value="120"> minutes long</div>
+      <textarea id="chapters" rows="8" readonly spellcheck="false"></textarea>
+      <div class="row-btns"><button class="pb pb-sm" type="button" id="copyChap" style="--c:var(--blue)">COPY CHAPTERS</button></div>
+      <p class="hint" id="chapHint">Paste into the video's description. Each tape becomes a chapter, and every maker gets a link.</p>
+    </fieldset>
+    <fieldset>
+      <legend>VOLUME <span id="volOut"></span></legend>
+      <input type="range" id="vol" min="0" max="1" step="0.05" value="0.8">
+    </fieldset>
+    <fieldset>
+      <legend>ADDRESS</legend>
+      <input type="text" id="base">
+      <p class="hint">Leave it as is to use this site. Use https://smallbeats.com/ if you opened the Studio from a copy on your computer.</p>
+    </fieldset>
+  </form>
+
+  <section class="out" aria-label="Output">
+    <div class="preview" id="pvBox"><iframe id="pv" title="Preview" allow="autoplay"></iframe></div>
+    <label class="chk"><input type="checkbox" id="pvSound">Preview with sound</label>
+    <div class="url" id="url"></div>
+    <div class="row-btns">
+      <button class="pb" type="button" id="copy" style="--c:var(--blue)">COPY ADDRESS</button>
+      <button class="pb" type="button" id="open" style="--c:var(--green)">OPEN IN A NEW WINDOW</button>
+    </div>
+    <div class="obs">
+      <b>In OBS:</b>
+      <ol>
+        <li>Add a <b>Browser</b> source and paste the address.</li>
+        <li>Set width <b id="obsW">1920</b> and height <b id="obsH">1080</b>.</li>
+        <li>Tick <b>Control audio via OBS</b> so the music goes into the recording or stream.</li>
+      </ol>
+      <p class="hint" style="margin-top:8px">To record without OBS, open it in a new window, go full screen (F11, or Ctrl+Cmd+F on a Mac) and click once if it asks to start the sound.</p>
+    </div>
+  </section>
+</main>
+<script src="stickers.js"></script>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const ST=window.STICKERS;
+/* a tape link, exactly as the site writes it: base64url of [1, name, shell, drums, bass, keys, texture, speed, sound, seed, sticker, by?, from?] */
+const b64e=j=>btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+function encodeTape(t){const a=[1,t.n,t.c,t.d,t.b,t.k,t.w,t.p,t.s,t.r,t.t];if(t.by||t.from)a.push(t.by||'');if(t.from)a.push(t.from);return b64e(JSON.stringify(a));}
+const codeFrom=line=>{const m=String(line).match(/[?&]tape=([A-Za-z0-9_-]+)/);if(m)return m[1];const v=String(line).trim();return /^[A-Za-z0-9_-]{20,}$/.test(v)?v:null;};
+const nameOf=code=>{try{const a=JSON.parse(decodeURIComponent(escape(atob(code.replace(/-/g,'+').replace(/_/g,'/')))));return Array.isArray(a)&&a[0]===1?{n:a[1],by:a[11]}:null;}catch(e){return null;}};
+
+/* your shelf, read from this browser */
+let S={};try{S=JSON.parse(localStorage.getItem('smallBeats')||'{}')||{};}catch(e){}
+const tapes=Array.isArray(S.tapes)?S.tapes:[];
+const pick=new Set();
+const stk=id=>{const el=document.createElement('i');el.className='stk';const r=Math.floor(id/25),c=id%25;el.style.backgroundSize='800px 352px';el.style.backgroundPosition=(-c*32)+'px '+(-r*32)+'px';return el;};
+tapes.forEach((t,i)=>{const l=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.addEventListener('change',()=>{cb.checked?pick.add(i):pick.delete(i);build();});
+  l.appendChild(cb);l.appendChild(stk(t.t||0));l.appendChild(document.createTextNode(t.n));const sm=document.createElement('small');sm.textContent=t.gift?'from '+(t.by||'a friend'):(t.by?'by '+t.by:'');l.appendChild(sm);$('mine').appendChild(l);
+  if(i===0){cb.checked=true;pick.add(0);}});
+$('mineHint').textContent=tapes.length?'Tick the tapes to play. Your tapes are credited with the "mixed by" name they were saved with.':'No tapes on this browser yet. Save some on the main page, or paste links below.';
+
+let frame='wide';
+document.querySelectorAll('#frame .pb').forEach(b=>b.addEventListener('click',()=>{frame=b.dataset.v;document.querySelectorAll('#frame .pb').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));build();}));
+$('base').value=/^https?:$/.test(location.protocol)?location.origin+location.pathname.replace(/[^/]*$/,''):'https://smallbeats.com/';
+
+let lastPv='';
+function build(){
+  const codes=[...pick].sort((a,b)=>a-b).map(i=>encodeTape(tapes[i]));
+  const lines=$('links').value.split(/\n+/).map(l=>l.trim()).filter(Boolean),bad=[];
+  for(const l of lines){const c=codeFrom(l);if(c&&nameOf(c)){if(!codes.includes(c))codes.push(c);}else bad.push(l);} /* the same tape twice plays once */
+  $('linksHint').textContent=bad.length?bad.length+(bad.length===1?' line isn\'t':' lines aren\'t')+' a tape link, so '+(bad.length===1?'it\'s':'they\'re')+' left out.':'Links people sent you, or comments under a video. Each one is credited MIXED BY whoever made it.';
+  $('turns').hidden=codes.length<2;
+  const vol=+$('vol').value;$('volOut').textContent=Math.round(vol*100)+'%';
+  const q=['broadcast=video'];for(const c of codes)q.push('tape='+c);if(!$('ask').checked)q.push('ask=0');
+  if(codes.length>1){q.push('each='+Math.max(1,Math.min(240,Math.round(+$('each').value||10))));if($('shuffle').checked)q.push('shuffle=1');}
+  if(vol!==0.8)q.push('vol='+vol);
+  let base=$('base').value.trim()||'https://smallbeats.com/';if(!/\/$/.test(base))base+='/';
+  const url=base+'?'+q.join('&');$('url').textContent=url;
+  /* chapters for the description: the tapes in order, round and round for the length of the video, then each tape's link */
+  const each=Math.max(1,Math.min(240,Math.round(+$('each').value||10))),len=Math.max(10,+$('len').value||120);
+  $('chapBox').hidden=codes.length<2;
+  if(codes.length>=2){if($('shuffle').checked){$('chapters').value='';$('chapHint').textContent='Chapters need the tapes in a known order: turn off shuffle.';}
+    else{const tm=m=>{const h=Math.floor(m/60),mm=m%60;return (h?h+':'+String(mm).padStart(2,'0'):String(mm).padStart(2,'0'))+':00';};const info=codes.map(nameOf),lines=[];
+      for(let m=0,k=0;m<len;m+=each,k++){const t=info[k%codes.length];lines.push(tm(m)+' '+t.n+(t.by?' (mixed by '+t.by+')':''));}
+      const links=codes.map((c,k)=>info[k].n+(info[k].by?' by '+info[k].by:'')+': '+base+'?tape='+c);
+      $('chapters').value=lines.join('\n')+'\n\nThe tapes (play them, remix them, make your own):\n'+links.join('\n')+'\n\nMake your own mixtape at https://smallbeats.com';
+      $('chapHint').textContent='Paste into the video\'s description. Each tape becomes a chapter, and every maker gets a link.';}}
+  const W=frame==='vertical'?1080:1920,H=frame==='vertical'?1920:1080;$('obsW').textContent=W;$('obsH').textContent=H;$('pvBox').classList.toggle('vertical',frame==='vertical');
+  const pv='?'+q.filter(x=>!/^vol=/.test(x)).join('&')+'&vol='+($('pvSound').checked?vol:0); /* the preview plays this site, quietly unless you ask */
+  if(pv!==lastPv){lastPv=pv;$('pv').src=base+pv;}
+  return url;}
+['links','each','shuffle','vol','base','pvSound','ask','len'].forEach(id=>$(id).addEventListener('input',build));
+$('copyChap').addEventListener('click',async()=>{let ok=false;try{await navigator.clipboard.writeText($('chapters').value);ok=true;}catch(e){$('chapters').select();}const b=$('copyChap');b.textContent=ok?'COPIED':'SELECT AND COPY';setTimeout(()=>b.textContent='COPY CHAPTERS',1800);});
+$('copy').addEventListener('click',async()=>{const url=build();let ok=false;try{await navigator.clipboard.writeText(url);ok=true;}catch(e){}
+  const b=$('copy');b.textContent=ok?'COPIED':'SELECT AND COPY IT';setTimeout(()=>b.textContent='COPY ADDRESS',1800);
+  if(!ok){const r=document.createRange();r.selectNodeContents($('url'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);}});
+$('open').addEventListener('click',()=>{const W=frame==='vertical'?540:1280,H=frame==='vertical'?960:720;window.open(build(),'smallbeats-broadcast','width='+W+',height='+H);});
+build();
+})();
+</script>
+</body>
+</html>

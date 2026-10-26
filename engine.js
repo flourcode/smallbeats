@@ -90,6 +90,9 @@ function pulseWave(a,duty){a.__pw=a.__pw||{};if(a.__pw[duty])return a.__pw[duty]
   for(let i=1;i<n;i++)re[i]=2/(i*Math.PI)*Math.sin(i*Math.PI*duty);return a.__pw[duty]=a.createPeriodicWave(re,im);}
 let SATC=null;
 function band(a,dest,tp0){const tp=normT(tp0);
+  /* tp0.onHit(part, time), if given, hears every note as it's scheduled, for the visuals: 'bar' (a bar starts), 'k' kick, 's' snare, clap or rim,
+     'h' hats and shakers, 'b' bass, 'n' keys and the tune */
+  const hit=tp0&&typeof tp0.onHit==='function'?tp0.onHit:null,emit=hit?(p,t)=>{try{hit(p,t);}catch(e){}}:()=>{};
   const D=tp.d?[2,3,1,2,4][tp.s]:0,FEEL=tp.d,BS=tp.b,KO=tp.k===0,K=tp.k-1,G=tp.p,chip=tp.s===3,DT=D===0?[2,3,0,2,4][tp.s]:D,ambient=DT===0; /* DT: the groove the start sound sets. Take the drums out and the tempo and feel stay */
   /* K: 0 Rhodes, 1 guitar, 2 pad, 3 8-bit. The starting sound alone sets the groove, the tempo and (for 8-bit) the chip
      drum kit. DT is that groove: take the drums out and the tempo and feel stay. */
@@ -130,11 +133,11 @@ function band(a,dest,tp0){const tp=normT(tp0);
   const noise=(t,type,fq,q,att,dec,lvl,pan,rv,to)=>{const s=a.createBufferSource();s.buffer=white;const f=bq(type,fq,q);const g=a.createGain();
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(lvl,t+att);g.gain.exponentialRampToValueAtTime(.0004,t+att+dec);s.connect(f).connect(g);out(g,pan,rv,0,to);s.start(t,Math.random()*2,att+dec+.05);};
   /* ---- instruments ---- */
-  const ep=(t,m,dur,vel,pan,rv,dl)=>{const f=mtof(m),c=osc('sine',f,t),md=osc('sine',f,t),mg=a.createGain(),g=a.createGain(),tg=a.createGain();
+  const ep=(t,m,dur,vel,pan,rv,dl)=>{emit('n',t);const f=mtof(m),c=osc('sine',f,t),md=osc('sine',f,t),mg=a.createGain(),g=a.createGain(),tg=a.createGain();
     mg.gain.setValueAtTime(f*1.05*vel*bright,t);mg.gain.exponentialRampToValueAtTime(f*.08,t+.9);md.connect(mg).connect(c.frequency);const c2=osc('sine',f,t);c2.detune.setValueAtTime(rnd(5,9),t);const g2=a.createGain();g2.gain.value=.35;c2.connect(g2);
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.09*vel,t+.006);g.gain.setTargetAtTime(.035*vel,t+.01,.5);g.gain.setTargetAtTime(0,t+dur,.35);
     c.connect(g).connect(tg);g2.connect(g);out(tg,pan!=null?pan:(m-62)/30,rv!=null?rv:.6,dl||0,epBus);const e=t+dur+2;c.start(t);md.start(t);c2.start(t);c.stop(e);md.stop(e);c2.stop(e);};
-  const pad=(t,ms,dur,lvl,att,wave)=>{const g=a.createGain(),f=bq('lowpass',400*bright,.4);att=att||Math.min(2.5,dur*.4);
+  const pad=(t,ms,dur,lvl,att,wave)=>{emit('n',t);const g=a.createGain(),f=bq('lowpass',400*bright,.4);att=att||Math.min(2.5,dur*.4);
     f.frequency.setValueAtTime(380*bright,t);f.frequency.linearRampToValueAtTime(1100*bright,t+dur*.5);f.frequency.linearRampToValueAtTime(600*bright,t+dur+att);
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.022*lvl,t+att);g.gain.setValueAtTime(.022*lvl,t+dur);g.gain.linearRampToValueAtTime(0,t+dur+att);f.connect(g);out(g,0,.9);
     for(const m of ms){for(const d of [-7,7]){const o=osc(wave||'sawtooth',mtof(m),t);o.detune.setValueAtTime(d,t);o.connect(f);o.start(t);o.stop(t+dur+att+.1);}}};
@@ -147,16 +150,16 @@ function band(a,dest,tp0){const tp=normT(tp0);
     for(const [ty,dt] of [['sawtooth',-6],['square',6]]){const o=osc(ty,mtof(m),t);o.detune.setValueAtTime(dt,t);o.connect(f);o.start(t);o.stop(t+dur+.3);}};
   const gtrBus=a.createGain(),gtrF=bq('lowpass',3600*bright,.5),gtrB=bq('peaking',220,1);gtrB.gain.value=3;gtrBus.connect(gtrB).connect(gtrF);out(gtrF,-.18,.35);
   const thumbBus=a.createGain(),thumbF=bq('lowpass',1100,.5);thumbBus.connect(thumbF);out(thumbF,0,.05);
-  const string=(t,m,v,dur,kind)=>{const k=ksBuf(a,m,kind),s=a.createBufferSource();s.buffer=k.b;s.playbackRate.value=k.rate;const g=a.createGain();
+  const string=(t,m,v,dur,kind)=>{emit('n',t);const k=ksBuf(a,m,kind),s=a.createBufferSource();s.buffer=k.b;s.playbackRate.value=k.rate;const g=a.createGain();
     g.gain.setValueAtTime(v,t);g.gain.setTargetAtTime(0,t+dur,kind==='thumb'?.06:.04);s.connect(g).connect(kind==='thumb'?thumbBus:gtrBus);s.start(t);s.stop(t+Math.min(dur+.5,k.b.duration));};
-  const mallet=(t,m,v,len,rv,dl)=>{const f=mtof(m),c=osc('sine',f,t),md=osc('sine',f*2,t),mg=a.createGain(),g=a.createGain();len=len||1.4;
+  const mallet=(t,m,v,len,rv,dl)=>{emit('n',t);const f=mtof(m),c=osc('sine',f,t),md=osc('sine',f*2,t),mg=a.createGain(),g=a.createGain();len=len||1.4;
     mg.gain.setValueAtTime(f*1.3*v*bright,t);mg.gain.exponentialRampToValueAtTime(f*.05,t+.35);md.connect(mg).connect(c.frequency);
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05*v,t+.005);g.gain.exponentialRampToValueAtTime(.0004,t+len);c.connect(g);out(g,rnd(-.3,.3),rv!=null?rv:.5,dl!=null?dl:.35);c.start(t);md.start(t);c.stop(t+len+.1);md.stop(t+len+.1);};
-  const glass=(t,m,v)=>{const f=mtof(m),c=osc('sine',f,t),c2=osc('sine',f*2.01,t),g=a.createGain(),g2=a.createGain();g2.gain.value=.15;
+  const glass=(t,m,v)=>{emit('n',t);const f=mtof(m),c=osc('sine',f,t),c2=osc('sine',f*2.01,t),g=a.createGain(),g2=a.createGain();g2.gain.value=.15;
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.045*v,t+.012);g.gain.exponentialRampToValueAtTime(.0004,t+5);c.connect(g);c2.connect(g2).connect(g);out(g,rnd(-.45,.45),1.1,.2);c.start(t);c2.start(t);c.stop(t+5.1);c2.stop(t+5.1);};
   const drone=(t,m,dur,lvl)=>{const g=a.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.03*lvl,t+dur*.4);g.gain.linearRampToValueAtTime(0,t+dur+1.5);out(g,0,.5);
     for(const [mm,k] of [[m,1],[m+7,.4],[m+12,.25]]){const o=osc('sine',mtof(mm),t),gg=a.createGain();gg.gain.value=k;o.connect(gg).connect(g);o.start(t);o.stop(t+dur+1.6);}};
-  const pulse=(t,m,dur,v,duty,vibr,pan)=>{const o=osc('sine',mtof(m),t);o.setPeriodicWave(pulseWave(a,duty));const g=a.createGain();
+  const pulse=(t,m,dur,v,duty,vibr,pan)=>{emit('n',t);const o=osc('sine',mtof(m),t);o.setPeriodicWave(pulseWave(a,duty));const g=a.createGain();
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05*v,t+.003);g.gain.setValueAtTime(.05*v,t+Math.max(.004,dur*.3));g.gain.linearRampToValueAtTime(.038*v,t+dur);g.gain.linearRampToValueAtTime(0,t+dur+.015);
     if(vibr&&dur>.25){const lf=a.createOscillator(),lg=a.createGain();lf.frequency.value=6;lg.gain.setValueAtTime(0,t);lg.gain.setValueAtTime(0,t+.15);lg.gain.linearRampToValueAtTime(18,t+.3);lf.connect(lg).connect(o.detune);lf.start(t);lf.stop(t+dur+.05);}
     o.connect(g);out(g,pan||0,.05);o.start(t);o.stop(t+dur+.05);};
@@ -165,15 +168,15 @@ function band(a,dest,tp0){const tp=normT(tp0);
   const crunch=(()=>{const n=Math.round(a.sampleRate*.5),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);let h=0;for(let i=0;i<n;i++){if(i%6===0)h=Math.random()<.5?-1:1;d[i]=h;}return b;})(); /* stepped noise, like an old sound chip */
   const cnoise=(t,fq,dec,lvl)=>{const s=a.createBufferSource();s.buffer=crunch;const f=bq('highpass',fq,.5),g=a.createGain();g.gain.setValueAtTime(lvl,t);g.gain.exponentialRampToValueAtTime(.0004,t+dec);s.connect(f).connect(g);out(g,0,.03,0,drumG);s.start(t,Math.random()*.4,dec+.02);};
   const ckick=(t,v)=>{const o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.setValueAtTime(190,t);o.frequency.exponentialRampToValueAtTime(40,t+.07);g.gain.setValueAtTime(.3*v,t);g.gain.linearRampToValueAtTime(0,t+.11);o.connect(g);out(g,0,0,0,drumG);o.start(t);o.stop(t+.12);};
-  const kick=(t,v)=>{if(chip)return ckick(t,v);t=loose(t,-.006,.008);v*=rnd(.88,1.04);const o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(42,t+.13);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.26*v,t+.006);g.gain.exponentialRampToValueAtTime(.001,t+.38);o.connect(g);out(g,0,0,0,drumG);o.start(t);o.stop(t+.45);};
-  const hkick=(t,v)=>{if(pumpDepth){pump.gain.setValueAtTime(1,t);pump.gain.linearRampToValueAtTime(1-pumpDepth,t+.012);pump.gain.linearRampToValueAtTime(1,t+beat*.8);}if(chip)return ckick(t,v);
+  const kick=(t,v)=>{emit('k',t);if(chip)return ckick(t,v);t=loose(t,-.006,.008);v*=rnd(.88,1.04);const o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(42,t+.13);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.26*v,t+.006);g.gain.exponentialRampToValueAtTime(.001,t+.38);o.connect(g);out(g,0,0,0,drumG);o.start(t);o.stop(t+.45);};
+  const hkick=(t,v)=>{emit('k',t);if(pumpDepth){pump.gain.setValueAtTime(1,t);pump.gain.linearRampToValueAtTime(1-pumpDepth,t+.012);pump.gain.linearRampToValueAtTime(1,t+beat*.8);}if(chip)return ckick(t,v);
     const o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(48,t+.09);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.34*v,t+.003);g.gain.exponentialRampToValueAtTime(.12*v,t+.12);g.gain.exponentialRampToValueAtTime(.001,t+.42);o.connect(g);out(g,0,0,0,drumG);o.start(t);o.stop(t+.45);};
-  const snare=(t,v)=>{if(chip)return cnoise(t,1200,.11,.05*v);t=loose(t,.006,.022);v*=rnd(.82,1.04);noise(t,'bandpass',1400,.8,.005,.16,.05*v,.05,.25,drumG);const o=a.createOscillator(),g=a.createGain();o.frequency.value=190;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.04*v,t+.003);g.gain.exponentialRampToValueAtTime(.001,t+.09);o.connect(g);out(g,.05,.2,0,drumG);o.start(t);o.stop(t+.12);};
-  const hat=(t,v,open)=>{if(chip)return cnoise(t,7000,open?.09:.03,.02*v);noise(loose(t,-.008,.008),'highpass',open?7000:7600,.7,.003,open?.2:.035,(open?.02:.016)*v*rnd(.7,1.1),.22,open?.15:0,drumG);};
-  const shaker=(t,v)=>{if(chip)return cnoise(t,6000,.025,.012*v);noise(loose(t,-.006,.006),'bandpass',5600,1.1,.012,.05,.012*v*rnd(.7,1.1),-.25,.1,drumG);};
-  const rim=(t,v)=>{if(chip)return cnoise(t,2500,.02,.035*v);t=loose(t,-.004,.006);noise(t,'bandpass',2100,3,.001,.03,.05*v,.18,.15,drumG);const o=a.createOscillator(),g=a.createGain();o.frequency.value=440;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.03*v,t+.001);g.gain.exponentialRampToValueAtTime(.001,t+.045);o.connect(g);out(g,.18,.1,0,drumG);o.start(t);o.stop(t+.06);};
-  const clap=(t,v)=>{if(chip)return cnoise(t,1500,.09,.045*v);for(let i=0;i<3;i++)noise(t+i*.011,'bandpass',1150,1,.002,i<2?.012:.16,.045*v,-.05,.35,drumG);};
-  const brush=(t,v,long)=>{if(chip)return cnoise(t,3000,long?.12:.04,.02*v);noise(loose(t,-.01,.012),'bandpass',2800,.9,long?.07:.025,long?.32:.12,.026*v*rnd(.75,1.1),-.15,.3,drumG);};
+  const snare=(t,v)=>{emit('s',t);if(chip)return cnoise(t,1200,.11,.05*v);t=loose(t,.006,.022);v*=rnd(.82,1.04);noise(t,'bandpass',1400,.8,.005,.16,.05*v,.05,.25,drumG);const o=a.createOscillator(),g=a.createGain();o.frequency.value=190;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.04*v,t+.003);g.gain.exponentialRampToValueAtTime(.001,t+.09);o.connect(g);out(g,.05,.2,0,drumG);o.start(t);o.stop(t+.12);};
+  const hat=(t,v,open)=>{emit('h',t);if(chip)return cnoise(t,7000,open?.09:.03,.02*v);noise(loose(t,-.008,.008),'highpass',open?7000:7600,.7,.003,open?.2:.035,(open?.02:.016)*v*rnd(.7,1.1),.22,open?.15:0,drumG);};
+  const shaker=(t,v)=>{emit('h',t);if(chip)return cnoise(t,6000,.025,.012*v);noise(loose(t,-.006,.006),'bandpass',5600,1.1,.012,.05,.012*v*rnd(.7,1.1),-.25,.1,drumG);};
+  const rim=(t,v)=>{emit('s',t);if(chip)return cnoise(t,2500,.02,.035*v);t=loose(t,-.004,.006);noise(t,'bandpass',2100,3,.001,.03,.05*v,.18,.15,drumG);const o=a.createOscillator(),g=a.createGain();o.frequency.value=440;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.03*v,t+.001);g.gain.exponentialRampToValueAtTime(.001,t+.045);o.connect(g);out(g,.18,.1,0,drumG);o.start(t);o.stop(t+.06);};
+  const clap=(t,v)=>{emit('s',t);if(chip)return cnoise(t,1500,.09,.045*v);for(let i=0;i<3;i++)noise(t+i*.011,'bandpass',1150,1,.002,i<2?.012:.16,.045*v,-.05,.35,drumG);};
+  const brush=(t,v,long)=>{emit('h',t);if(chip)return cnoise(t,3000,long?.12:.04,.02*v);noise(loose(t,-.01,.012),'bandpass',2800,.9,long?.07:.025,long?.32:.12,.026*v*rnd(.75,1.1),-.15,.3,drumG);};
   /* ---- harmony and melody ---- */
   const tonicNear=c=>kpc+12*Math.round((c-kpc)/12);
   const chordAt=bi=>{const p=((bi%32)+32)%32,pr=p>=16?progB:progA;return pr[Math.floor((p%16)/bpc)%pr.length];};
@@ -203,7 +206,7 @@ function band(a,dest,tp0){const tp=normT(tp0);
     playNotes(b0,bi,ns,.8);};
   const improv=[.2,.35,.5][G]*(ambient?.35:1);let hookB=null,hookN=0;
   const tStart=a.currentTime+.25;let bar=0,t=tStart,pumpDepth=D===3&&!chip?[.12,.18,.25][G]:0;
-  function barSlot(b0){const bi=bar,p32=bi%32,ch=chordAt(bi),nx=chordAt(bi+1),bd=D>0&&bi>=24&&p32>=24&&p32<28,full=barDur;
+  function barSlot(b0){emit('bar',b0);const bi=bar,p32=bi%32,ch=chordAt(bi),nx=chordAt(bi+1),bd=D>0&&bi>=24&&p32>=24&&p32<28,full=barDur;
     const fill=D>0&&!bd&&(p32===15||p32===31||p32===23)&&Math.random()<.8; /* a little fill going into the next section */
     /* ---- DRUMS ---- */
     if(D>0&&!bd){
@@ -227,7 +230,7 @@ function band(a,dest,tp0){const tp=normT(tp0);
     else if(bd)for(let i=2;i<16;i+=4)hat(st(b0,i),.35,D===3);
     /* ---- BASS: follows the chords, in the drums' feel ---- */
     if(BS>0&&!bd){const lo=BS===2?33:36,r=rootOf(ch,lo,lo+11),r5=r+7>lo+16?r-5:r+7,nr=rootOf(nx,lo,lo+11);
-      const play=(i,m,len,v)=>{const tt=st(b0,i),dur=len*step;if(BS===1)bassLo(tt,m,dur,v);else if(BS===2)sub(tt,m,dur,v);else if(chip)tri(tt,m+12,dur*.9,v*.9);else sbass(tt,m+12,dur,v);};
+      const play=(i,m,len,v)=>{const tt=st(b0,i),dur=len*step;emit('b',tt);if(BS===1)bassLo(tt,m,dur,v);else if(BS===2)sub(tt,m,dur,v);else if(chip)tri(tt,m+12,dur*.9,v*.9);else sbass(tt,m+12,dur,v);};
       let pat;
       if(feel===0)pat=G===2?[[0,r,7],[8,r5,7]]:[[0,r,15*bpc]];
       else if(feel===2){pat=[[0,r,G===0?10:6]];if(G>=1&&Math.random()<.75)pat.push([10,choose([r,r5,r+12]),4]);if(G===2){if(Math.random()<.5)pat.push([7,r,2]);pat.push([14,nr+choose([-1,2,0]),2]);}}
