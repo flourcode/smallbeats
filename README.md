@@ -28,6 +28,7 @@ Then open http://localhost:8000. Analytics stays off on localhost. The service w
 | `analytics.js` | Google Analytics 4 (`G-SBX0G743FR`); empty the ID to switch it off |
 | `privacy.html`, `terms.html`, `404.html` | The other pages |
 | `studio.html` | The Studio: builds broadcast addresses for OBS (unlisted, noindex) |
+| `how-it-works/index.html` | The write-up: how every note is made (at /how-it-works/) |
 | `sw.js`, `manifest.webmanifest` | Offline copy and home-screen install |
 | `og.png` | Link preview image, 1200 × 630 |
 | `favicon.ico`, `icons/` | Tab and app icons, and `mark-2/3/4/6.png`: the Small Beats cat at 2, 3, 4 and 6 px per pixel for the header |

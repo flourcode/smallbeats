@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>How every note of a mixtape toy is made in your browser · Small Beats</title>
+<meta name="description" content="No samples, no AI, about 12 KB of JavaScript: how Small Beats turns a 100-character link into a song, with FM keys, plucked strings, synthesized drums and a cassette that wobbles.">
+<link rel="canonical" href="https://smallbeats.com/how-it-works/">
+<meta name="theme-color" content="#2a1915">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Small Beats">
+<meta property="og:url" content="https://smallbeats.com/how-it-works/">
+<meta property="og:title" content="How every note of a mixtape toy is made in your browser">
+<meta property="og:description" content="No samples, no AI, about 12 KB of JavaScript: how a 100-character link becomes a song.">
+<meta property="og:image" content="https://smallbeats.com/og.png?v=11">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How every note of a mixtape toy is made in your browser">
+<meta name="twitter:description" content="No samples, no AI, about 12 KB of JavaScript: how a 100-character link becomes a song.">
+<meta name="twitter:image" content="https://smallbeats.com/og.png?v=11">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" href="../icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="stylesheet" href="../app.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"How every note of a mixtape toy is made in your browser","datePublished":"2026-10-26","author":{"@type":"Person","name":"The maker of Small Beats"},"publisher":{"@type":"Organization","name":"Small Beats","url":"https://smallbeats.com/"},"mainEntityOfPage":"https://smallbeats.com/how-it-works/","image":"https://smallbeats.com/og.png?v=11"}</script>
+<style>
+  .post{max-width:720px;margin:0 auto;padding:10px var(--gut) 48px}
+  .post h1{font:400 clamp(26px,4.6vw,38px)/1.2 Silk;letter-spacing:1px;margin:14px 0 8px}
+  .post .meta{color:var(--muted);font-size:14px;margin:0 0 26px}
+  .post h2{font:400 17px/1.35 Silk;letter-spacing:1px;color:var(--amber);margin:38px 0 10px}
+  .post p,.post li{color:#d8cfbe;font-size:17px;line-height:1.65}
+  .post p{margin:0 0 14px}
+  .post ul,.post ol{margin:0 0 16px;padding-left:22px}
+  .post li{margin:0 0 6px}
+  .post b{color:var(--cream)}
+  .post a{color:var(--amber)}
+  .post code{font:400 .9em/1 ui-monospace,Menlo,monospace;background:#3a251e;padding:2px 5px;color:var(--cream)}
+  .post pre{background:#140b08;color:#efe6d2;padding:14px 16px;overflow-x:auto;font:400 14px/1.55 ui-monospace,Menlo,monospace;box-shadow:0 0 0 3px #3a251e;margin:4px 3px 18px}
+  .post pre code{background:none;padding:0;font-size:inherit}
+  .post .tbl{overflow-x:auto;margin:6px 0 16px}
+  .post table{border-collapse:collapse;width:100%;font-size:15px}
+  .post th,.post td{text-align:left;padding:9px 8px;border-bottom:1px solid #55403a;vertical-align:top;color:#d8cfbe}
+  .post th{font:400 12px/1.3 Silk;letter-spacing:1px;color:var(--amber)}
+  .post td:first-child{color:var(--cream);font-weight:600;white-space:nowrap}
+  .try{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;margin:20px 0 6px;padding:18px;background:var(--panel);box-shadow:0 0 0 4px var(--line)}
+  .try p{margin:0;flex:1 1 260px}
+  .try .pb{text-decoration:none}
+  @media (max-width:620px){.post p,.post li{font-size:16px}.post td:first-child{white-space:normal}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../" aria-label="Small Beats home"><picture><source media="(max-width:620px)" srcset="../icons/mark-2.png 1x, ../icons/mark-4.png 2x"><img class="brand-logo" src="../icons/mark-3.png" srcset="../icons/mark-3.png 1x, ../icons/mark-6.png 2x" alt="" width="96" height="96"></picture><span class="brand-word">SMALL BEATS</span></a>
+  <nav class="nav" aria-label="Main"><a href="../#make">MAKE</a><a href="../#about">ABOUT</a><a href="https://www.youtube.com/@smallbeatsfm" target="_blank" rel="noopener">YOUTUBE</a></nav>
+</header>
+
+<main class="post">
+<article>
+<h1>How every note of a mixtape toy is made in your browser</h1>
+<p class="meta">October 26, 2026</p>
+
+<p><a href="../">Small Beats</a> is a mixtape toy: pick a sound, switch parts on and off, put a sticker on the cassette, and send the link to someone. Every note they hear is synthesized in their browser as it plays. There are no audio files, no samples and no AI anywhere in it.</p>
+<p>The music engine is one JavaScript file of about 36 KB, 12 KB gzipped, built on the Web Audio API. A whole song travels as a link of about 100 characters. This is how it works, and what was hard.</p>
+
+<h2>A song is a number</h2>
+<p>A tape link holds a short JSON array, base64url-encoded: the name, the cassette shell, the sticker, six settings (sound, drums, bass, keys, texture, speed) and one integer seed.</p>
+<pre><code>[1, "GROCERY RUN", 6, 1, 1, 3, 0, 1, 1, 1422687053, 254]</code></pre>
+<p>The seed goes through a small hash (FNV-1a) into a seeded random number generator. Everything structural comes from that generator: the key, the mood, the two chord progressions, and the hook. So the same link gives everyone the same song's bones.</p>
+<p>The six settings give 3,600 combinations of parts, and the seed has about 2.1 billion values. That is roughly 7.7 trillion possible tapes, though plenty of neighbours sound alike.</p>
+<p>One honest caveat: the bones are fixed, but the small stuff is not. Timing jitter, velocities and the improvised riffs between hooks use the ordinary <code>Math.random()</code>. Two people hear the same key, chords and hook, played by a slightly different band each time. I like that: it's closer to a band than a recording.</p>
+
+<h2>Why any combination fits</h2>
+<p>Every part follows the same chord chart, so drums, bass, keys and tune can be switched on in any combination and still agree.</p>
+<p>The seed picks one of three moods. Each mood is a scale plus a handful of four-chord progressions, written as root and chord quality per bar:</p>
+<pre><code>2m9 7dom9 0maj9 9m7      ii9 – V9 – Imaj9 – vi7, in whatever key the seed chose
+0m9 5m7 8maj9 7dom7b9    a minor-key loop with a flat-nine pull back home</code></pre>
+<p>A tune uses two progressions: one for the first 16 bars of a 32-bar cycle, another for the second.</p>
+<p>Three small rules keep it sounding played rather than generated:</p>
+<ul>
+  <li><b>Voice leading.</b> Each chord is voiced near the previous one: if the average pitch would jump more than four semitones, the voicing is inverted to stay close.</li>
+  <li><b>No mud.</b> Voicings with a minor second inside them are rejected, because that interval reads as a wrong note.</li>
+  <li><b>Melody snaps to the harmony.</b> On strong beats, tune notes are pulled to the nearest chord tone. Off the beat they can pass through other scale notes, as long as they don't rub a semitone against the chord.</li>
+</ul>
+
+<h2>The hook, and how a tune develops</h2>
+<p>Each tune has a two-bar hook built from a tiny cell: two or three notes, the same cell moved up or down a step, and a long note to land on. That shape (statement, answer, resolution) is most of what makes a melody feel intentional.</p>
+<p>The hook comes back every eight bars and develops on a four-step cycle:</p>
+<ol>
+  <li>As written.</li>
+  <li>With a new ending.</li>
+  <li>A rest, sometimes filled with a short riff improvised from pieces of the hook.</li>
+  <li>Moved up a step.</li>
+</ol>
+<p>The second half of the tune gets its own hook, and a fresh one every 64 bars, so a tape left on for an hour keeps moving. Late in each 32-bar cycle the drums drop out for a few bars, leaving only hats, and come back in. That breakdown is the cheapest trick in the engine, and the most effective.</p>
+
+<h2>The instruments, all in code</h2>
+<p>Every voice is built from oscillators, noise and filters at the moment it plays.</p>
+<div class="tbl"><table>
+  <thead><tr><th>Part</th><th>How it's made</th></tr></thead>
+  <tbody>
+    <tr><td>Rhodes</td><td>Two-operator FM: a sine modulating a sine, with the modulation depth decaying fast for the bell-like attack, plus a slightly detuned sine for warmth</td></tr>
+    <tr><td>Guitar</td><td>Karplus–Strong plucked string: a burst of filtered noise fed into a short delay loop that averages itself; a comb filter sets where the string is plucked. Each note is rendered once and cached, in three takes, so repeated strums aren't identical</td></tr>
+    <tr><td>Pad</td><td>Detuned saw pairs through a lowpass filter that opens and closes over the chord</td></tr>
+    <tr><td>8-bit</td><td>Pulse waves at 12.5% and 25% duty, built from Fourier series with <code>createPeriodicWave</code></td></tr>
+    <tr><td>Bass</td><td>Warm (sine and triangle), deep (a tighter sub) and synth (saw and square through a plucky filter)</td></tr>
+    <tr><td>Kick</td><td>A sine swept from 110 Hz to 42 Hz in about 130 ms</td></tr>
+    <tr><td>Snare, clap, rim</td><td>Band-passed noise bursts, the snare with a 190 Hz tone under it</td></tr>
+    <tr><td>Hats, shakers, brushes</td><td>High-passed and band-passed noise with very short envelopes</td></tr>
+    <tr><td>Chip drums</td><td>Noise held for six samples at a time, which mimics the stepped noise of old sound chips</td></tr>
+  </tbody>
+</table></div>
+<p>None of this is new. Most of it is textbook synthesis from the 1970s and 80s. What surprised me is how far plain Web Audio nodes go when the envelopes are right.</p>
+
+<h2>Feel</h2>
+<p>Perfect timing sounds like a machine, so three things loosen it up.</p>
+<ul>
+  <li><b>Swing.</b> Every other sixteenth note is pushed late, by a different amount per sound and speed: about 4% of a beat for fast 8-bit, up to 16% for slow lo-fi. TIGHT plays dead straight; SWING leans on the offbeats harder.</li>
+  <li><b>Human timing.</b> Every drum hit lands a few milliseconds early or late, snares slightly behind the beat, and velocities wobble by around 15%.</li>
+  <li><b>The house pump.</b> On house tapes, every kick briefly ducks the keys and pad, the sidechain pumping that defines the genre.</li>
+</ul>
+
+<h2>The cassette chain, and weather that never loops</h2>
+<p>Lo-fi tapes run the whole mix through a small model of a worn cassette:</p>
+<ul>
+  <li>soft saturation (a waveshaper driving the signal into gentle clipping, then turned back down),</li>
+  <li>a high-pass at 75 Hz and a two-stage roll-off around 6–8.5 kHz,</li>
+  <li>a little bandpassed hiss,</li>
+  <li>wow (about 6 cents of pitch drift at 0.48 Hz) and flutter (about 2 cents at 6.3 Hz), made by modulating a short delay line.</li>
+</ul>
+<p>The textures are generated too, never looped:</p>
+<ul>
+  <li><b>Rain</b> is a soft filtered-noise bed plus individual taps at random intervals, about 3.6 a second on average, sometimes in pairs, and a single droplet plink every few seconds.</li>
+  <li><b>Fire</b> is a slowly swaying low roar of brown noise with sparse crackles, the odd one muffled into a pop.</li>
+  <li><b>Hiss</b> is tape noise with a faint 60 Hz mains hum and an occasional tick of dust on the heads.</li>
+</ul>
+<p>Because the timing is random rather than a recording, an hour of rain never repeats a pattern you could notice.</p>
+
+<h2>Scheduling on the audio clock</h2>
+<p>JavaScript timers are too jittery to play music, so nothing is played "now". A plain <code>setInterval</code> wakes every 400 ms and schedules whole bars up to 2.2 seconds ahead, against the audio context's own sample-accurate clock. This is the two-clock pattern from Chris Wilson's <a href="https://web.dev/articles/audio-scheduling" target="_blank" rel="noopener">A Tale of Two Clocks</a>. A busy main thread, or a tab in the background, never makes the beat stumble.</p>
+<p>The same scheduler also reports every note as it's queued. That stream drives the visuals: the sticker on the cassette hops on beats 1 and 3, and in the long-play video mode a cat in the corner nods along. Pause is <code>AudioContext.suspend()</code>, so a tune picks up exactly where it stopped.</p>
+
+<h2>What was hard, and how I built it</h2>
+<ul>
+  <li><b>Making it sound like a band, not a demo.</b> Correct notes are easy; feel is hard. Most of the time went into envelopes, swing amounts and leaving space.</li>
+  <li><b>Switching parts mid-song.</b> Changing a part rebuilds the band with a short crossfade. It works, but the tune restarts its form. Seamless changes on the next bar are the next thing I'd fix.</li>
+  <li><b>Keeping old links alive.</b> Any change to the engine changes every tape ever shared. Next up is versioning the engine, so a tape made today sounds the same in five years.</li>
+</ul>
+<p>I'm retired and took up coding as a hobby. This was a fun project inspired by my two tabby cats, Peaches and Pepper. They didn't help with the coding, but they stayed up late with me.</p>
+<p>I'm old enough to remember trading cassette tapes in high school. Small Beats is sort of the digital version of that. It's hosted on GitHub, with AWS Amplify pointed at it.</p>
+<p>I used Claude (Opus 5.5) to help with the procedural generation algorithms. The music itself is still made by plain code in your browser, with no AI involved when a tape plays.</p>
+
+<h2>Try it</h2>
+<div class="try">
+  <p>It's free, with no account, and it works offline once loaded. Make a tape, hit NEW TUNE until the melody grabs you, and send the link to someone. If you make one you like, I'd love to hear it: <a href="mailto:hello@smallbeats.com">hello@smallbeats.com</a>.</p>
+  <a class="pb pb-big" href="../" style="--c:var(--green)">▶ MAKE A TAPE</a>
+</div>
+</article>
+</main>
+
+<footer class="foot">
+  <p>© 2026 Small Beats</p>
+  <nav aria-label="Footer"><a href="../">Make a tape</a><a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a><a href="https://www.youtube.com/@smallbeatsfm" target="_blank" rel="noopener">YouTube</a><a href="mailto:hello@smallbeats.com">hello@smallbeats.com</a></nav>
+</footer>
+<script src="../analytics.js" defer></script>
+</body>
+</html>
