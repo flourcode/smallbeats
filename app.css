@@ -168,6 +168,8 @@ a{color:var(--amber)}
 .foot nav{display:flex;gap:6px 18px;flex-wrap:wrap}
 .foot a{color:var(--muted)}
 .foot p{margin:0}
+.foot{align-items:center}
+.ph-badge{display:block;line-height:0}.ph-badge img{display:block;width:250px;height:54px}
 
 /* ---- all stickers: a tray that slides up; the tape stays where it is ---- */
 .drawer{position:fixed;inset:0;z-index:20}

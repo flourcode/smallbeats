@@ -536,5 +536,6 @@ if(BC){document.documentElement.classList.add('broadcast');
 
 paint();
 if(!BC)try{console.log('%cSMALL BEATS','font:700 14px monospace;color:#e8a33a');console.log('%cEverything you hear is made in this tab, a bar at a time. No recordings.','color:#a39a8b');}catch(e){}
+{const ph=document.querySelector('.ph-badge');if(ph)ph.addEventListener('click',()=>track('product_hunt',{},true));}
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();

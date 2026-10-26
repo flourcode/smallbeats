@@ -126,7 +126,7 @@ The engine reports every bar it schedules (`onHit` on the recipe), which is what
 
 ## Analytics
 
-GA4 with Consent Mode (ads storage always denied; analytics storage denied in the EEA, UK and Switzerland), not loaded with Do Not Track or Global Privacy Control. Events: `play`, `pause`, `genre_select`, `part_toggle`, `new_tune`, `sticker_select`, `tape_name`, `tape_save`, `tape_share`, `tape_open`, `tape_remix`, `tape_fav`, `play_all`, `shelf_link`, `shelf_restore`.
+GA4 with Consent Mode (ads storage always denied; analytics storage denied in the EEA, UK and Switzerland), not loaded with Do Not Track or Global Privacy Control. Events: `play`, `pause`, `genre_select`, `part_toggle`, `new_tune`, `sticker_select`, `tape_name`, `tape_save`, `tape_share`, `tape_open`, `tape_remix`, `tape_fav`, `play_all`, `shelf_link`, `shelf_restore`, `product_hunt` (the footer badge).
 
 ## Deploy
 
