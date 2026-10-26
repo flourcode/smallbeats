@@ -27,6 +27,7 @@
 <link rel="preload" href="stickers.png?v=6" as="image">
 <link rel="stylesheet" href="app.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Small Beats","url":"https://smallbeats.com/","applicationCategory":"MusicApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"A tiny music machine for making mixtapes in your browser.","sameAs":["https://www.youtube.com/@smallbeatsfm"]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Can I use the music in my videos?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The music is royalty-free: use it in videos, streams, podcasts, games or anything else, even commercially, with no fee and no need to ask. Credit is appreciated, not required. Because anyone can make the same tape, please don't register it with Content ID or resell it as a sample library. The details are in the terms."}}, {"@type": "Question", "name": "Can I download a tape as a file?", "acceptedAnswer": {"@type": "Answer", "text": "Not as a file. The music is made live, so to keep it, record it: your phone or computer's screen recorder works, and so does OBS for longer recordings."}}, {"@type": "Question", "name": "Is any of it AI?", "acceptedAnswer": {"@type": "Answer", "text": "No. Not one note is AI-generated. Everything is synthesized by code in your browser, from the tape's settings and a number for the tune."}}, {"@type": "Question", "name": "Do I need an account?", "acceptedAnswer": {"@type": "Answer", "text": "No. There's nothing to sign up for and nothing to install. It's free, with no ads."}}, {"@type": "Question", "name": "Where are my tapes kept?", "acceptedAnswer": {"@type": "Answer", "text": "In this browser, on this device. Your shelf link (under YOUR TAPES) holds every tape in one link: open it in any other browser or phone to bring them along. Private browsing windows forget everything when they close."}}, {"@type": "Question", "name": "Does it work offline?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, once the page has loaded. Add it to your home screen and it opens like an app. On iPhone it plays even with the ring switch on silent."}}, {"@type": "Question", "name": "Which browsers does it work in?", "acceptedAnswer": {"@type": "Answer", "text": "Current Chrome, Edge, Safari and Firefox, on computers, phones and tablets."}}]}</script>
 </head>
 <body class="striped">
 <div class="stripe-wrap" aria-hidden="true"><canvas class="stripe" id="stripe"></canvas></div>
@@ -159,14 +160,36 @@
         <p>No account, nothing to install, nothing to learn. If you don't like the tune, hit <b>NEW TUNE</b> and it writes another one with the same parts.</p>
       </div>
       <div>
-        <h3>How does it work?</h3>
-        <p>Nothing you hear is a recording. The drums, bass, keys and the rain outside are all made in your browser while you listen, and every part follows the same chord changes, so whatever you switch on still fits together.</p>
-        <p>A tape link is a short recipe: the parts you picked, a number for the tune, the name and the sticker. The other person's browser plays it from that.</p>
+        <h3>How it works</h3>
+        <ul class="how">
+          <li><b>Nothing is a recording.</b> Drums, bass, keys, rain and fire are synthesized in your browser while you listen, a bar at a time.</li>
+          <li><b>Everything fits.</b> Every part follows the same chord changes, so whatever you switch on plays in key.</li>
+          <li><b>A tune is a number.</b> A tape link holds the parts, the sticker and a number for the tune, so everyone who opens it hears the same song.</li>
+          <li><b>Real instruments, in code.</b> Rhodes is FM synthesis, the guitar is a plucked-string model, 8-bit is pulse waves, and the drums are noise and oscillators: soft, lo-fi, house and dub kits, played TIGHT or with SWING.</li>
+          <li><b>The cassette chain.</b> Lo-fi tapes run through tape saturation, wow and flutter, a gentle roll-off and a little hiss.</li>
+          <li><b>No AI.</b> Not one note is AI-generated.</li>
+        </ul>
+        <p class="specs">Any modern browser · works offline · installable · no account · about 160 KB</p>
       </div>
       <div>
         <h3>Who made it?</h3>
-        <p>One person who grew up making mixtapes off the radio. It's free, with no ads.</p>
+        <p>One person who grew up making mixtapes off the radio, with two tabby cats. It's free, with no ads.</p>
         <p>Longer sessions are on <a href="https://www.youtube.com/@smallbeatsfm" target="_blank" rel="noopener">YouTube</a>. Something broken, or made a tape worth hearing? <a href="mailto:hello@smallbeats.com">hello@smallbeats.com</a></p>
+      </div>
+    </div>
+    <div class="about-cols about-more">
+      <div class="faq" id="faq">
+        <h3>Questions</h3>
+        <details><summary>Can I use the music in my videos?</summary><p>Yes. The music is royalty-free: use it in videos, streams, podcasts, games or anything else, even commercially, with no fee and no need to ask. Credit is appreciated, not required. Because anyone can make the same tape, please don't register it with Content ID or resell it as a sample library. The details are in the <a href="terms.html">terms</a>.</p></details><details><summary>Can I download a tape as a file?</summary><p>Not as a file. The music is made live, so to keep it, record it: your phone or computer's screen recorder works, and so does OBS for longer recordings.</p></details><details><summary>Is any of it AI?</summary><p>No. Not one note is AI-generated. Everything is synthesized by code in your browser, from the tape's settings and a number for the tune.</p></details><details><summary>Do I need an account?</summary><p>No. There's nothing to sign up for and nothing to install. It's free, with no ads.</p></details><details><summary>Where are my tapes kept?</summary><p>In this browser, on this device. Your shelf link (under YOUR TAPES) holds every tape in one link: open it in any other browser or phone to bring them along. Private browsing windows forget everything when they close.</p></details><details><summary>Does it work offline?</summary><p>Yes, once the page has loaded. Add it to your home screen and it opens like an app. On iPhone it plays even with the ring switch on silent.</p></details><details><summary>Which browsers does it work in?</summary><p>Current Chrome, Edge, Safari and Firefox, on computers, phones and tablets.</p></details>
+      </div>
+      <div class="new" id="new">
+        <h3>What's new</h3>
+        <dl>
+          <dt>Oct 26, 2026</dt><dd>The music is royalty-free, even for commercial use. Questions answered here.</dd>
+          <dt>Oct 25, 2026</dt><dd>A real shelf: your newest tapes up front, the rest in a rack, a FROM FRIENDS section, stars, PLAY THE SHELF, and a shelf link (with a QR code) to move your tapes to any browser.</dd>
+          <dt>Oct 25, 2026</dt><dd>A CATS sticker tab: tabby, orange, black, calico and siamese, and they blink. Stickers hop on the beat.</dd>
+          <dt>Oct 25, 2026</dt><dd>New mixer: TIGHT or SWING drums, HISS, RAIN or FIRE texture, and a STEADY speed.</dd>
+        </dl>
       </div>
     </div>
   </section>
@@ -175,7 +198,7 @@
 <footer class="foot">
   <p>© 2026 Small Beats</p>
   <a class="ph-badge" href="https://www.producthunt.com/products/small-beats?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-small-beats" target="_blank" rel="noopener noreferrer"><img alt="Small Beats - A tiny music machine in your browser | Product Hunt" width="250" height="54" loading="lazy" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1292855&amp;theme=dark&amp;t=1792988413982"></a>
-  <nav aria-label="Footer"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="https://www.youtube.com/@smallbeatsfm" target="_blank" rel="noopener">YouTube</a><a href="mailto:hello@smallbeats.com">hello@smallbeats.com</a></nav>
+  <nav aria-label="Footer"><a href="#new">What's new</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="https://www.youtube.com/@smallbeatsfm" target="_blank" rel="noopener">YouTube</a><a href="mailto:hello@smallbeats.com">hello@smallbeats.com</a></nav>
 </footer>
 
 <div class="drawer" id="drawer" hidden>

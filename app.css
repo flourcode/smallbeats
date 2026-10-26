@@ -164,6 +164,19 @@ a{color:var(--amber)}
 .about-cols{display:grid;gap:10px 36px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
 .about h3{font:700 14px/1.3 Silk;letter-spacing:1px;color:var(--amber);margin:12px 0 6px}
 .about p{margin:0 0 12px;color:#d8cfbe;max-width:60ch}
+.how{margin:0 0 12px;padding:0;list-style:none;color:#d8cfbe;max-width:60ch}
+.how li{margin:0 0 10px;padding-left:16px;position:relative}
+.how li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;background:var(--amber)}
+.how b{color:var(--cream)}
+.specs{font:400 11px/1.6 Silk!important;letter-spacing:1px;color:var(--muted)!important}
+.about-more{margin-top:26px;padding-top:18px;border-top:2px dashed #4a332b;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.faq details{border-bottom:2px solid #3a251e}
+.faq summary{cursor:pointer;padding:12px 4px;color:var(--cream);font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font:400 16px/1 Silk;color:var(--amber)}
+.faq details[open] summary::after{content:"–"}
+.faq details p{margin:0 4px 14px}
+.new dl{margin:0}.new dt{font:400 11px/1.4 Silk;letter-spacing:1px;color:var(--amber);margin:12px 0 4px}.new dd{margin:0;color:#d8cfbe;max-width:60ch}
 .foot{max-width:1180px;margin:0 auto;padding:22px var(--gut) 40px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;color:var(--muted);font-size:14px;border-top:2px solid #3a251e}
 .foot nav{display:flex;gap:6px 18px;flex-wrap:wrap}
 .foot a{color:var(--muted)}
