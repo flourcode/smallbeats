@@ -25,7 +25,7 @@ Then open http://localhost:8000. Analytics stays off on localhost. The service w
 | `stickers.js`, `stickers.png` | Sticker metadata and the sticker sheet |
 | `qr.js` | QR code generator (Kazuhiko Arase, MIT), loaded only when the shelf link is opened |
 | `app.css` | All styles |
-| `analytics.js` | Google Analytics 4 (`G-QY4M7NZD76`); empty the ID to switch it off |
+| `analytics.js` | Google Analytics 4 (`G-SBX0G743FR`); empty the ID to switch it off |
 | `privacy.html`, `terms.html`, `404.html` | The other pages |
 | `studio.html` | The Studio: builds broadcast addresses for OBS (unlisted, noindex) |
 | `sw.js`, `manifest.webmanifest` | Offline copy and home-screen install |
