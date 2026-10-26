@@ -83,9 +83,15 @@ const STARTERS=[ /* three tapes already on the shelf on a first visit, so the sh
   {id:'grocery',n:'GROCERY RUN',c:6,d:1,b:1,k:3,w:0,p:1,s:1,r:1422687053,t:254,fav:1},
   {id:'sidequest',n:'SIDE QUEST',c:5,d:1,b:1,k:4,w:0,p:1,s:3,r:1469865583,t:196},
   {id:'sadurday',n:'SADURDAY BEATS',c:4,d:2,b:1,k:1,w:0,p:1,s:0,r:1469865583,t:56}];
-if(!S.seeded&&!BC){S.tapes=STARTERS.map(cleanTape).concat(S.tapes).slice(0,MAX_TAPES);S.seeded=1;} /* once: throw them out and they stay gone */
+/* The starter tapes. STARTER_V goes up whenever they change: then the old copies on a returning visitor's shelf are swapped for the
+   new ones (and any missing come back, once). An empty shelf always gets them back, so nobody is left looking at nothing. */
+const STARTER_V=2,starterIds=STARTERS.map(t=>t.id);let reseeded=false;
+if(!BC&&(S.seeded!==STARTER_V||!S.tapes.length)){S.tapes=STARTERS.map(cleanTape).concat(S.tapes.filter(t=>!starterIds.includes(t.id))).slice(0,MAX_TAPES);S.seeded=STARTER_V;reseeded=true;}
 const FIRST_TAPE=Object.assign({},STARTERS[0],{fav:undefined}); /* what a first visit opens on: house, warm bass, pad, the smoked tape, the happy calico */
 let draft=cleanTape(S.draft)||cleanTape(FIRST_TAPE);delete draft.id;
+/* a draft that's an old copy of a starter (same name, nothing of yours in it) becomes the new one */
+if(reseeded){const st=STARTERS.find(x=>x.n===draft.n);if(st&&!sameTape(draft,cleanTape(st))){draft=cleanTape(Object.assign({},st,{fav:undefined}));delete draft.id;}}
+if(reseeded)try{localStorage.setItem(STORE,JSON.stringify(Object.assign({},S,{draft})));}catch(e){}
 function save(){if(BC)return;S.draft=draft;try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
 let shared=null;{const c=Q.get('tape');if(c)shared=decodeTape(c);}
 let cur=draft; /* what's in the deck */
