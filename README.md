@@ -111,13 +111,14 @@ No keyboard shortcuts, no dialogs, and nothing that stops the music: the sticker
 
 **The Studio** is `/studio.html`: not linked from the site and not indexed. It builds the broadcast address for you. Pick tapes from your shelf (it reads this browser's shelf) and/or paste tape links people sent you, choose 16:9 or 9:16 (Shorts), set the minutes per tape and the volume, and watch a preview. Then COPY ADDRESS into OBS, or OPEN IN A NEW WINDOW to record the screen.
 
-**What's on screen** (made to be left on for hours and glanced at):
-- the cassette, its reels turning, the tape winding from the left reel to the right over each turn; at the turn it plays the other side (SIDE A / B), and a new tape crossfades in;
-- drum-machine step lights (KICK, SNARE, HATS, BASS, KEYS, for the parts that are on) with a running light across the bar, lit by the real notes, and an LED meter in the stripe colours with slowly falling peaks;
-- the tape's texture, softly, in big pixels behind it all: rain falling, the glow and embers of a fire just out of shot, or a faint hiss of grain;
-- credits that come and go: MIXED BY in big letters for the first minute, then a small tag in the top-left corner; NEXT · NAME in the top-right 30 seconds before a turn; every third turn (every other one with a single tape), DROP YOUR TAPE LINK IN THE COMMENTS (`&ask=0` turns that off);
+**What's on screen** (one tape, one equalizer, one cat; made to be left on for hours and glanced at):
+- the cassette, big and just above the middle, its reels turning and the tape winding from the left reel to the right over each turn; at the turn the next tape crossfades in, and each time a tape comes round again it plays its other side;
+- under it, as wide as the tape, a dot-matrix equalizer in the stripe's colours (brown at the bottom, up through red, orange and gold to a cream tip), lows on the left, with peaks that hang and drift down;
+- bottom-left, the Small Beats cat with SMALL BEATS and smallbeats.com: it nods on beats 1 and 3, blinks, and every minute or so closes its eyes for a bar;
+- top-left, now playing (name, sound, MIXED BY, REMIXED FROM); top-right, NEXT · NAME 30 seconds before a turn; under now playing, every third turn (every other one with a single tape), DROP YOUR TAPE LINK IN THE COMMENTS (`&ask=0` turns that off). In 9:16 the corner lines stack top-left and the cat sits above where Shorts and Reels put their captions;
+- behind it all: the warm brown with a soft vignette and faint grain, and the tape's texture in big pixels (rain falling, the glow and embers of a fire just out of shot, or a little hiss of grain);
 - over two hours the background warms and dims a little and comes back, and every four minutes everything shifts a few pixels so nothing burns into a screen.
-The engine reports every note it schedules (`onHit` on the recipe), which is what the step lights and the sticker hop follow.
+The engine reports every bar it schedules (`onHit` on the recipe), which is what the nods and the sticker hop follow.
 
 **The Studio also writes the YouTube chapters:** give it the video's length and it lists each turn with its time, tape and maker, then each tape's link, ready for the description (not with shuffle, since the order isn't known).
 

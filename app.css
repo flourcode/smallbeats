@@ -191,30 +191,33 @@ a{color:var(--amber)}
 .broadcast .top,.broadcast .hero,.broadcast .machine,.broadcast .tapeside .step,.broadcast .namebar,.broadcast .savebar,.broadcast .stickers,.broadcast .shells,.broadcast .bench-h,.broadcast .bench .screw,.broadcast .shelf,.broadcast .about,.broadcast .foot,.broadcast .shared-tape,.broadcast .skip{display:none!important}
 .broadcast .deck{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:0}
 .broadcast .bench{background:none;box-shadow:none;padding:0}
-.broadcast .tapeside{width:min(70vw,120vh)}
+/* long play: the tape, a dot-matrix equalizer under it, the cat in the corner, credits in the top corners */
+.broadcast body{background:#24150f}
+.broadcast .deck{display:flex!important;position:relative;z-index:1;transform:translate(var(--bx,0),var(--by,0));transition:transform 4s ease-in-out}
+.broadcast .tapeside{display:block!important;width:min(52vw,92vh);margin-top:-6vh}
 .broadcast .cass{width:100%;margin:0}
-.broadcast .cass-svg svg{filter:none}
-.bc-sky{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:0;pointer-events:none;image-rendering:pixelated}
-.broadcast .deck{position:relative;z-index:1;transform:translate(var(--bx,0),var(--by,0));transition:transform 4s ease-in-out}
-.bc-deck{display:flex;gap:5%;align-items:flex-start;margin:4% 0 0;aspect-ratio:56/9}
-.bc-steps{flex:1.3;height:100%;display:block}
-.bc-eq{flex:1;height:100%;display:block}
-.bc-credit,.bc-site{margin:0;text-align:center;font-family:Silk;letter-spacing:.5vmin}
-.bc-credit{min-height:1em;margin-top:4.5%;font-size:3.4vmin;line-height:1;color:#efe6d2;text-shadow:.4vmin .4vmin 0 #140b08;opacity:0}
-.bc-site{margin-top:2.2%;font-size:2.6vmin;color:#9c8676}
-.bc-tag,.bc-next{position:fixed;z-index:2;top:4vmin;margin:0;max-width:44vw;font:400 1.8vmin/1.3 Silk;letter-spacing:.3vmin;color:#c9b7a3;opacity:0;transform:translate(var(--bx,0),var(--by,0))}
-.bc-tag{left:4vmin}.bc-next{right:4vmin;text-align:right;color:#e8a33a}
-.bc-credit.in,.bc-tag.in,.bc-next.in{animation:bcIn 1.6s ease-out forwards}
-.bc-credit.out,.bc-tag.out,.bc-next.out{animation:bcOut 1.6s ease-in forwards}
-@keyframes bcIn{from{opacity:0}to{opacity:1}}
-@keyframes bcOut{from{opacity:1}to{opacity:0}}
-/* broadcast ignores the phone layout (which flattens the bench), so a small preview or a tall Short still gets the whole cassette */
-.broadcast .deck{display:flex!important}
-.broadcast .tapeside{display:block!important;width:min(56vw,88vh)}
 .broadcast .cass-wrap{display:block!important;width:100%;margin:0}
-@media (orientation:portrait){.broadcast .tapeside{width:88vw;margin-bottom:18vh} /* the stack sits above where Shorts and Reels put their captions */
-  .bc-deck{flex-direction:column;aspect-ratio:auto;gap:3vmin}.bc-steps{flex:none;width:100%;aspect-ratio:56/16.5}.bc-eq{flex:none;width:80%;align-self:center;aspect-ratio:56/15}
-  .bc-tag,.bc-next{max-width:80vw}.bc-next{top:auto;bottom:4vmin;right:auto;left:4vmin;text-align:left}}
+.broadcast .cass-svg svg{filter:drop-shadow(.9vmin 1.2vmin 0 rgba(0,0,0,.35))}
+.bc-sky{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:0;pointer-events:none;image-rendering:pixelated}
+.bc-grain{position:fixed;inset:0;z-index:0;pointer-events:none;image-rendering:pixelated;opacity:.55}
+.bc-vig{position:fixed;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,0) 45%,rgba(8,4,2,.55) 100%)}
+.bc-eq{display:block;width:100%;aspect-ratio:56/9.6;margin-top:4.5%}
+.bc-tag,.bc-next,.bc-ask{position:fixed;z-index:4;margin:0;max-width:46vw;font:400 2.2vmin/1.3 Silk;letter-spacing:.35vmin;opacity:0;transform:translate(var(--bx,0),var(--by,0))}
+.bc-tag{left:4.5vmin;top:4.5vmin;color:#c9b7a3}
+.bc-ask{left:4.5vmin;top:calc(4.5vmin + 4vmin);color:#e8a33a}
+.bc-next{right:4.5vmin;top:4.5vmin;text-align:right;color:#e8a33a}
+.bc-tag.in,.bc-next.in,.bc-ask.in{animation:bcIn 1.6s ease-out forwards}
+.bc-tag.out,.bc-next.out,.bc-ask.out{animation:bcOut 1.6s ease-in forwards}
+.bc-brand{position:fixed;z-index:4;left:4.5vmin;bottom:4.5vmin;display:flex;align-items:center;gap:2.2vmin;transform:translate(var(--bx,0),var(--by,0))}
+.bc-brand .stk{position:relative}
+.bc-brand b{display:block;font:400 3.1vmin/1 Silk;letter-spacing:.5vmin;color:#efe6d2;font-weight:400}
+.bc-brand small{display:block;margin-top:1.3vmin;font:400 1.9vmin/1 Silk;letter-spacing:.4vmin;color:#9c8676}
+@media (orientation:portrait){
+  .broadcast .tapeside{width:88vw;margin-top:-26vh}
+  .bc-eq{aspect-ratio:56/19}
+  .bc-tag,.bc-next,.bc-ask{max-width:88vw;font-size:2.4vmin}
+  .bc-next{right:auto;left:4.5vmin;text-align:left;top:calc(4.5vmin + 4.4vmin)}.bc-ask{top:calc(4.5vmin + 8.8vmin)}
+  .bc-brand{bottom:auto;top:66vh}.bc-brand b{font-size:5vmin}.bc-brand small{font-size:3vmin}} /* above where Shorts and Reels put their captions */
 .stk.hop{animation:hop .14s step-end}
 @keyframes hop{0%{transform:translateY(calc(-1px * var(--s,2)))}100%{transform:none}} /* one of the sticker's own pixels, on the beat */
 .stk.squish{animation:squish .22s steps(2,end)}
@@ -319,3 +322,5 @@ a{color:var(--amber)}
 .shelf-item .row-btns .pb{white-space:nowrap;padding:0 10px}
 @media (max-width:420px){.shelf-row{grid-template-columns:1fr}.shelf-item .row-btns .pb{padding:0 9px;font-size:11px}}
 @media (max-width:359px){.shelf-item .row-btns{flex-wrap:wrap}}
+@keyframes bcIn{from{opacity:0}to{opacity:1}}
+@keyframes bcOut{from{opacity:1}to{opacity:0}}

@@ -113,7 +113,7 @@ function stop(){if(runFrom){heard+=performance.now()-runFrom;runFrom=0;}stopGen(
 function play(t){PL=null;start(t||cur);track('play');}
 /* what the visuals know about the music: note hits (for the step lights), and beats 1 and 3 (for the sticker hop) */
 const VIS={hits:[],hops:[],bars:[],step:.125};
-function noteHit(p,t){if(p==='bar'){VIS.hops.push(t,t+8*VIS.step);if(BC)VIS.bars.push(t);}else if(BC)VIS.hits.push([p,t]);}
+function noteHit(p,t){if(p==='bar')VIS.hops.push(t,t+8*VIS.step);}
 const calm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* playing the whole shelf: each tape for a few minutes, then a slow crossfade into the next */
 let PL=null;const PL_SEC=180;
@@ -383,7 +383,7 @@ if(shared&&!BC){$('shared').hidden=false;sharedCass=cassette(shared);$('sharedWr
   cur=shared;$('hero').hidden=true;}
 
 /* ---------- cats blink ---------- */
-if(!calm&&ST.blink)setInterval(()=>{const now=performance.now();document.querySelectorAll('.cass .stk.stuck').forEach(k=>{const id=+k.dataset.id,b=ST.blink[id];if(b===undefined)return;
+if(!calm&&ST.blink)setInterval(()=>{const now=performance.now();document.querySelectorAll('.cass .stk.stuck,.bc-brand .stk').forEach(k=>{const id=+k.dataset.id,b=ST.blink[id];if(b===undefined||+k.dataset.vibe)return;
   if(!k._blink)k._blink=now+3000+Math.random()*5000;if(now<k._blink)return;k._blink=now+5000+Math.random()*3000;
   const sc=+k.dataset.s||2;paintStk(k,b,sc);setTimeout(()=>{if(+k.dataset.id===id)paintStk(k,id,+k.dataset.s||sc);},150);});},250);
 /* a sticker squashes when you pick it */
@@ -393,7 +393,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 const vu=$('vu'),vx=vu.getContext('2d');let fbuf=null;
 function frame(){requestAnimationFrame(frame);
   if(actx){const now=actx.currentTime;let hop=false;while(VIS.hops.length&&VIS.hops[0]<=now){VIS.hops.shift();hop=true;}
-    if(hop&&isPlaying()&&!calm)document.querySelectorAll('.cass.playing .stk.stuck').forEach(k=>{k.classList.remove('hop');void k.offsetWidth;k.classList.add('hop');});} /* the sticker hops on beats 1 and 3 */
+    if(hop&&isPlaying()&&!calm)document.querySelectorAll('.cass.playing .stk.stuck,.bc-brand .stk').forEach(k=>{k.classList.remove('hop');void k.offsetWidth;k.classList.add('hop');});} /* the sticker hops on beats 1 and 3 */
   if(BC)bcFrame();
   if(PL&&isPlaying()&&actx.currentTime>=PL.until)nextOnShelf();
   const on=isPlaying();$('vfdCount').textContent=String(Math.floor(counterMs()/1000)%1000).padStart(3,'0');
@@ -452,13 +452,14 @@ const logoImg=document.querySelector('.brand-logo');if(logoImg.complete)drawStri
 if(document.fonts)document.fonts.ready.then(drawStripe);
 
 /* ---------- broadcast: just the tape, playing, for recordings ---------- */
-/* Broadcast mode, for recordings and streams (the Studio, /studio.html, builds these addresses):
+/* Broadcast mode, for long-play videos and streams (the Studio, /studio.html, builds these addresses):
    ?broadcast=video&tape=…[&tape=…] plays one tape, or several in turn, EACH minutes apiece (default 10) with a slow
    crossfade, round and round; &shuffle=1 mixes up the order; &vol=0.8 sets the volume; &ask=0 never asks for tape links.
-   Made to be left on for hours and glanced at: the cassette winds its tape across and turns over to the other side
-   each turn, an LED meter and a row of drum-machine step lights follow the music, the tape's texture drifts across the
-   background (rain, embers, hiss), MIXED BY credits come and go, the next tape is announced, the light warms and dims
-   very slowly over two hours, and everything shifts a few pixels now and then so nothing burns into a screen. */
+   One tape, one equalizer, one cat: the cassette big in the middle (its tape winding across, turning over to the other side
+   each time it comes round), a dot-matrix equalizer under it in the stripe's colours, the Small Beats cat in the bottom-left
+   nodding to the beat, now playing and NEXT in the top corners, the tape's texture (rain, embers, hiss) drifting softly
+   behind, a vignette and a little grain. Over two hours the light warms and dims and comes back, and every four minutes
+   everything shifts a few pixels so nothing burns into a screen. */
 let BQ=null,bcFrame=()=>{};
 if(BC){document.documentElement.classList.add('broadcast');
   const list=Q.getAll('tape').map(decodeTape).filter(Boolean),tapes=(list.length?list:[draft]).map(t=>Object.assign({},t,{_side:'A',_prog:0,_plays:0}));
@@ -466,70 +467,65 @@ if(BC){document.documentElement.classList.add('broadcast');
   const each=60*Math.max(1,Math.min(240,+Q.get('each')||10)),ask=Q.get('ask')!=='0';
   const el=(tag,cls,parent)=>{const e=document.createElement(tag);e.className=cls;(parent||document.body).appendChild(e);return e;};
   const sky=el('canvas','bc-sky');document.body.prepend(sky);
-  const side=document.querySelector('.tapeside'),deck=el('div','bc-deck',side),steps=el('canvas','bc-steps',deck),eq=el('canvas','bc-eq',deck);
-  const credit=el('p','bc-credit',side),site=el('p','bc-site',side),tag=el('p','bc-tag'),next=el('p','bc-next');
+  const grain=el('div','bc-grain');{const g=document.createElement('canvas');g.width=g.height=128;const gx=g.getContext('2d'); /* a tile of faint grain */
+    for(let i=0;i<700;i++){gx.fillStyle=Math.random()<.5?'rgba(255,240,220,.05)':'rgba(0,0,0,.09)';gx.fillRect(Math.floor(Math.random()*128),Math.floor(Math.random()*128),1,1);}
+    grain.style.backgroundImage=`url(${g.toDataURL()})`;grain.style.backgroundSize=(4*128)+'px';}
+  el('div','bc-vig');
+  const side=document.querySelector('.tapeside'),eq=el('canvas','bc-eq',side);
+  const tag=el('p','bc-tag'),askEl=el('p','bc-ask'),next=el('p','bc-next');askEl.textContent='DROP YOUR TAPE LINK IN THE COMMENTS';
+  const brand=el('div','bc-brand'),cat=stk(250,4,'');brand.appendChild(cat);brand.insertAdjacentHTML('beforeend','<span><b>SMALL BEATS</b><small>SMALLBEATS.COM</small></span>');
+  const catScale=()=>{const s=matchMedia('(orientation:portrait)').matches?Math.max(3,Math.round(innerWidth/150)):Math.max(2,Math.round(innerHeight/270));if(+cat.dataset.s!==s){cat.dataset.s=s;cat.dataset.id=250;paintStk(cat,+cat.dataset.vibe?261:250,s);cat.style.setProperty('--s',s);}};
+  catScale();addEventListener('resize',catScale);cat.dataset.id=250;
   if(Q.get('vol'))S.vol=Math.max(0,Math.min(1,+Q.get('vol')));
-  const say=(e,txt)=>{e.classList.remove('in','out');void e.offsetWidth;e.textContent=txt;if(txt)e.classList.add('in');};
+  const say=(e,txt)=>{e.classList.remove('in','out');void e.offsetWidth;if(txt!==undefined)e.textContent=txt;e.classList.add('in');};
   const fade=e=>{if(e.classList.contains('in')){e.classList.remove('in');e.classList.add('out');}};
-  const credLine=t=>t.by?'MIXED BY '+t.by.toUpperCase()+(t.from?' · REMIXED FROM '+t.from.toUpperCase():''):'';
-  let segStart=0,segN=0,said=0;
-  const show=t=>{cur=t;paint();say(credit,credLine(t));site.textContent=t.by?'MAKE YOURS AT SMALLBEATS.COM':'SMALLBEATS.COM';fade(tag);fade(next);said=0;};
+  let segStart=0,segN=0,asked=0;
+  const show=t=>{cur=t;paint();say(tag,'♪ '+t.n+' · '+startOf(t.s).name+(t.by?' · MIXED BY '+t.by.toUpperCase():'')+(t.from?' · REMIXED FROM '+t.from.toUpperCase():''));fade(next);fade(askEl);asked=0;};
   tapes[0]._plays=1;show(tapes[0]);BQ={tapes,i:0,each,until:0};
   const go=()=>{play(tapes[0]);segStart=actx.currentTime;BQ.until=segStart+each;
     if(actx.state!=='running'){const b=document.createElement('button');b.className='pb pb-big';b.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);--c:var(--green);z-index:9';b.textContent='▶ START';b.onclick=()=>{actx.resume();b.remove();};document.body.appendChild(b);}};
   go();
-  /* the turn: the next tape (or, with one tape, the same one turned over) */
+  /* the turn: the next tape (or, with one tape, the same one turned over); each time a tape comes round again it plays its other side */
   window.SB_bcNext=()=>{segN++;const old=BQ.tapes[BQ.i];
-    if(BQ.tapes.length>1){BQ.i=(BQ.i+1)%BQ.tapes.length;const t=BQ.tapes[BQ.i];t._plays=(t._plays||0)+1;t._side=t._plays%2?'A':'B';t._prog=0; /* each time a tape comes round again, it plays its other side */start(t,3);show(t);}
-    else{old._side=old._side==='A'?'B':'A';old._prog=0;show(old);} /* one tape: it just turns over and keeps playing */
+    if(BQ.tapes.length>1){BQ.i=(BQ.i+1)%BQ.tapes.length;const t=BQ.tapes[BQ.i];t._plays=(t._plays||0)+1;t._side=t._plays%2?'A':'B';t._prog=0;start(t,3);show(t);}
+    else{old._side=old._side==='A'?'B':'A';old._prog=0;show(old);}
     segStart=actx.currentTime;BQ.until=segStart+BQ.each;};
-  /* canvases at the screen's real pixels */
   const fit=c=>{const r=c.getBoundingClientRect(),d=window.devicePixelRatio||1,w=Math.max(1,Math.round(r.width*d)),h=Math.max(1,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h;}return c.getContext('2d');};
-  const EQC=['#8a5a3c','#8a5a3c','#e9b44c','#e9b44c','#e9b44c','#e2734a','#e2734a','#e2734a','#c23b4b','#f2e7d0'] /* the stripe's colours, brown at the bottom up to a cream tip */,DIM='rgba(242,231,208,.07)';
-  const NB=24,NR=10,lev=new Float32Array(NB),peak=new Float32Array(NB),hold=new Float32Array(NB);let fb=null;
-  const ROWS=[['k','KICK','#c23b4b'],['s','SNARE','#e2734a'],['h','HATS','#e9b44c'],['b','BASS','#f2e7d0'],['n','KEYS','#55d6c2']];
-  const lit={};for(const [k] of ROWS)lit[k]=new Float32Array(16);let barAt=0,lastT=0;
-  const drops=[],embers=[];let skyT=0,driftT=0,shiftT=0,shiftK=0;
+  /* the equalizer: square dots, brown at the bottom up through red, orange and gold to a cream tip; lows on the left */
+  const EQC=['#8a5a3c','#8a5a3c','#c23b4b','#c23b4b','#e2734a','#e2734a','#e9b44c','#e9b44c','#f2e7d0','#f2e7d0'],DIM='rgba(242,231,208,.06)';
+  const lev=new Float32Array(32),peak=new Float32Array(32),hold=new Float32Array(32);let fb=null,lastT=0;
+  const drops=[],embers=[];let skyT=0,driftT=0,shiftT=0,shiftK=0,vibeAt=0,vibeEnd=0;
   bcFrame=()=>{if(!actx)return;const now=actx.currentTime,on=isPlaying(),dt=Math.min(.1,Math.max(0,now-lastT));lastT=now;
     const t=BQ.tapes[BQ.i],into=now-segStart;
-    /* the turn, the reels, the credits */
     if(on&&now>=BQ.until)window.SB_bcNext();
     const pr=Math.max(0,Math.min(1,into/BQ.each));if(Math.abs((t._prog||0)-pr)>.01){t._prog=pr;fillCass(deckCass,t);}
-    if(on){if(into>60&&credit.classList.contains('in')&&said===0){fade(credit);if(t.by)say(tag,'♪ '+t.n+' · MIXED BY '+t.by.toUpperCase());else say(tag,'♪ '+t.n);said=1;}
-      const askNow=ask&&(BQ.tapes.length>1?segN%3===2:segN%2===1); /* now and then, ask for tape links */
-      if(askNow&&said===1&&into>120){say(credit,'DROP YOUR TAPE LINK IN THE COMMENTS');said=2;}
-      if(said===2&&into>150){fade(credit);said=3;}
-      if(BQ.tapes.length>1&&BQ.until-now<30&&!next.classList.contains('in'))say(next,'NEXT · '+BQ.tapes[(BQ.i+1)%BQ.tapes.length].n);}
-    /* the step lights: a running light across the bar, and every hit lighting its step */
-    while(VIS.bars.length&&VIS.bars[0]<=now)barAt=VIS.bars.shift();
-    while(VIS.hits.length&&VIS.hits[0][1]<=now){const [p,ht]=VIS.hits.shift();const k=((Math.round((ht-barAt)/VIS.step))%16+16)%16;if(lit[p])lit[p][k]=1;}
-    const rows=ROWS.filter(([k])=>k==='b'?t.b>0:k==='n'?t.k>0:t.d>0);
-    {const x=fit(steps),W=steps.width,H=steps.height;x.clearRect(0,0,W,H);const nr=Math.max(rows.length,1),lab=W*.17,cw=(W-lab)/16.6,ch=Math.min(cw,H/(nr+.9)),pad=ch*.18;
-      const cur16=Math.floor((now-barAt)/VIS.step)%16;x.font=Math.max(11,Math.round(ch*.5))+'px Silk';x.textBaseline='middle';
-      rows.forEach(([k,name,c],r)=>{const y=r*ch;x.fillStyle='rgba(242,231,208,.45)';x.fillText(name,0,y+ch/2);
-        for(let i=0;i<16;i++){const cx=lab+i*cw+Math.floor(i/4)*cw*.2,v=lit[k][i];x.fillStyle=DIM;x.fillRect(cx+pad,y+pad,cw-2*pad,ch-2*pad);
-          if(v>0.02){x.globalAlpha=v;x.fillStyle=c;x.fillRect(cx+pad,y+pad,cw-2*pad,ch-2*pad);x.globalAlpha=1;}lit[k][i]=Math.max(0,v-dt*2.6);}});
-      const y=nr*ch+ch*.25;for(let i=0;i<16;i++){const cx=lab+i*cw+Math.floor(i/4)*cw*.2;x.fillStyle=on&&i===cur16?'#e8a33a':'rgba(242,231,208,.12)';x.fillRect(cx+cw*.3,y,cw*.4,ch*.3);}}
-    /* the LED meter */
-    {const x=fit(eq),W=eq.width,H=eq.height;x.clearRect(0,0,W,H);if(an&&on){fb=fb||new Uint8Array(an.frequencyBinCount);an.getByteFrequencyData(fb);}
-      const bw=W/NB,dh=H/NR,r=Math.min(bw,dh)*.34;
-      for(let i=0;i<NB;i++){const v=on&&fb?Math.pow(fb[Math.min(fb.length-1,1+Math.floor(Math.pow(i/NB,1.7)*70))]/255,1.8)*(1+i/NB*.8):0; /* tamed, and the highs lifted a little */lev[i]=Math.max(lev[i]*Math.pow(.02,dt),v);
-        const n=Math.round(lev[i]*NR*1.05);if(n>=peak[i]){peak[i]=n;hold[i]=.7;}else if((hold[i]-=dt)<0){peak[i]=Math.max(0,peak[i]-dt*9);}
-        for(let j=0;j<NR;j++){const cx=i*bw+bw/2,cy=H-(j+.5)*dh;x.beginPath();x.arc(cx,cy,r,0,7);x.fillStyle=j<n?EQC[j]:(j===Math.round(peak[i])-1&&peak[i]>=1?EQC[j]:DIM);x.fill();}}}
+    if(on){if(BQ.tapes.length>1&&BQ.until-now<30&&!next.classList.contains('in'))say(next,'NEXT · '+BQ.tapes[(BQ.i+1)%BQ.tapes.length].n);
+      const askNow=ask&&(BQ.tapes.length>1?segN%3===2:segN%2===1);
+      if(askNow&&asked===0&&into>120){say(askEl);asked=1;}if(asked===1&&into>150){fade(askEl);asked=2;}}
+    /* now and then the cat closes its eyes for a couple of beats, really into it */
+    if(on&&!calm){if(!vibeAt)vibeAt=now+40+Math.random()*30;
+      if(now>=vibeAt&&!vibeEnd){vibeEnd=now+4*(VIS.step*4);cat.dataset.vibe=1;paintStk(cat,261,+cat.dataset.s);}
+      if(vibeEnd&&now>=vibeEnd){vibeEnd=0;vibeAt=now+40+Math.random()*30;cat.dataset.vibe=0;paintStk(cat,250,+cat.dataset.s);}}
+    {const tall=innerHeight>innerWidth,NB=tall?24:32,NR=tall?10:9,x=fit(eq),W=eq.width,H=eq.height;x.clearRect(0,0,W,H);
+      if(an&&on){fb=fb||new Uint8Array(an.frequencyBinCount);an.getByteFrequencyData(fb);}
+      const bw=W/NB,bh=H/NR,sq=Math.max(2,Math.floor(Math.min(bw,bh)*.62));
+      for(let i=0;i<NB;i++){const v=on&&fb?Math.pow(fb[Math.min(fb.length-1,1+Math.floor(Math.pow(i/NB,1.7)*70))]/255,1.6)*(1+i/NB*.9):0;lev[i]=Math.max(lev[i]*Math.pow(.03,dt),v);
+        const n=Math.min(NR,Math.round(lev[i]*NR));if(n>=peak[i]){peak[i]=n;hold[i]=.8;}else if((hold[i]-=dt)<0)peak[i]=Math.max(0,peak[i]-dt*6);
+        const pk=Math.ceil(peak[i]);
+        for(let j=0;j<NR;j++){const X=Math.round(i*bw+(bw-sq)/2),Y=Math.round(H-(j+1)*bh+(bh-sq)/2);const c=EQC[Math.min(EQC.length-1,Math.round(j*(EQC.length-1)/(NR-1)))];
+          x.fillStyle=j<n||(pk>n&&j===pk)?c:DIM;x.fillRect(X,Y,sq,sq);}}}
     /* the weather of the tape's texture, very soft, in big pixels */
     if((skyT+=dt)>.05){skyT=0;const x=fit(sky),P=Math.max(4,Math.round(sky.width/320)),W=Math.ceil(sky.width/P),H=Math.ceil(sky.height/P);x.clearRect(0,0,sky.width,sky.height);
       if(!calm){if(t.w===1){while(drops.length<70)drops.push({x:Math.random()*W,y:Math.random()*H,v:30+Math.random()*30});
           x.fillStyle='rgba(170,185,220,.22)';for(const d of drops){d.y+=d.v*.05;d.x-=d.v*.01;if(d.y>H){d.y=-3;d.x=Math.random()*W*1.1;}x.fillRect(Math.round(d.x)*P,Math.round(d.y)*P,P,P*3);}}
         else drops.length=0;
-        if(t.w===3){for(let i=0;i<W;i++){const h=4+3*Math.sin(now*1.7+i*.45)+2*Math.sin(now*.9-i*.21)+Math.random()*1.5; /* a low, flickering glow, like a fire just out of shot */
+        if(t.w===3){for(let i=0;i<W;i++){const h=4+3*Math.sin(now*1.7+i*.45)+2*Math.sin(now*.9-i*.21)+Math.random()*1.5;
             for(let j=0;j<h;j++){x.fillStyle=`rgba(${j<2?233:226},${j<2?150:115},${j<2?70:74},${.2*(1-j/h)})`;x.fillRect(i*P,(H-1-j)*P,P,P);}}
           if(Math.random()<.25)embers.push({x:Math.random()*W,y:H-2,l:1});for(const e of embers){e.y-=.5;e.x+=Math.sin(e.y*.3)*.3;e.l-=.012;}
           for(let i=embers.length-1;i>=0;i--){const e=embers[i];if(e.l<=0){embers.splice(i,1);continue;}x.fillStyle=`rgba(233,180,76,${e.l*.5})`;x.fillRect(Math.round(e.x)*P,Math.round(e.y)*P,P,P);}}
         else embers.length=0;
         if(t.w===2){x.fillStyle='rgba(242,231,208,.06)';for(let i=0;i<W*H*.004;i++)x.fillRect(Math.floor(Math.random()*W)*P,Math.floor(Math.random()*H)*P,P,P);}}}
-    /* over two hours the light warms and dims a little, then comes back */
-    if((driftT+=dt)>5){driftT=0;const f=(1-Math.cos(2*Math.PI*(now/7200)))/2,mix=(a,b)=>Math.round(a+(b-a)*f);document.body.style.background=`rgb(${mix(34,20)},${mix(21,11)},${mix(16,9)})`;}
-    /* every four minutes everything moves a few pixels, so nothing sits still long enough to burn in */
+    if((driftT+=dt)>5){driftT=0;const f=(1-Math.cos(2*Math.PI*(now/7200)))/2,mix=(a,b)=>Math.round(a+(b-a)*f);document.body.style.background=`rgb(${mix(36,22)},${mix(21,12)},${mix(15,9)})`;}
     if((shiftT+=dt)>240){shiftT=0;shiftK=(shiftK+1)%4;const o=[[0,0],[4,-3],[-3,4],[3,3]][shiftK];document.documentElement.style.setProperty('--bx',o[0]+'px');document.documentElement.style.setProperty('--by',o[1]+'px');}};}
 
 paint();
