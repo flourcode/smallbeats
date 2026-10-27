@@ -250,7 +250,15 @@ const SFX={
   save:()=>{blip(110,.14,{type:'sine',v:.12,lp:800});blip(1800,.02,{type:'triangle',at:.02});blip(1568,.12,{at:.16});},
   eject:()=>{blip(1200,.03,{type:'triangle'});blip(784,.08,{at:.05});blip(523,.12,{at:.12});},
   loop:()=>blip(988,.07),
-  boot:()=>{blip(784,.07,{v:.06});blip(1568,.6,{v:.06,at:.08});}};
+  boot:()=>{blip(784,.07,{v:.06});blip(1568,.6,{v:.06,at:.08});},
+  smack:()=>smack()};
+/* smack: a sticker slapped on the label. A short burst of filtered noise (the slap) over a low thump (the hand on the case) */
+let smackBuf=null;function smack(){const a=actx||ensureAudio();if(a.state!=='running')return;const t=a.currentTime+.005;
+  if(!smackBuf){smackBuf=a.createBuffer(1,Math.round(a.sampleRate*.12),a.sampleRate);const d=smackBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);}
+  const n=a.createBufferSource(),bp=a.createBiquadFilter(),g=a.createGain();n.buffer=smackBuf;bp.type='bandpass';bp.frequency.value=1700;bp.Q.value=.7;
+  g.gain.setValueAtTime(.55,t);g.gain.exponentialRampToValueAtTime(.001,t+.09);n.connect(bp).connect(g).connect(master);n.start(t);
+  const o=a.createOscillator(),og=a.createGain();o.type='sine';o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(55,t+.09);
+  og.gain.setValueAtTime(.32,t);og.gain.exponentialRampToValueAtTime(.001,t+.11);o.connect(og).connect(master);o.start(t);o.stop(t+.13);}
 /* the band reacts: a jump for everyone, or just the host; and a happy face for a moment */
 let joyUntil=0;const pnow=()=>performance.now()/1000;
 function jumpAll(h,onlyHost,wave){const t=pnow(),ord=[...WALK.entries()].sort((a,b)=>a[1].x-b[1].x);ord.forEach(([id,w],i)=>{if(onlyHost&&id!==BUD.norm(cur.t))return;w.jumpAt=t+(wave?i*.09:0);w.jumpH=h*excite();});}
@@ -281,7 +289,8 @@ function edit(fn){
   if(!isPlaying())play(cur);else restart();}
 function undo(){if(!HIST.length)return;draft=cleanTape(JSON.parse(HIST.pop()));delete draft.id;cur=draft;savedId=(S.tapes.find(t=>sameTape(t,draft))||{}).id||null;save();paint();say('UNDO');track('undo',{},true);
   if(isPlaying())restart();}
-function pickBuddy(id){if(cur.t===id&&cur===draft)return;edit(t=>{t.t=id;});track('buddy_select',{buddy:id},true);}
+function pickBuddy(id){if(cur.t===id&&cur===draft)return;edit(t=>{t.t=id;});track('buddy_select',{buddy:id},true);
+  SFX.smack();buzz(18);const c=$('sheetCass')&&$('sheetCass').querySelector('.cass');if(c){c.classList.remove('slap');void c.offsetWidth;c.classList.add('slap');}} /* the sticker goes on: smack */
 function pulse(){deckCass.classList.remove('pop');void deckCass.offsetWidth;deckCass.classList.add('pop');}
 
 /* ---------- painting ---------- */
@@ -469,7 +478,7 @@ if(shared&&!BC){$('shared').hidden=false;sharedCass=cassette(shared);$('sharedWr
 const stage=$('stage'),sx=stage.getContext('2d');let SW=0,SH=0,SP=14,SCOLS=40,SROWS=7,SBPX=5;
 function sizeStage(){const d=(window.devicePixelRatio||1)*(window.BCS||1);SW=Math.max(1,stage.clientWidth);SH=Math.max(1,stage.clientHeight);
   stage.width=Math.round(SW*d);stage.height=Math.round(SH*d);sx.setTransform(d,0,0,d,0,0);
-  SP=SW<420?11:13;SCOLS=Math.max(12,Math.floor(SW/SP));SBPX=SW<420?3:(SW<700?4:5);SROWS=Math.max(4,Math.min(10,Math.floor((SH-20*SBPX)/SP)));}
+  SP=SW<420?11:13;SCOLS=Math.max(12,Math.floor(SW/SP));SBPX=SW<420?3:(SW<700?4:5);SROWS=Math.max(2,Math.min(10,Math.floor((SH-22*SBPX)/SP)));}
 sizeStage();if(window.ResizeObserver)new ResizeObserver(sizeStage).observe(stage);else addEventListener('resize',sizeStage);
 const eqLvl=new Float32Array(64),eqPk=new Float32Array(64);let fbuf=null;
 const buddyPos=new Float32Array(4);let hopUntil=0,tuneAt=-9,playFrom=0,energy=0;
@@ -597,7 +606,7 @@ function drawStage(live,now,dt){
     const jt=wk?pnow()-wk.jumpAt:9,jp=jt<.42&&!calm?Math.sin(Math.PI*jt/.42)*wk.jumpH*px:0; /* a jump, when something's pressed */
     const bob=(wk&&now-wk.step<.09?px:0)+jp; /* a little bob with each step */
     const frozen=pnow()<freezeUntil,dance=RA&&RA.k==='dance'?Math.abs(Math.sin(re*9))*px*3:0;
-    const y=Math.round(H-buddyPos[i]*P-h-2-(frozen?0:lift+jump+bob+dance));
+    const y=Math.max(2,Math.round(H-buddyPos[i]*P-h-2-(frozen?0:lift+jump+bob+dance))); /* never above the top of the screen: his head always shows */
     let flip=!!wk&&wk.dir<0,rx=0,face=mood;
     if(RA){if(RA.k==='shake')rx=Math.round(Math.sin(re*70))*px;else if(RA.k==='confused'||RA.k==='look')flip=Math.floor(re/(RA.k==='look'?.5:.3))%2===0;else if(RA.k==='spin')flip=Math.floor(re/.07)%2===0;
       if(RA.k==='lie'||RA.k==='yawn'||RA.k==='camp')face='SLEEPY';if(RA.k==='confused'||RA.k==='spin')face='SURPRISED';if(RA.k==='read'||RA.k==='fish'||RA.k==='stars'){flip=false;face=RA.k==='read'?'COZY':'VIBING';}}

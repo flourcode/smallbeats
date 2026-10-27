@@ -530,7 +530,7 @@ a{color:var(--amber)}
   html:not(.broadcast) .sb1{padding:10px 10px 27px;gap:7px 8px;grid-template-areas:"scr scr scr" "play door rs" "keys keys keys" "kb kb kb" "dials dials dials"}
   html:not(.broadcast) .s1,html:not(.broadcast) .s2{top:6px}html:not(.broadcast) .s3,html:not(.broadcast) .s4{bottom:4px}
   html:not(.broadcast) .vfd-name{font-size:18px;margin:4px 0 0}
-  html:not(.broadcast) .stage{flex:none;min-height:0;height:clamp(84px,calc(100svh - 596px),210px)} /* a set height: a canvas left to size itself keeps whatever height it last had */
+  html:not(.broadcast) .stage{flex:none;min-height:0;height:clamp(112px,calc(100svh - 568px),220px)} /* a set height: a canvas left to size itself keeps whatever height it last had */
   html:not(.broadcast) .sb1{grid-template-rows:auto 74px}
   html:not(.broadcast) .door-win .cass{max-width:104px}
   html:not(.broadcast) .m-door,html:not(.broadcast) .mk-play,html:not(.broadcast) .m-recsend{min-height:0;height:74px;margin-top:0;margin-bottom:0}
@@ -580,3 +580,11 @@ a{color:var(--amber)}
   html:not(.broadcast) .kk-w{box-shadow:inset 0 -12px 0 color-mix(in srgb,var(--glow) calc(var(--lv)*70%),#cdbfa2),inset 0 4px 0 #fffaf0;clip-path:polygon(0 0,100% 0,100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px))}
 }
 .about-cols p + h3{margin-top:22px} /* a second heading in an About column gets room above it */
+/* the EJECT sheet: never taller than the visible screen (phones' toolbars included), and DONE stays in reach at the top while you scroll it */
+.sheet-panel{max-height:calc(100dvh - 40px)}
+@supports not (height:100dvh){.sheet-panel{max-height:85vh}}
+.sheet-head{position:sticky;top:-14px;z-index:3;background:var(--panel);margin:-14px calc(-1 * var(--gut)) 8px;padding:14px var(--gut) 10px;box-shadow:0 4px 0 rgba(0,0,0,.18)}
+/* a sticker slapped on: the tape jolts */
+.cass.slap{animation:slap .28s cubic-bezier(.3,1.8,.5,1)}
+@keyframes slap{0%{transform:scale(1)}30%{transform:scale(.965) rotate(-.6deg)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.cass.slap{animation:none}}
