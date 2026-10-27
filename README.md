@@ -17,7 +17,7 @@ Open http://localhost:8000. Analytics stays off on localhost; the service worker
 
 | File | What it is |
 |---|---|
-| `index.html` | The page: header, the SB-1 machine, the EJECT sheet, your shelf, Buddies Met, about |
+| `index.html` | The page: header, the SB-1 machine, the EJECT sheet, your shelf, Buddies Met, about (including Small Beats FM, the YouTube channel, and who made it) |
 | `app.js` | The machine, the screen (scenes, sky, weather, the band), the keyboard and PLAY ALONG, tapes, shelf, sharing, the share picture, broadcast mode |
 | `engine.js` | The music engine (`window.SBE.band`) |
 | `composer.js` | The newer composer, used for Trance (`window.SBC`) |
