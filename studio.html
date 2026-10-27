@@ -7,7 +7,7 @@
 <title>Small Beats Studio</title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <meta name="theme-color" content="#2a1915">
-<link rel="stylesheet" href="app.css?v=53">
+<link rel="stylesheet" href="app.css?v=54">
 <style>
   /* Small Beats Studio: builds broadcast addresses for OBS and recordings. Not linked from the site, not indexed. */
   .studio{max-width:1240px;margin:0 auto;padding:10px var(--gut) 48px;display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:28px;align-items:start}
@@ -57,9 +57,20 @@
       <div class="seg" id="frame"><button class="pb" type="button" data-v="wide" aria-pressed="true">16:9 YOUTUBE</button><button class="pb" type="button" data-v="vertical" aria-pressed="false">9:16 SHORTS</button></div>
     </fieldset>
     <fieldset>
+      <legend>EPISODE</legend>
+      <div class="row">NIGHT <input type="number" id="night" min="1" max="99999" step="1"> <span id="nightToday"></span></div>
+      <label class="chk"><input type="checkbox" id="nightCard" checked>Open on the NIGHT card: the night, the district and tonight's request</label>
+      <p class="hint" id="nightHint"></p>
+    </fieldset>
+    <fieldset>
+      <legend id="ntLegend">TONIGHT'S TAPES</legend>
+      <div class="mine" id="nightTapes"></div>
+      <p class="hint">Six new tapes for this night, made by the machine from the night's number: one in each district, in the order the crew walks, minor keys, mostly slow, rain and hiss. The first one answers tonight's request. Every night has its own six, the same for anyone who builds this night.</p>
+    </fieldset>
+    <fieldset>
       <legend>SHOWCASE TAPES</legend>
       <div class="mine" id="showcase"></div>
-      <p class="hint">Six late-night tapes by Small Beats, one in each style: minor keys, slow, rain and hiss. Tick the ones to play.</p>
+      <p class="hint">The six launch tapes by Small Beats, one in each style. Tick any to add them.</p>
     </fieldset>
     <fieldset>
       <legend>FROM YOUR SHELF</legend>
@@ -128,7 +139,9 @@
     </div>
   </section>
 </main>
-<script src="buddies.js?v=53"></script>
+<script src="buddies.js?v=54"></script>
+<script src="engine.js?v=54"></script>
+<script src="night.js?v=54"></script>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
@@ -151,9 +164,19 @@ const SHOWCASE=[ /* the launch lane: melancholic, nostalgic, nighttime. Minor ke
   {n:'LAST TRAIN',c:3,d:1,b:2,k:3,w:0,p:0,s:5,r:184500700,t:bud('STARRY'),by:'SMALL BEATS',m:'0a34c26b28a4gd3kc2oa8'}];
 const LINES={'OFF THE CLOCK':'melancholic synths after everyone leaves','LATE SHIFT':'dreamy house for the empty office','PHONE CORD':"music for missing people you don't call anymore",'ARCADE CARPET':'music from a place that closed in 1999','NIGHT BUS':'music for going home too late','LAST TRAIN':'slow dream-trance for the last ride home'};
 const STYLE_LINE=['rainy beats for the walk home','late-night house for empty streets','sleeping-computer music','lonely old-console music','hazy after-midnight dub','slow dream-trance'];
-const pickShow=new Set(SHOWCASE.map((t,i)=>i));
+const pickShow=new Set();
 SHOWCASE.forEach((t,i)=>{const l=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.addEventListener('change',()=>{cb.checked?pickShow.add(i):pickShow.delete(i);build();});
-  l.appendChild(cb);l.appendChild(budCanvas(t.t));l.appendChild(document.createTextNode(t.n));const sm=document.createElement('small');sm.textContent=['LO-FI','HOUSE','AMBIENT','8-BIT','DUB','TRANCE'][t.s];l.appendChild(sm);$('showcase').appendChild(l);});
+  cb.checked=false;l.appendChild(cb);l.appendChild(budCanvas(t.t));l.appendChild(document.createTextNode(t.n));const sm=document.createElement('small');sm.textContent=['LO-FI','HOUSE','AMBIENT','8-BIT','DUB','TRANCE'][t.s];l.appendChild(sm);$('showcase').appendChild(l);});
+/* the episode: one night, the same night number as the site. Its own six tapes come from night.js */
+const N=window.SBN,STYLE=['LO-FI','HOUSE','AMBIENT','8-BIT','DUB','TRANCE'];let night=N.night(),NT=[];const pickNight=new Set();
+function paintNight(){NT=N.tapes(night,{minor:window.SBE.minorSeed,crew:BUD.list.map((b,i)=>i)});pickNight.clear();NT.forEach((t,i)=>pickNight.add(i));
+  $('ntLegend').textContent='NIGHT '+night+' TAPES';$('nightTapes').textContent='';
+  NT.forEach((t,i)=>{const l=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.addEventListener('change',()=>{cb.checked?pickNight.add(i):pickNight.delete(i);build();});
+    l.appendChild(cb);l.appendChild(budCanvas(t.t));l.appendChild(document.createTextNode(t.n));const sm=document.createElement('small');sm.textContent=STYLE[t.s]+' · '+N.DISTRICTS[t.s];l.appendChild(sm);$('nightTapes').appendChild(l);});
+  const r=N.request(night);$('nightHint').textContent='Tonight the crew asks for '+r.line+'. The site asks every visitor the same thing tonight, so put it in the pinned comment.';
+  $('nightToday').textContent=night===N.night()?'(tonight)':night<N.night()?'('+(N.night()-night)+(N.night()-night===1?' night ago)':' nights ago)'):'('+(night-N.night())+(night-N.night()===1?' night ahead)':' nights ahead)');}
+$('night').value=night;$('night').addEventListener('input',()=>{const v=Math.round(+$('night').value);if(v>=1){night=v;paintNight();build();}});
+paintNight();
 
 /* your shelf, read from this browser */
 let S={};try{S=JSON.parse(localStorage.getItem('smallBeats')||'{}')||{};}catch(e){}
@@ -171,13 +194,13 @@ $('base').value=/^https?:$/.test(location.protocol)?location.origin+location.pat
 
 let lastPv='';
 function build(){
-  const codes=[...[...pickShow].sort((a,b)=>a-b).map(i=>encodeTape(SHOWCASE[i])),...[...pick].sort((a,b)=>a-b).map(i=>encodeTape(tapes[i]))];
+  const codes=[...[...pickNight].sort((a,b)=>a-b).map(i=>encodeTape(NT[i])),...[...pickShow].sort((a,b)=>a-b).map(i=>encodeTape(SHOWCASE[i])),...[...pick].sort((a,b)=>a-b).map(i=>encodeTape(tapes[i]))];
   const lines=$('links').value.split(/\n+/).map(l=>l.trim()).filter(Boolean),bad=[];
   for(const l of lines){const c=codeFrom(l);if(c&&nameOf(c)){if(!codes.includes(c))codes.push(c);}else bad.push(l);} /* the same tape twice plays once */
   $('linksHint').textContent=bad.length?bad.length+(bad.length===1?' line isn\'t':' lines aren\'t')+' a tape link, so '+(bad.length===1?'it\'s':'they\'re')+' left out.':'Links people sent you, or comments under a video. Each one is credited MIXED BY whoever made it.';
   $('turns').hidden=codes.length<2;
   const vol=+$('vol').value;$('volOut').textContent=Math.round(vol*100)+'%';
-  const q=['broadcast=video'];if(mood==='journey')q.push('mood=journey');for(const c of codes)q.push('tape='+c);if(!$('ask').checked)q.push('ask=0');if(!$('demo').checked)q.push('demo=0');
+  const q=['broadcast=video'];if($('nightCard').checked)q.push('night='+night);if(mood==='journey')q.push('mood=journey');for(const c of codes)q.push('tape='+c);if(!$('ask').checked)q.push('ask=0');if(!$('demo').checked)q.push('demo=0');
   if(codes.length>1){q.push('each='+Math.max(1,Math.min(240,Math.round(+$('each').value||10))));if($('shuffle').checked)q.push('shuffle=1');}
   if(vol!==0.8)q.push('vol='+vol);
   let base=$('base').value.trim()||'https://smallbeats.com/';if(!/\/$/.test(base))base+='/';
@@ -189,15 +212,15 @@ function build(){
     else{const tm=m=>{const h=Math.floor(m/60),mm=m%60;return (h?h+':'+String(mm).padStart(2,'0'):String(mm).padStart(2,'0'))+':00';};const info=codes.map(nameOf),lines=[];
       for(let m=0,k=0;m<len;m+=each,k++){const t=info[k%codes.length];lines.push(tm(m)+' '+t.n+(t.by?' (mixed by '+t.by+')':''));}
       const links=codes.map((c,k)=>info[k].n+(info[k].by?' by '+info[k].by:'')+': '+base+'?tape='+c);
-      $('chapters').value=(mood==='night'?'Late-night tapes for empty streets, rain on the window and going home too late. Dino and the crew walk the city at night while the tapes play.\n\n':'')+'Every song in this mix was made on Small Beats, a tiny music machine in your browser. Make one: https://smallbeats.com\n\n'+lines.join('\n')+'\n\nThe tapes (play them, remix them, make your own):\n'+links.join('\n')+'\n\nSMALL MAIL IS OPEN: drop your tape link in the comments. Dino may play it next.';
+      const req=N.request(night);$('chapters').value='Night '+night+'. Dino and the crew walk the city, and tonight they asked for '+req.line+'. Late-night tapes for empty streets, rain on the window and going home too late.\n\n'+'Every song in this mix was made on Small Beats, a tiny music machine in your browser. Make one: https://smallbeats.com\n\n'+lines.join('\n')+'\n\nThe tapes (play them, remix them, make your own):\n'+links.join('\n')+'\n\nSMALL MAIL IS OPEN: tonight the crew asked for '+req.line+'. Make a tape at https://smallbeats.com and drop the link in the comments. Dino may play it next.';
       $('chapHint').textContent='Paste into the video\'s description. Each tape becomes a chapter, and every maker gets a link.';}}
-  {const ts=[...[...pickShow].sort((a,b)=>a-b).map(i=>SHOWCASE[i]),...[...pick].sort((a,b)=>a-b).map(i=>tapes[i])],hrs=Math.max(1,Math.round((+$('len').value||60)/60));
-    $('titles').value=ts.length?ts.map(t=>(frame==='vertical'?t.n.toLowerCase()+' · dino plays along · make yours at smallbeats.com':t.n+' // '+(LINES[t.n]||STYLE_LINE[t.s]||'late-night tapes')+' · small beats fm ('+hrs+(hrs===1?' hour)':' hours)'))).join('\n'):'';}
+  {const ts=[...[...pickNight].sort((a,b)=>a-b).map(i=>NT[i]),...[...pickShow].sort((a,b)=>a-b).map(i=>SHOWCASE[i]),...[...pick].sort((a,b)=>a-b).map(i=>tapes[i])],hrs=Math.max(1,Math.round((+$('len').value||60)/60));
+    $('titles').value=ts.length?ts.map(t=>(frame==='vertical'?t.n.toLowerCase()+' · dino plays along · make yours at smallbeats.com':'NIGHT '+night+' // '+t.n+' · '+(LINES[t.n]||STYLE_LINE[t.s]||'late-night tapes')+' · small beats fm ('+hrs+(hrs===1?' hour)':' hours)'))).join('\n'):'';}
   const W=frame==='vertical'?1080:1920,H=frame==='vertical'?1920:1080;$('obsW').textContent=W;$('obsH').textContent=H;$('pvBox').classList.toggle('vertical',frame==='vertical');
   const pv='?'+q.filter(x=>!/^vol=/.test(x)).join('&')+'&vol='+($('pvSound').checked?vol:0); /* the preview plays this site, quietly unless you ask */
   if(pv!==lastPv){lastPv=pv;$('pv').src=base+pv;}
   return url;}
-['links','each','shuffle','vol','base','pvSound','ask','demo','len'].forEach(id=>$(id).addEventListener('input',build));
+['links','each','shuffle','vol','base','pvSound','ask','demo','len','nightCard'].forEach(id=>$(id).addEventListener('input',build));
 $('copyChap').addEventListener('click',async()=>{let ok=false;try{await navigator.clipboard.writeText($('chapters').value);ok=true;}catch(e){$('chapters').select();}const b=$('copyChap');b.textContent=ok?'COPIED':'SELECT AND COPY';setTimeout(()=>b.textContent='COPY CHAPTERS',1800);});
 $('copy').addEventListener('click',async()=>{const url=build();let ok=false;try{await navigator.clipboard.writeText(url);ok=true;}catch(e){}
   const b=$('copy');b.textContent=ok?'COPIED':'SELECT AND COPY IT';setTimeout(()=>b.textContent='COPY ADDRESS',1800);

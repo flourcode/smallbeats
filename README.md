@@ -62,6 +62,15 @@ Open http://localhost:8000. Analytics stays off on localhost; the service worker
 - **Visitors:** shooting stars and bats crossing the moon, a rare UFO on Trance, and after ten minutes a buddy passing through. Each first sighting is recorded in Buddies Met.
 - **Attract mode:** before the first PLAY, PRESS ▶ PLAY blinks and Dino walks over towards it. A tape someone sent you shows A TAPE FROM …
 
+
+### The nights (night.js)
+
+- **NIGHT n is the same for everyone.** NIGHT 1 is launch day (`LAUNCH` at the top of night.js: set it to launch day) and every day after is the next night. It comes from the date, so there's no server, and the site and Small Beats FM always agree.
+- **Tonight's request.** Each night the crew asks for one thing (rain, a campfire, something slow, something for one district…), never the same two nights running. It shows on the opening card and under the machine. Once you've touched the machine, the moment what's playing answers it, the crew cheers: REQUEST MET, once a night.
+- **The city map.** Under the machine, a district lights up for every one you've saved a tape in. Nothing is lost by missing a night; your own count ("your 12th night with the crew") only goes up.
+- **The night's tapes.** `SBN.tapes(n)` presses six tapes for night n, one per district in walking order, minor keys (checked with the engine's `minorSeed`), mostly slow, rain and hiss, the first one answering the request. The Studio's EPISODE panel uses them, so every episode has fresh music with nobody sending anything in.
+- **On a broadcast,** `&night=n` opens the video on the NIGHT card: the night, the district and the request.
+
 ## Your shelf
 
 - Your newest tapes up front (starred first), with PLAY, REMIX, COPY LINK and ✕.

@@ -37,11 +37,7 @@ const RAINBOW=['#ffb347','#e0457b','#3ec6e0'],SUNSET=['#e9b44c','#e2734a','#c23b
 /* the LCD: one warm amber backlight for every style, so it's always the same machine. The style shows in small things: its key, the lights, the tape's stripes, the keys as they light */
 const LCD='#f2d58e',INKC='#2d2414'; /* the screen: always amber, dark ink */
 const tapeNo=t=>String(((t.r>>>0)%997)+1).padStart(3,'0'); /* a tape's number: from its tune, so it's the same for everyone */
-const NAMES=['MIDNIGHT WALK','SUNDAY STATIC','BAD IDEA','RAIN AGAIN','TINY WIN','LATE BUS','ROOM 4B','SLOW LANE','LOOSE CHANGE','DIAL TONE','SIDE QUEST','PARKING LOT',
-  'HOLD MUSIC','DESK FAN','STATIC CLING','BUS STOP','BLANK TAPE','LUNCH BREAK','GROCERY RUN','VELVET HOUR','PAPER PLANES','SMALL TALK','WARM TOAST','TV DINNER','ARCADE CARPET',
-  'PHONE CORD','BACK SEAT','CORNER STORE','NIGHT BUS','GOOD ENOUGH','FRIDAY AGAIN','OFF THE CLOCK','FRONT STOOP','LAUNDRY DAY','SECOND WIND','PLAN B','SNACK RUN','STAY HOME',
-  'SADURDAY BEATS','CAR WASH','PAPER ROUTE','RECESS','SLEEPOVER','BOOMBOX','NEON SIGN','ROLLER RINK','POOL PARTY','CEREAL','CABLE BOX',
-  'MALL WALK','FIELD TRIP','SNOOZE BUTTON','PUDDLE JUMP','DOUBLE DUTCH','BACKYARD','PIZZA NIGHT','BIKE RIDE','STAY UP LATE','JUNK DRAWER','PEN PAL','PHOTO BOOTH','SODA POP','MINI GOLF','TREEHOUSE','LAST SLOW DANCE'];
+const NAMES=window.SBN.NAMES; /* night.js: the tape names, shared with the Studio */
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const seed=()=>1+Math.floor(Math.random()*2147483646);
 const budId=n=>Math.max(0,BUD.list.findIndex(b=>b.name===n)),DEFAULT_BUDDY=budId('DINO'); /* Dino, the mascot */
@@ -322,7 +318,12 @@ function paintPlay(){const on=isPlaying();$('play').setAttribute('aria-pressed',
 /* ---------- play, new tune, undo ---------- */
 let booted=false,bootAt=-9;
 /* NIGHT n: every day you come back is another night on the road with the crew */
-function nightNo(){const d=new Date(),k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();S.night=S.night||{d:'',n:0};if(S.night.d!==k){S.night={d:k,n:(S.night.n||0)+1};save();}return S.night.n;}
+/* NIGHT n is the same for everyone (night.js counts from launch day); a broadcast can name its night with &night= */
+const BC_NIGHT=BC?Math.max(0,Math.round(+Q.get('night')||0)):0;
+function nightNo(){return BC_NIGHT||window.SBN.night();}
+const tonight=()=>window.SBN.request(nightNo());
+/* your own nights with the crew: one more each day you come back. Nothing is lost by missing one */
+function myNights(){if(BC)return 0;const d=new Date(),k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();S.night=S.night||{d:'',n:0};if(S.night.d!==k){S.night={d:k,n:(S.night.n||0)+1};save();}return S.night.n;}
 /* short phones: pressing PLAY brings the whole machine, keyboard and all, onto the screen (once, and only if you haven't scrolled yourself) */
 let fitDone=false;function fitMachine(){if(fitDone||BC||innerWidth>760||scrollY>40)return;fitDone=true;const r=KB.getBoundingClientRect();if(r.bottom>innerHeight-4)scrollTo({top:Math.min(scrollY+r.bottom-innerHeight+12,scrollY+$('make').getBoundingClientRect().top),behavior:'smooth'});}
 $('play').addEventListener('click',()=>{fitMachine();if(isPlaying()){SFX.tick();pause();return;}if(isPaused()&&gen.tape===cur){SFX.tick();resume();return;}
@@ -401,7 +402,7 @@ function rackItem(t){const it=document.createElement('div');it.className='rack-i
   acts.appendChild(btn('REMIX','var(--amber)',()=>remixTape(t.id),'pb-sm'));
   const cp=btn('COPY LINK','var(--blue)',()=>{const tt=findTape(t.id);if(tt)copyLinkFor(tt,cp);},'pb-sm');acts.appendChild(cp);acts.appendChild(delBtn(t));
   it.appendChild(acts);return it;}
-function paintShelf(){if(BC)return;const row=$('shelf');const sig=S.tapes.map(t=>t.id+(t.fav?'*':'')+(t.gift?'g':'')).join(',');
+function paintShelf(){if(BC)return;paintTonight();const row=$('shelf');const sig=S.tapes.map(t=>t.id+(t.fav?'*':'')+(t.gift?'g':'')).join(',');
   $('tapes').hidden=!S.tapes.length;$('navTapes').hidden=!S.tapes.length;$('navCount').textContent=S.tapes.length;
   if(row.dataset.sig===sig){row.querySelectorAll('.shelf-item').forEach(el=>{const t=findTape(el.dataset.id);if(t)fillCass(el.querySelector('.cass'),t);});return;}
   row.dataset.sig=sig;row.textContent='';$('rack').textContent='';$('friends').textContent='';
@@ -526,8 +527,11 @@ function drawSprite(x,rows,X,Y,px,flip){const w=rows[0].length;for(let j=0;j<row
    8-bit rolling hills and blocky clouds, dub the sea, trance a starfield over a running grid. It scrolls slowly with the tempo
    and stops when you pause. The sky keeps time: a sun crosses it, then a moon. The texture key is the weather: rain, hiss (static), fire (embers) */
 let sceneX=0,sceneT=0,rainT=0,lastScene=-1,travelUntil=0,districtAt=-9;
+/* TONIGHT'S REQUEST: once you've touched the machine, the moment what's playing answers it, the crew cheers. Once a night */
+let msgAt=-9,msg=['',''],touched=false,reqTick=0;
+function checkRequest(){const n=nightNo();if(S.req===n||!tonight().ok(cur))return;S.req=n;save();msg=['REQUEST MET','THE CREW LOVES IT'];msgAt=pnow();jumpAll(10,false,true);paintTonight();track('request_met',{night:n,req:tonight().id});}
 /* the districts of the city: each style is a different part of town. Dino and the crew walk through it all night */
-const DISTRICTS=['OLD TOWN','MIDTOWN','CENTRAL PARK','ARCADE ROW','THE HARBOR','THE BRIDGE'];
+const DISTRICTS=window.SBN.DISTRICTS; /* night.js */
 /* &mood=journey: every eight minutes the crew walks on to the next district, whatever is playing */
 const JOURNEY=[0,3,4,2,1,5];
 /* &mood=night (the Studio's NIGHT CITY): one lonely city, always night, the moon crossing every forty minutes, rain drifting in and out */
@@ -624,17 +628,22 @@ function drawScene(x,W,H,live,now,dt){
   else if(w===2){if(live||calm)for(let i=0;i<14;i++)cell(Math.floor(Math.random()*cols),Math.floor(Math.random()*rows),.26,0);}
   else if(w===3){for(let i=0;i<22;i++){const life=(sceneT*.35+hsh(i,8))%1,xx=Math.floor(cols*(.2+hsh(i,9)*.6)+Math.sin((sceneT+i)*2)*1.5),yy=Math.floor(rows*(1-life*.85));cell(xx,yy,.5*(1-life),0);}}
   x.globalAlpha=1;}
+/* a card on the screen: one big line, any small ones under it, on a patch of backlight so they read over the city */
+function titleCard(x,W,H,a,lines){const fs=Math.round(Math.min(26,W/16)),sm=Math.round(fs*.55),y0=H*.16;x.save();x.globalAlpha=Math.max(0,Math.min(1,a));x.textAlign='center';
+  x.font='400 '+fs+'px Silk';let w=x.measureText(lines[0]).width;x.font='400 '+sm+'px Silk';for(const l of lines.slice(1))w=Math.max(w,x.measureText(l).width);
+  const hgt=fs*1.35+(lines.length-1)*fs;x.fillStyle=LCD;x.globalAlpha*=.88;x.fillRect(Math.round(W/2-w/2-fs*.6),Math.round(y0),Math.round(w+fs*1.2),Math.round(hgt));x.globalAlpha=Math.max(0,Math.min(1,a));
+  x.fillStyle=INKC;x.font='400 '+fs+'px Silk';x.fillText(lines[0],W/2,y0+fs);x.font='400 '+sm+'px Silk';lines.slice(1).forEach((l,k)=>x.fillText(l,W/2,y0+fs*(2.1+k)));x.restore();}
 function drawStage(live,now,dt){
   if(live&&an){fbuf=fbuf||new Uint8Array(an.frequencyBinCount);an.getByteFrequencyData(fbuf);}
   const n=fbuf?fbuf.length:0,W=SW,H=SH,P=SP,COLS=SCOLS,ROWS=SROWS,x=sx,dot=P-3,x0=Math.round((W-COLS*P+3)/2);
   x.clearRect(0,0,W,H);let sum=0;
   drawScene(x,W,H,live,now,dt);
-  /* a title card: after the opening, NIGHT n and where the crew is; later, the district's name whenever they walk into a new one */
-  {const tn=pnow(),sb=tn-bootAt-1.5,sd=tn-districtAt,since=Math.min(sd,sb);if(since>=0&&since<3.2){const a=since<.3?since/.3:since>2.6?(3.2-since)/.6:1;x.globalAlpha=Math.max(0,a);x.fillStyle=INKC;x.textAlign='center';
-    const fs=Math.round(Math.min(26,W/16));x.font='400 '+fs+'px Silk';const opening=sb<=sd;
-    if(opening&&!BC){x.fillText('NIGHT '+nightNo(),W/2,H*.16+fs);x.font='400 '+Math.round(fs*.55)+'px Silk';x.fillText(DISTRICTS[sceneStyle()]||'',W/2,H*.16+fs*2.1);}
-    else x.fillText(DISTRICTS[sceneStyle()]||'',W/2,H*.16+fs);
-    x.globalAlpha=1;x.textAlign='start';}}
+  /* a title card: after the opening, NIGHT n, where the crew is and tonight's request; later, the district's name whenever they walk into a new one; and REQUEST MET */
+  {const tn=pnow(),sb=tn-bootAt-1.5,sd=tn-districtAt,since=Math.min(sd,sb),sm=tn-msgAt;let lines=null,t=0,len=3.2;
+    if(sm>=0&&sm<3.6){lines=msg;t=sm;len=3.6;}
+    else if(since>=0&&since<3.2){t=since;lines=sb<=sd&&(!BC||BC_NIGHT)?['NIGHT '+nightNo(),DISTRICTS[sceneStyle()]||'','TONIGHT: '+tonight().txt]:[DISTRICTS[sceneStyle()]||''];}
+    if(lines)titleCard(x,W,H,t<.3?t/.3:t>len-.6?(len-t)/.6:1,lines);}
+  if(!BC&&touched&&gen&&++reqTick%30===0)checkRequest();
   const bt=pnow()-bootAt;if(bt<1.5){x.fillStyle=INKC;x.textAlign='center';x.textBaseline='middle';x.font='400 '+Math.round(Math.min(46,W/9))+'px Silk';
     const yy=Math.min(1,bt/.7);x.fillText('SMALL BEATS',W/2,-30+(H*.42+30)*yy);if(bt>.7){x.font='400 '+Math.round(Math.min(14,W/34))+'px Silk';x.fillText('DINO & THE CREW',W/2,H*.42+Math.min(46,W/9)*.9);}
     x.textAlign='start';x.textBaseline='alphabetic';return 'VIBING';}
@@ -714,6 +723,14 @@ function paintMet(){const box=$('met');if(!box)return;const m=S.met||{b:[],v:{}}
   [...box.children].forEach((d,i)=>{const seen=(m.b||[]).includes(i);d.classList.toggle('seen',seen);d.title=seen?BUD.list[i].name:'not met yet';});
   $('metSeen').innerHTML=[['bird','BAT'],['star','SHOOTING STAR'],['ufo','UFO'],['visitor','A VISITOR'],['poke','DINO SAYS HI']].map(([k,l])=>'<span class="'+(m.v&&m.v[k]?'got':'')+'">'+(m.v&&m.v[k]?'✓ ':'? ')+l+'</span>').join('');}
 paintMet();
+/* NIGHT n on your shelf: tonight's request, and the city, a district lit for every one you've made a tape in (your own tapes, not the starters or Small Mail) */
+function paintTonight(){if(BC||!$('tonight'))return;const n=nightNo(),r=tonight(),done=S.req===n,my=myNights();
+  $('nightN').textContent=n;$('myNights').textContent=my>1?'YOUR '+my+(my%10===1&&my%100!==11?'ST':my%10===2&&my%100!==12?'ND':my%10===3&&my%100!==13?'RD':'TH')+' WITH THE CREW':'';
+  $('tonight').innerHTML='<span class="'+(done?'got':'')+'">'+(done?'✓ ':'? ')+'TONIGHT THE CREW ASKED FOR '+r.txt+'</span>';
+  const been=new Set(S.tapes.filter(t=>!t.gift&&!starterIds.includes(t.id)).map(t=>t.s));
+  $('cityHint').hidden=been.size>=DISTRICTS.length;
+  $('city').innerHTML=DISTRICTS.map((d,i)=>'<span class="'+(been.has(i)?'got':'')+'">'+(been.has(i)?'✓ ':'? ')+d+'</span>').join('');}
+if(!BC)$('sb1').addEventListener('pointerdown',()=>{touched=true;},{passive:true});
 /* when the music's been playing a while with nobody touching it (and all through the long videos), Dino settles into
    something: reading, fishing at the sea, a campfire at night, stargazing. Touch anything and he's back */
 const ACTS=['read','fish','camp','stars'];let lastAct=0,lastIdle=0;
@@ -927,7 +944,7 @@ if(BC){const root=document.documentElement;root.classList.add('broadcast');
     $('crNext').textContent=BQ.tapes.length>1?'NEXT ▸ '+BQ.tapes[(BQ.i+1)%BQ.tapes.length].n+(BQ.tapes[(BQ.i+1)%BQ.tapes.length].by?' · MIXED BY '+BQ.tapes[(BQ.i+1)%BQ.tapes.length].by.toUpperCase():''):'SIDE '+(t._side||'A');asked=0;};
   var BQ={tapes,i:0,each,until:0};window.SB_BQ=BQ;
   tapes[0]._plays=1;show(tapes[0]);fitMachine();if(document.fonts)document.fonts.ready.then(fitMachine);
-  const go=()=>{play(tapes[0]);segStart=actx.currentTime;BQ.until=segStart+each;
+  const go=()=>{play(tapes[0]);segStart=actx.currentTime;if(BC_NIGHT)bootAt=pnow(); /* an episode opens like the site: SMALL BEATS, DINO & THE CREW, then the NIGHT card */BQ.until=segStart+each;
     if(actx.state!=='running'){const b=document.createElement('button');b.className='pb pb-big';b.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);--c:var(--green);z-index:9';b.textContent='▶ START';b.onclick=()=>{actx.resume();b.remove();};document.body.appendChild(b);}};
   go();
   /* the turn: the next tape (or, with one tape, the same one turned over); each time a tape comes round again it plays its other side */

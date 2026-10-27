@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="53">
+<meta name="build" content="54">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Small Beats · Make your own mixtape</title>
 <meta name="description" content="A tiny music sim in your browser. Dino and his crew walk a pixel New York every night, and you make their soundtrack: make a mixtape, play along, save it to a Mini Tape and send it to somebody. No account. No AI.">
@@ -25,7 +25,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="app.css?v=53">
+<link rel="stylesheet" href="app.css?v=54">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Small Beats","url":"https://smallbeats.com/","applicationCategory":"MusicApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"A tiny music machine for making mixtapes in your browser.","sameAs":["https://www.youtube.com/@smallbeatsfm"]}</script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Can I use the music in my videos?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The music is royalty-free: use it in videos, streams, podcasts, games or anything else, even commercially, with no fee and no need to ask. Credit is appreciated, not required. Because anyone can make the same tape, please don't register it with Content ID or resell it as a sample library. The details are in the terms."}}, {"@type": "Question", "name": "Can I download a tape as a file?", "acceptedAnswer": {"@type": "Answer", "text": "Not as a file. The music is made live, so to keep it, record it: your phone or computer's screen recorder works, and so does OBS for longer recordings."}}, {"@type": "Question", "name": "Is any of it AI?", "acceptedAnswer": {"@type": "Answer", "text": "No. Not one note is AI-generated. Everything is synthesized by code in your browser, from the tape's settings and a number for the tune."}}, {"@type": "Question", "name": "Do I need an account?", "acceptedAnswer": {"@type": "Answer", "text": "No. There's nothing to sign up for and nothing to install. It's free, with no ads."}}, {"@type": "Question", "name": "Where are my tapes kept?", "acceptedAnswer": {"@type": "Answer", "text": "In this browser, on this device. Your shelf link (under YOUR TAPES) holds every tape in one link: open it in any other browser or phone to bring them along. Private browsing windows forget everything when they close."}}, {"@type": "Question", "name": "Does it work offline?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, once the page has loaded. Add it to your home screen and it opens like an app. On iPhone it plays even with the ring switch on silent."}}, {"@type": "Question", "name": "Which browsers does it work in?", "acceptedAnswer": {"@type": "Answer", "text": "Current Chrome, Edge, Safari and Firefox, on computers, phones and tablets."}}]}</script>
 </head>
@@ -135,6 +135,10 @@
     <div class="rack" id="friends"></div>
     <p class="hint rack-empty" id="friendsEmpty">Tapes people send you land here, with their name on them.</p>
     </details>
+    <p class="rack-h">NIGHT <span id="nightN"></span> <span class="met-count" id="myNights"></span></p>
+    <p class="met-seen" id="tonight"></p>
+    <p class="met-seen" id="city" aria-label="The districts you've made a tape in"></p>
+    <p class="hint rack-empty" id="cityHint">Save a tape in each part of town to light up the map.</p>
     <p class="rack-h">BUDDIES MET <span class="met-count" id="metCount"></span></p>
     <div class="met" id="met" aria-label="Buddies you've seen on the screen"></div>
     <p class="met-seen" id="metSeen"></p>
@@ -148,7 +152,7 @@
         <h3>What is this?</h3>
         <p>Small Beats is a tiny music sim: a story that lives inside a little tape machine. Every night, Dino and his crew walk a pixel New York (Old Town, Midtown, Central Park, Arcade Row, the Harbor and the Bridge), and the nights are long. What gets them through is music, and you make it.</p>
         <p>Pick a style and the crew heads to that part of town. Change the parts, play along on the keys, then hit <b>SAVE TAPE</b> and <b>EJECT</b> to name your Mini Tape. A tape keeps the whole night: the song, what you played, the buddy, the district, the weather. Play it again or send it to somebody, and that exact scene comes back. They can make it their own.</p>
-        <p>Every day you come back is another night on the road. The crew doesn't keep score. They're just glad you brought something new.</p>
+        <p>Every day is a new night, the same night for everyone, and every night the crew asks for something: rain, a campfire, something for the Harbor. Make a tape that answers it and they cheer. The crew doesn't keep score. They're just glad you brought something new.</p>
         <p>No account. Nothing to install. Nothing to learn. Hit <b>NEW</b> whenever you want another tune, and <b>UNDO</b> if the last idea was better.</p>
       </div>
       <div>
@@ -229,10 +233,11 @@
   </div>
 </div>
 
-<script src="analytics.js?v=53" defer></script>
-<script src="buddies.js?v=53" defer></script>
-<script src="engine.js?v=53" defer></script>
-<script src="composer.js?v=53" defer></script>
-<script src="app.js?v=53" defer></script>
+<script src="analytics.js?v=54" defer></script>
+<script src="buddies.js?v=54" defer></script>
+<script src="engine.js?v=54" defer></script>
+<script src="composer.js?v=54" defer></script>
+<script src="night.js?v=54" defer></script>
+<script src="app.js?v=54" defer></script>
 </body>
 </html>

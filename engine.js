@@ -14,6 +14,7 @@
 (function(){
 "use strict";
 const SB=window.SBE={};
+
 const clampInt=(v,lo,hi,d)=>{v=Math.round(+v);return Number.isFinite(v)?Math.max(lo,Math.min(hi,v)):d;};
 function normT(t){t=t||{};return {d:clampInt(t.d,0,2,1),b:clampInt(t.b,0,4,0),k:clampInt(t.k,0,4,1),w:clampInt(t.w,0,3,0),p:clampInt(t.p,0,2,1),s:clampInt(t.s,0,4,0),r:clampInt(t.r,1,2147483647,1)};}
 function makeNoise(a,sec,kind){const n=Math.round(a.sampleRate*sec),b=a.createBuffer(2,n,a.sampleRate);
@@ -76,6 +77,8 @@ function makeHook(R){const pick=a=>a[Math.floor(R()*a.length)],cell=[];let p=pic
   for(let i=0;i<n&&p<13;i++){const du=pick([2,2,2,3,4,4,6]);cell.push({p,d,du});p+=du;d=Math.max(-2,Math.min(9,d+pick([-2,-1,-1,1,1,2,3])));}
   const sh=pick([-1,1,2,-2]),hook=cell.slice();cell.forEach((c,i)=>{if(i<cell.length-1||R()<.5)hook.push({p:c.p+16,d:c.d+sh,du:c.du});});
   const last=hook[hook.length-1];hook.push({p:Math.min(last.p+last.du,28),d:pick([0,2,4,7]),du:6});return hook;}
+/* is this tune in a minor key? The same draws band() makes from the seed: the key, the hook, then the mood (HARMONY[1] is the minor one) */
+SB.minorSeed=r=>{const RN=seeded('seed:'+r);RN();makeHook(RN);return Math.floor(RN()*3)===1;};
 const KSC=new Map(); /* plucked strings (Karplus-Strong), made once per note and kept */
 function ksBuf(a,m,kind){const k=a.sampleRate+'|'+m+'|'+kind+'|'+Math.floor(Math.random()*3);let e=KSC.get(k);if(e)return e;if(KSC.size>160)KSC.clear(); /* three takes per note, so repeated strums aren't identical */
   const sr=a.sampleRate,f=mtof(m),N=Math.max(2,Math.floor(sr/f+.5)),thumb=kind==='thumb',len=Math.round(sr*(thumb?2.2:1.7)),T60=thumb?1.7:(m>64?1.1:1.5);
