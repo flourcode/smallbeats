@@ -321,6 +321,8 @@ function paintPlay(){const on=isPlaying();$('play').setAttribute('aria-pressed',
 
 /* ---------- play, new tune, undo ---------- */
 let booted=false,bootAt=-9;
+/* NIGHT n: every day you come back is another night on the road with the crew */
+function nightNo(){const d=new Date(),k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();S.night=S.night||{d:'',n:0};if(S.night.d!==k){S.night={d:k,n:(S.night.n||0)+1};save();}return S.night.n;}
 /* short phones: pressing PLAY brings the whole machine, keyboard and all, onto the screen (once, and only if you haven't scrolled yourself) */
 let fitDone=false;function fitMachine(){if(fitDone||BC||innerWidth>760||scrollY>40)return;fitDone=true;const r=KB.getBoundingClientRect();if(r.bottom>innerHeight-4)scrollTo({top:Math.min(scrollY+r.bottom-innerHeight+12,scrollY+$('make').getBoundingClientRect().top),behavior:'smooth'});}
 $('play').addEventListener('click',()=>{fitMachine();if(isPlaying()){SFX.tick();pause();return;}if(isPaused()&&gen.tape===cur){SFX.tick();resume();return;}
@@ -371,7 +373,7 @@ const budBtns=BUD.list.map((B,i)=>{const b=document.createElement('button');b.ty
 
 /* ---------- the shelf ----------
    Up front: your three newest tapes (starred ones first) as full cassettes. Behind them, the rack: the rest of yours as spines.
-   Then FROM FRIENDS: tapes people sent you. Tap a spine to play it and pull it out; tap again to pause. */
+   Then SMALL MAIL: tapes people sent you. Tap a spine to play it and pull it out; tap again to pause. */
 const favFirst=a=>a.filter(t=>t.fav).concat(a.filter(t=>!t.fav));
 const mine=()=>favFirst(S.tapes.filter(t=>!t.gift)),friends=()=>favFirst(S.tapes.filter(t=>t.gift));
 let openId=null;
@@ -448,7 +450,7 @@ $('copyShelf').addEventListener('click',async()=>{const url=await refreshShelfLi
 $('shelfLink').addEventListener('focus',e=>e.target.select());
 /* opening a shelf link: show what's in it, and add it on a tap */
 {const code=Q.get('shelf');if(code&&!BC)decodeShelf(code).then(list=>{if(!list||!list.length)return;
-  $('shelfIn').hidden=false;$('shelfInKick').textContent=list.length===1?'A SHELF WITH ONE TAPE':'A SHELF OF '+list.length+' TAPES';
+  $('shelfIn').hidden=false;$('shelfInKick').textContent=list.length===1?'SOMEBODY SENT YOU A TAPE':'SOMEBODY SENT YOU '+list.length+' TAPES';
   for(const t of list.slice(0,6))$('shelfInRack').appendChild(spine(t,true));$('shelfInMore').textContent=list.length>6?'and '+(list.length-6)+' more':'';
   $('shelfInAdd').addEventListener('click',()=>{for(const t of list){const x=S.tapes.find(y=>sameTape(y,t));if(x&&t.fav)x.fav=1;}
     const fresh=list.filter(t=>!S.tapes.some(x=>sameTape(x,t)));
@@ -462,10 +464,10 @@ if(shared&&!BC){$('shared').hidden=false;sharedCass=cassette(shared);$('sharedWr
   $('sharedBy').textContent=shared.by?'Mixed by '+shared.by+(shared.from?', remixed from '+shared.from:''):(shared.from?'Remixed from '+shared.from:'Somebody made this for you.');
   $('sharedPlay').addEventListener('click',()=>{if(isPlaying()&&cur===shared){pause();return;}cur=shared;paint();if(isPaused()&&gen.tape===shared)resume();else{play(shared);track('tape_open');}});
   $('sharedRemix').addEventListener('click',()=>{cur=shared;edit(()=>{});if(!isPlaying())play(cur);$('make').scrollIntoView({behavior:'smooth'});});
-  /* a tape somebody else made goes straight onto your shelf, under FROM FRIENDS; one of your own just gets a KEEP button */
+  /* a tape somebody else made goes straight onto your shelf, under SMALL MAIL; one of your own just gets a KEEP button */
   const have=S.tapes.find(t=>sameTape(t,shared)),me=cleanBy(S.by);
   if(have)shared=have;else if(!(shared.by&&me&&shared.by===me)){const k=Object.assign({},shared,{id:Math.random().toString(36).slice(2,10),gift:1});S.tapes.unshift(k);S.tapes=S.tapes.slice(0,MAX_TAPES);shared=k;save();keepStorage();}
-  const kept=()=>{const g=findTape(shared.id);$('sharedKeep').textContent=g&&g.gift?'Saved on your shelf, under FROM FRIENDS':'On your shelf';};
+  const kept=()=>{const g=findTape(shared.id);$('sharedKeep').textContent=g&&g.gift?'Saved on your shelf, under SMALL MAIL':'On your shelf';};
   $('sharedKeep').addEventListener('click',()=>{if(!findTape(shared.id||'')){const k=Object.assign({},shared,{id:Math.random().toString(36).slice(2,10)});S.tapes.unshift(k);shared=k;save();paint();}
     kept();$('tapes').scrollIntoView({behavior:'smooth'});});
   if(findTape(shared.id||''))kept();
@@ -478,7 +480,7 @@ if(shared&&!BC){$('shared').hidden=false;sharedCass=cassette(shared);$('sharedWr
 const stage=$('stage'),sx=stage.getContext('2d');let SW=0,SH=0,SP=14,SCOLS=40,SROWS=7,SBPX=5;
 function sizeStage(){const d=(window.devicePixelRatio||1)*(window.BCS||1);SW=Math.max(1,stage.clientWidth);SH=Math.max(1,stage.clientHeight);
   stage.width=Math.round(SW*d);stage.height=Math.round(SH*d);sx.setTransform(d,0,0,d,0,0);
-  SP=SW<420?11:13;SCOLS=Math.max(12,Math.floor(SW/SP));SBPX=SW<420?3:(SW<700?4:5);SROWS=Math.max(2,Math.min(10,Math.floor((SH-22*SBPX)/SP)));}
+  SP=SW<420?11:13;SCOLS=Math.max(12,Math.floor(SW/SP));SBPX=SW<420?3:(SW<700?4:5);SROWS=Math.max(2,Math.min(8,Math.floor((SH-22*SBPX)/SP)));}
 sizeStage();if(window.ResizeObserver)new ResizeObserver(sizeStage).observe(stage);else addEventListener('resize',sizeStage);
 const eqLvl=new Float32Array(64),eqPk=new Float32Array(64);let fbuf=null;
 const buddyPos=new Float32Array(4);let hopUntil=0,tuneAt=-9,playFrom=0,energy=0;
@@ -523,54 +525,100 @@ function drawSprite(x,rows,X,Y,px,flip){const w=rows[0].length;for(let j=0;j<row
    Each style has its own: lo-fi a city at night, house a skyline blinking on the beat, ambient mountains and drifting clouds,
    8-bit rolling hills and blocky clouds, dub the sea, trance a starfield over a running grid. It scrolls slowly with the tempo
    and stops when you pause. The sky keeps time: a sun crosses it, then a moon. The texture key is the weather: rain, hiss (static), fire (embers) */
-let sceneX=0,sceneT=0,rainT=0,lastScene=-1,travelUntil=0;
-/* the long videos travel: every eight minutes the band walks on to the next place (city, hills, sea, mountains, skyline, stars) */
+let sceneX=0,sceneT=0,rainT=0,lastScene=-1,travelUntil=0,districtAt=-9;
+/* the districts of the city: each style is a different part of town. Dino and the crew walk through it all night */
+const DISTRICTS=['OLD TOWN','MIDTOWN','CENTRAL PARK','ARCADE ROW','THE HARBOR','THE BRIDGE'];
+/* &mood=journey: every eight minutes the crew walks on to the next district, whatever is playing */
 const JOURNEY=[0,3,4,2,1,5];
-const sceneStyle=()=>BC?JOURNEY[Math.floor(counterMs()/480000)%JOURNEY.length]:cur.s;
+/* &mood=night (the Studio's NIGHT CITY): one lonely city, always night, the moon crossing every forty minutes, rain drifting in and out */
+const NIGHT=BC&&Q.get('mood')!=='journey'; /* the default: the crew is wherever the tape's style takes them */
+const sceneStyle=()=>BC&&!NIGHT?JOURNEY[Math.floor(counterMs()/480000)%JOURNEY.length]:cur.s;
 /* the sky keeps time. Playing here, it's the real time of day where you are (the moon's out at 11pm); in the videos, a forty-minute day */
-function skyPhase(){if(BC){const p=(counterMs()/1000%2400)/2400;return p<.5?{day:true,sp:p*2}:{day:false,sp:(p-.5)*2};}
-  const d=new Date(),h=d.getHours()+d.getMinutes()/60;return h>=6&&h<18?{day:true,sp:(h-6)/12}:{day:false,sp:((h+6)%24)/12};}
+function skyPhase(){if(BC)return {day:false,sp:(counterMs()/1000%2400)/2400}; /* it's always night in the city; the moon keeps time */
+  const d=new Date(),h=d.getHours()+d.getMinutes()/60;return {day:false,sp:h/24};}
 const hsh=(a,b)=>{const v=Math.sin(a*127.1+(b||0)*311.7)*43758.5453;return v-Math.floor(v);};
+/* LANDMARKS: little pixel versions of the city's famous skyline, drawn as the crew walks past. Segments are [half-width, rows, fill]:
+   '#' wall (with windows), 'c' an art-deco crown, 's' stacked screens, '*' a light. Scaled to the stage, so they read the same on a phone or a TV */
+const seg=(W,ss)=>{const out=[];for(const [hw,h,ch] of ss)for(let k=0;k<h;k++){let row='';for(let i=0;i<W;i++)row+=Math.abs(i-(W>>1))<=hw?(ch||'#'):'.';out.push(row);}return out;};
+const LMD={
+  esb:{h:.96,al:.5,a:seg(11,[[0,1,'*'],[0,3],[1,2],[2,2],[3,13],[4,2],[5,2]])},                     /* the Empire State */
+  chry:{h:.86,al:.5,a:seg(9,[[0,1,'*'],[0,3],[1,2,'c'],[2,2,'c'],[3,2,'c'],[3,10],[4,3]])},  /* the Chrysler, its crown lit */
+  rock:{h:.76,al:.5,a:seg(13,[[3,1],[4,14],[5,2],[6,3]])},                                    /* 30 Rock */
+  ots:{h:.8,al:.46,a:seg(9,[[3,2],[4,18,'s'],[4,6]])},                                               /* the tower of screens at the top of Arcade Row */
+  lib:{h:.92,al:.5,a:[                                                                       /* the Statue of Liberty, across the water */
+    '...*.........','..###........','...#.........','...#.........','...#.........','...##.#.#....','....#.###....',
+    '.....#####...','......###....','.....#####...','....#######..','....#######..','....#######..','....#######..',
+    '.....#####...','.....#####...','....#######..','....#######..','...#########.','...#########.',
+    '..###########','...#########.','...#.#.#.#.#.','...#########.','...#########.','..###########','#############']},
+  brg:{h:.86,al:.46,a:[                                                                       /* a Brooklyn Bridge tower, two pointed arches */
+    '..#######..','.#########.','.#########.','.##.###.##.','.#...#...#.','.#...#...#.','.#...#...#.','.#...#...#.',
+    '.#...#...#.','.#########.','.#########.','.#########.','.#########.','.#########.']}};
+const LMK={};
+let LMTOP=0;
+function lmSprite(n,G,f){const key=n+':'+G+':'+LMTOP+':'+(f||1);if(LMK[key])return LMK[key];const d=LMD[n],src=d.a,sh=src.length,sw=src[0].length,th=Math.max(8,Math.min(G-LMTOP,Math.round(G*d.h*1.25*(f||1)))),k=th/sh,tw=Math.max(1,Math.round(sw*k)),cols=[];
+  for(let i=0;i<tw;i++){let col='';for(let r=0;r<th;r++)col+=src[Math.min(sh-1,Math.floor(r/k))][Math.min(sw-1,Math.floor(i/k))];cols.push(col);}return LMK[key]={w:tw,h:th,cols,al:d.al||.22};}
+/* which landmarks stand in each district, repeating every P columns: [sprite, column] */
+const LMS={1:{P:160,l:[['esb',10],['chry',62],['rock',112]]},3:{P:120,l:[['ots',40]]},4:{P:150,l:[['lib',50]]},5:{P:90,l:[['brg',0]]}};
+function lmAt(st,wc,G){const L=LMS[st];if(!L)return null;const m=((wc%L.P)+L.P)%L.P;for(const [n,o] of L.l){const S=lmSprite(n,G);if(m>=o&&m<o+S.w)return {S,i:m-o,n};}return null;}
 function drawScene(x,W,H,live,now,dt){
-  const Q=Math.max(3,SBPX),cols=Math.ceil(W/Q)+2,rows=Math.ceil(H/Q),G=Math.max(8,rows-Math.floor(SROWS*SP/Q)+2) /* the ground: just under the top of the EQ */,st=sceneStyle(),b=gen&&gen.b,bpm=b?b.bpm:100;
-  if(st!==lastScene){if(lastScene>=0&&live)travelUntil=pnow()+3;lastScene=st;}
+  const Q=Math.max(3,SBPX),cols=Math.ceil(W/Q)+2,rows=Math.ceil(H/Q),G=Math.max(8,rows-Math.floor(SROWS*SP/Q)+2) /* the street: just under the top of the EQ, where the crew walks */,TOP=Math.ceil(rows*.21) /* nothing taller than the title line */,cap=v=>Math.max(2,Math.floor((G-TOP)*Math.tanh(1.5*v/Math.max(1,G-TOP)))) /* soft: tall stays taller than short, nothing above the title */,GB=rows+1 /* the buildings carry on down behind the EQ to the bottom of the screen */,st=sceneStyle(),b=gen&&gen.b,bpm=b?b.bpm:100;
+  if(st!==lastScene){if(lastScene>=0&&live){travelUntil=pnow()+3;districtAt=pnow();}lastScene=st;}
   if(live&&!calm)rainT+=dt*([.45,1,1.8][cur.p]||1);
   if(live&&!calm){sceneX+=dt*(bpm/120)*[1.2,1.6,.5,1.4,.8,3][st]*(pnow()<travelUntil?6:1);sceneT+=dt;}
-  const sx=Math.floor(sceneX),fx=(sceneX-sx)*Q,thump=cur.b&&lastHit.b!=null&&now-lastHit.b<.09&&!calm?Q:0; /* BASS: the ground thumps */
+  LMTOP=TOP;const sx=Math.floor(sceneX),fx=(sceneX-sx)*Q,thump=cur.b&&lastHit.b!=null&&now-lastHit.b<.09&&!calm?Q:0; /* BASS: the ground thumps */
   const cell=(c,r,a,par)=>{x.globalAlpha=Math.min(1,a*1.15);x.fillRect(Math.round(c*Q-(par!=null?par:fx)),r*Q+(r>G*.35?thump:0),Q-1,Q-1);};
   x.fillStyle=INKC;
   /* the sky keeps time: a sun by day, a moon at night, by your own clock (a forty-minute day on a broadcast) */
   {const {day,sp}=skyPhase(),cx=Math.round((W*(.08+.84*sp))/Q),cy=Math.round((H*.42-Math.sin(Math.PI*sp)*H*.3)/Q),r=Math.max(2,Math.round(14/Q));
     for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++){const d=i*i+j*j;if(d>r*r+r)continue;if(!day&&(i+1.3)*(i+1.3)+(j-.6)*(j-.6)<r*r*.8)continue;cell(cx+i,cy+j,.26,0);}}
   const beat=b?Math.floor((now-b.tStart)/b.beat):0;
-  if(st===0||st===1){ /* the city: buildings, a dark alley between, windows */
-    for(let c=0;c<cols;c++){const wc=sx+c,id=Math.floor(wc/7),k=((wc%7)+7)%7;if(k===6)continue;
-      const h=Math.floor(G*(st===1?.22:.14)+hsh(id,st)*G*(st===1?.3:.24));
-      for(let r=G-h;r<rows;r++){const win=k%2===1&&r%3===1&&r>G-h+1&&r<G;
-        if(win){const lit=st===1?hsh(id*7+k,r+beat*13)>.55:hsh(id*7+k,r)>.7;cell(c,r,lit?.34:.12);}else cell(c,r,.12);}}}
-  else if(st===2){ /* mountains, two layers, and clouds */
-    const far=sceneX*.4,fs=Math.floor(far),ff=(far-fs)*Q;
-    for(let c=0;c<cols;c++){const wc=fs+c,h=Math.floor(G*(.32+.1*Math.sin(wc*.05)+.05*Math.sin(wc*.17+2)));for(let r=G-h;r<rows;r++)cell(c,r,.08,ff);}
-    for(let c=0;c<cols;c++){const wc=sx+c,h=Math.floor(G*(.16+.08*Math.sin(wc*.09+1)+.04*Math.sin(wc*.23)));for(let r=G-h;r<rows;r++)cell(c,r,r===G-h?.24:.13);}
-    const cl=sceneX*.25,cs=Math.floor(cl),cf=(cl-cs)*Q;
-    for(let c=0;c<cols;c++){const wc=cs+c,k=Math.floor(wc/26),o=wc-k*26,w=6+Math.floor(hsh(k,9)*6);if(o>=w)continue;const y=2+Math.floor(hsh(k,4)*G*.3);
-      for(let r=0;r<3;r++){if(r===0&&(o===0||o===w-1))continue;cell(c,y+r,.18,cf);}}}
-  else if(st===3){ /* 8-bit: rolling hills and blocky clouds */
-    for(let c=0;c<cols;c++){const wc=sx+c,h=Math.floor(G*.1+G*.16*Math.abs(Math.sin(wc*.08)));for(let r=G-h;r<rows;r++)cell(c,r,r===G-h?.28:.12);}
-    const cl=sceneX*.5,cs=Math.floor(cl),cf=(cl-cs)*Q;
-    for(let c=0;c<cols;c++){const wc=cs+c,k=Math.floor(wc/20),o=wc-k*20;if(o>=8)continue;const y=3+Math.floor(hsh(k,3)*G*.28);
-      cell(c,y+1,.2,cf);cell(c,y+2,.2,cf);if(o>1&&o<6)cell(c,y,.2,cf);}}
-  else if(st===4){ /* the sea: a horizon and waves rolling in */
-    const hz=Math.floor(G*.62);for(let c=0;c<cols;c++)cell(c,hz,.24);
-    for(let r=hz+2;r<rows;r+=2){const sp=1+(r-hz)*.15;for(let c=0;c<cols;c++){const wc=Math.floor(sceneX*sp)+c;if(((wc+r*5)%11+11)%11<3)cell(c,r,.2,0);}}}
-  else{ /* trance: stars rushing past over a running grid */
-    for(let i=0;i<70;i++){const z=hsh(i,1),spd=4+z*14,cxp=((hsh(i,2)*cols*Q-sceneT*spd*Q)%(cols*Q)+cols*Q)%(cols*Q),r=Math.floor(hsh(i,3)*G*.6);
-      x.globalAlpha=.16+z*.2;x.fillRect(Math.round(cxp),r*Q,(Q-1)*(z>.7?3:1),Q-1);}
-    const hz=Math.floor(G*.62);for(let c=0;c<cols;c++)cell(c,hz,.22,0);
-    for(let k=0;k<7;k++){const d=((k+(sceneT*1.5)%1)/7),r=hz+Math.floor(Math.pow(d,2)*(rows-hz));for(let c=0;c<cols;c++)cell(c,r,.12,0);}
-    for(let v=-8;v<=8;v++)for(let r=hz;r<rows;r++){const c=Math.round(cols/2+v*(r-hz)*.9);if(c>=0&&c<cols)cell(c,r,.11,0);}}
+  /* THE CITY AT NIGHT. Dino and the crew are always walking through it; each style is a different district, with its own buildings,
+     heights and goings-on: lo-fi OLD TOWN, house MIDTOWN, ambient CENTRAL PARK, 8-bit ARCADE ROW, dub THE HARBOR, trance THE BRIDGE */
+  {const tw=Math.floor(sceneT*2); /* stars, slowly drifting, a few twinkling */
+    for(let i=0;i<46;i++){const c=Math.floor(((hsh(i,11)*cols*3-sceneX*.08)%cols+cols)%cols),r=1+Math.floor(hsh(i,12)*G*.45);if(hsh(i,tw%7)>.86)continue;cell(c,r,.1+hsh(i,13)*.14,0);}}
+  /* the far skyline, faint, moving slower (every district has the city behind it) */
+  {const fx2=sceneX*.35,fs=Math.floor(fx2),ff=(fx2-fs)*Q;const E=lmSprite('esb',G,.85);for(let c=0;c<cols;c++){const wc=fs+c,m=((wc%150)+150)%150;if(st!==1&&m<E.w){const col=E.cols[m];for(let r=0;r<E.h;r++)if(col[r]!=='.')cell(c,G-E.h+r,.06,ff);if(col[E.h-1]!=='.')for(let r=G;r<GB;r++)cell(c,r,.06,ff);continue;}const id=Math.floor(wc/5),h=cap(G*1.3*(.18+hsh(id,21)*.3));for(let r=G-h;r<GB;r++)cell(c,r,.05,ff);}}
+  const blk=(wc,wmin,wmax,seed)=>{let s0=0,k=0;const base=Math.floor(wc/40)*40;let p=base;while(true){const w=wmin+Math.floor(hsh(Math.floor(p),seed+k)*(wmax-wmin+1));if(wc<p+w)return {id:Math.floor(p)*7+seed,o:wc-p,w};p+=w;k++;if(k>40)return {id:p,o:0,w:1};}};
+  const lmCol=(c,L,beat)=>{const {S,i}=L,col=S.cols[i];if(col[S.h-1]!=='.')for(let r=G;r<GB;r++)cell(c,r,S.al);for(let r=0;r<S.h;r++){const ch=col[r];if(ch==='.')continue;const y=G-S.h+r;
+      if(ch==='*')cell(c,y,(beat%2?.55:.32));
+      else if(ch==='c')cell(c,y,(i+r)%3===0?.46:.16);
+      else if(ch==='s')cell(c,y,((Math.floor(r/3)+beat+i%2)%3)?.4:.12);
+      else{const win=i%2===1&&r%2===1&&r>2&&col[r-1]!=='.'&&S.cols[i-1]&&S.cols[i-1][r]!=='.'&&S.cols[i+1]&&S.cols[i+1][r]!=='.';cell(c,y,win&&hsh(i*13+r,S.h)>.72?.62:S.al);}}};
+  for(let c=0;c<cols;c++){const wc=sx+c;
+    const L=lmAt(st,wc,G);if(L){lmCol(c,L,beat);if(st===5){const ry=Math.floor(G*.72);cell(c,ry,.26);cell(c,ry+1,.26);}continue;}
+    if(st===0){ /* OLD TOWN: low brick rows, warm windows, chimneys, a street lamp now and then */
+      const B=blk(wc,5,9,1);if(B.o===B.w-1)continue;const h=cap(G*1.3*(.22+hsh(B.id,2)*.26));
+      for(let r=G-h;r<GB;r++){const win=B.o%2===1&&(r-(G-h))%3===2;cell(c,r,win?(hsh(B.id*5+B.o,r)>.62?.42:.07):.19);}
+      if(B.o===1&&hsh(B.id,3)>.5){cell(c,G-h-1,.19);cell(c,G-h-2,.19);}
+      if(B.w>=7&&hsh(B.id,40)>.45&&B.o>=2&&B.o<=4){const t=G-h; /* a wooden water tower on the roof */ if(B.o!==3)cell(c,t-1,.17);for(let r=t-5;r<t-1;r++)cell(c,r,.24);if(B.o===3)cell(c,t-6,.24);}
+      if(((wc%23)+23)%23===0){for(let r=G-6;r<G;r++)cell(c,r,.2);cell(c+1,G-6,.3);}}
+    else if(st===1){ /* MIDTOWN: tall towers, windows blinking to the beat */
+      const B=blk(wc,6,10,4);if(B.o===B.w-1)continue;const h=cap(G*1.3*(.26+hsh(B.id,5)*.26));
+      for(let r=G-h;r<GB;r++){const win=B.o%2===1&&r%2===1&&r>G-h+1;cell(c,r,win?(hsh(B.id*9+B.o,r+beat*7)>.6?.4:.08):.2);}
+      if(B.o===Math.floor(B.w/2)&&hsh(B.id,6)>.6)for(let r=G-h-4;r<G-h;r++)cell(c,r,.2);}
+    else if(st===2){ /* CENTRAL PARK at 3am: a dark line of round treetops, the wall of towers along the far side of the park rising behind, lamps along the path, now and then a little stone bridge */
+      const T=blk(wc,4,7,30),d=Math.abs(T.o-(T.w-1)/2),top=G-cap(G*1.3*(.1+hsh(T.id,31)*.07))+Math.floor(d*d*.45);
+      const B=blk(wc,4,7,7);if(B.o<B.w-1){const h=cap(G*1.3*(.3+hsh(B.id,8)*.45));for(let r=G-h;r<top;r++){const win=B.o%2===1&&r%2===0&&hsh(B.id*3+B.o,r)>.78;cell(c,r,win?.42:.13);}}
+      {const band=Math.max(3,Math.round((G-top)*.55)),trunk=T.o===Math.floor((T.w-1)/2);for(let r=top;r<GB;r++)cell(c,r,r<top+band?(r===top?.3:hsh(wc*7+r,33)>.85?.22:.42):(trunk&&r<G?.32:.1));} /* leafy crowns on trunks, the lawn below */
+      if(((wc%19)+19)%19===0){for(let r=G-5;r<G;r++)cell(c,r,.38);cell(c,G-6,.5);}
+      {const m=((wc%97)+97)%97;if(m>=40&&m<52){const k=m-40,ay=G-1-Math.round(3*Math.sin(Math.PI*k/11));for(let r=G-5;r<=ay;r++)cell(c,r,.36);}}}
+    else if(st===3){ /* ARCADE ROW: mid-height blocks, each with a sign that flickers on the beat */
+      const B=blk(wc,6,9,10);if(B.o===B.w-1)continue;const h=cap(G*1.3*(.28+hsh(B.id,11)*.22));
+      for(let r=G-h;r<GB;r++)cell(c,r,.19);
+      if(B.o>0&&B.o<B.w-2){const sy=G-h+2,on=(beat+Math.floor(hsh(B.id,12)*4))%4!==0;cell(c,sy,on?.46:.2);cell(c,sy+1,on?.46:.2);}
+      if(B.o===1||B.o===B.w-3)cell(c,G-2,.3);}
+    else if(st===4){ /* THE HARBOR: long warehouses, cranes over the water, a light on the end of each pier */
+      const B=blk(wc,12,16,13);const h=cap(G*1.3*(.16+hsh(B.id,14)*.08));
+      if(B.o<B.w-2)for(let r=G-h-(B.o>2&&B.o<B.w-5?1:0);r<GB;r++)cell(c,r,.19);
+      if(((wc%37)+37)%37===0){const ch=cap(G*.9);for(let r=G-ch;r<GB;r++)cell(c,r,.22);for(let k=-3;k<9;k++)cell(c+k,G-ch,.22);cell(c+7,G-ch+1,.22);cell(c+7,G-ch+2,.22);}}
+    else{ /* THE BRIDGE: towers behind, an elevated road across the front with headlights streaming past */
+      const B=blk(wc,5,8,16);if(B.o<B.w-1){const h=cap(G*1.3*(.24+hsh(B.id,17)*.28));for(let r=G-h;r<GB;r++)cell(c,r,(B.o%2&&r%3===0&&hsh(B.id+B.o,r)>.7)?.28:.11);}
+      const ry=Math.floor(G*.72);cell(c,ry,.26);cell(c,ry+1,.26);
+      {const S=lmSprite('brg',G),P=90,m=((wc%P)+P)%P,u=(m-S.w/2)/P,yt=G-S.h+1,cy=Math.round(yt+(ry-2-yt)*(1-Math.pow(2*u-1,2))); /* the cables, sagging tower to tower */
+        cell(c,cy,.22);if(m%3===0)for(let r=cy+1;r<ry;r++)cell(c,r,.08);}}}
+  if(st===5){const ry=Math.floor(G*.72);for(let i=0;i<9;i++){const cxp=((hsh(i,31)*cols*Q+sceneT*(40+hsh(i,32)*60)*Q)%(cols*Q));x.globalAlpha=.36;x.fillRect(Math.round(cxp),(ry-1)*Q,Q*2-1,Q-1);}x.globalAlpha=1;}
   /* the weather, from the texture key */
-  const w=cur.w;
+  const w=cur.w||(NIGHT&&Math.floor(counterMs()/300000)%3===1?1:0); /* night city: a passing shower every quarter hour, seen not heard */
   if(w===1){ /* the rain falls at the tape's SPEED (rainT runs faster or slower) */
     for(let i=0;i<46;i++){const xx=Math.floor(hsh(i,5)*cols),yy=Math.floor((hsh(i,6)*rows+rainT*rows*.9*(1+hsh(i,7)))%rows);cell(xx-Math.floor(yy/4),yy,.36,0);cell(xx-Math.floor(yy/4),yy+1,.24,0);}}
   else if(w===2){if(live||calm)for(let i=0;i<14;i++)cell(Math.floor(Math.random()*cols),Math.floor(Math.random()*rows),.26,0);}
@@ -581,14 +629,20 @@ function drawStage(live,now,dt){
   const n=fbuf?fbuf.length:0,W=SW,H=SH,P=SP,COLS=SCOLS,ROWS=SROWS,x=sx,dot=P-3,x0=Math.round((W-COLS*P+3)/2);
   x.clearRect(0,0,W,H);let sum=0;
   drawScene(x,W,H,live,now,dt);
+  /* a title card: after the opening, NIGHT n and where the crew is; later, the district's name whenever they walk into a new one */
+  {const tn=pnow(),sb=tn-bootAt-1.5,sd=tn-districtAt,since=Math.min(sd,sb);if(since>=0&&since<3.2){const a=since<.3?since/.3:since>2.6?(3.2-since)/.6:1;x.globalAlpha=Math.max(0,a);x.fillStyle=INKC;x.textAlign='center';
+    const fs=Math.round(Math.min(26,W/16));x.font='400 '+fs+'px Silk';const opening=sb<=sd;
+    if(opening&&!BC){x.fillText('NIGHT '+nightNo(),W/2,H*.16+fs);x.font='400 '+Math.round(fs*.55)+'px Silk';x.fillText(DISTRICTS[sceneStyle()]||'',W/2,H*.16+fs*2.1);}
+    else x.fillText(DISTRICTS[sceneStyle()]||'',W/2,H*.16+fs);
+    x.globalAlpha=1;x.textAlign='start';}}
   const bt=pnow()-bootAt;if(bt<1.5){x.fillStyle=INKC;x.textAlign='center';x.textBaseline='middle';x.font='400 '+Math.round(Math.min(46,W/9))+'px Silk';
-    const yy=Math.min(1,bt/.7);x.fillText('SMALL BEATS',W/2,-30+(H*.42+30)*yy);if(bt>.7){x.font='400 '+Math.round(Math.min(14,W/34))+'px Silk';x.fillText('TINY MUSIC MACHINE',W/2,H*.42+Math.min(46,W/9)*.9);}
+    const yy=Math.min(1,bt/.7);x.fillText('SMALL BEATS',W/2,-30+(H*.42+30)*yy);if(bt>.7){x.font='400 '+Math.round(Math.min(14,W/34))+'px Silk';x.fillText('DINO & THE CREW',W/2,H*.42+Math.min(46,W/9)*.9);}
     x.textAlign='start';x.textBaseline='alphabetic';return 'VIBING';}
   for(let c=0;c<COLS;c++){let v=0;
     if(live&&n){const cc=c-(c%2),lo=Math.floor(2*Math.pow(n*.7/2,cc/COLS)),hi=Math.max(lo+1,Math.floor(2*Math.pow(n*.7/2,(cc+2)/COLS)));for(let b=lo;b<hi&&b<n;b++)v=Math.max(v,fbuf[b]); /* bars two dots wide */
       v=Math.pow(v/255,1.35)*ROWS*(.72+.55*c/COLS);}
     eqLvl[c]=v>eqLvl[c]?v:Math.max(0,eqLvl[c]-.35);eqPk[c]=eqLvl[c]>eqPk[c]?eqLvl[c]:Math.max(0,eqPk[c]-.06);sum+=eqLvl[c]/ROWS;
-    for(let k=0;k<ROWS;k++){const on=k<eqLvl[c],pk=k===Math.floor(eqPk[c])&&eqPk[c]>.6;x.fillStyle=INKC;x.globalAlpha=on?1:pk?.55:.08;x.fillRect(x0+c*P,H-(k+1)*P,dot,dot);}}
+    for(let k=0;k<ROWS;k++){const on=k<eqLvl[c],pk=k===Math.floor(eqPk[c])&&eqPk[c]>.6;x.fillStyle=INKC;x.globalAlpha=on?1:pk?.55:.05;x.fillRect(x0+c*P,H-(k+1)*P,dot,dot);}}
   x.globalAlpha=1;energy+=(sum/COLS-energy)*Math.min(1,dt*3);
   /* the band: the host, then a buddy for each part that's on */
   const t=cur,fr=friendsOf(t),narrow=W<420,band=[{id:BUD.norm(t.t),host:1}];
@@ -622,20 +676,20 @@ function drawStage(live,now,dt){
   });
   /* attract: PRESS PLAY, blinking, and Dino points down at it */
   if(attract()&&!calm){const on=Math.floor(pnow()*1.6)%2===0,host=HITS.find(o=>o.host);x.fillStyle=INKC;x.textAlign='center';x.font='400 '+Math.round(Math.min(18,W/26))+'px Silk';
-    const gift=shared&&cur===shared;if(gift){x.fillText(shared.by?'A TAPE FROM '+shared.by.toUpperCase():'A TAPE FOR YOU',W/2,H*.24);}
+    const gift=shared&&cur===shared;if(gift){x.fillText(shared.by?'A TAPE FROM '+shared.by.toUpperCase():'SOMEBODY SENT YOU A TAPE',W/2,H*.24);}
     if(on)x.fillText('PRESS ▶ PLAY',W/2,H*(gift?.34:.32));x.textAlign='start';}
   return REACT_busy()?({lie:'CHILLING',read:'READING',fish:'FISHING',camp:'BY THE FIRE',stars:'STARGAZING',glitch:'GLITCHING',shake:'HEADBANGING',confused:'CONFUSED',spin:'DIZZY',look:'LOOKING AROUND',dance:'DANCING',yawn:'ZONING OUT'}[REACT.k]||mood):mood;}
 /* ---------- visitors: birds by day, shooting stars by night, a UFO on trance, and now and then a buddy just passing through ---------- */
 let VIS2=null,visitCheck=0,lastRare=0;
 function met(kind,id){S.met=S.met||{b:[],v:{}};let ch=false;if(kind==='b'){if(!S.met.b.includes(id)){S.met.b.push(id);ch=true;}}else if(!S.met.v[kind]){S.met.v[kind]=1;ch=true;}
-  if(ch){save();paintMet();if(kind!=='b'&&kind!=='poke')say('YOU SAW '+({bird:'A BIRD',star:'A SHOOTING STAR',ufo:'A UFO',visitor:'A VISITOR'}[kind]||kind)+'!');}}
+  if(ch){save();paintMet();if(kind!=='b'&&kind!=='poke')say('YOU SAW '+({bird:'A BAT',star:'A SHOOTING STAR',ufo:'A UFO',visitor:'A VISITOR'}[kind]||kind)+'!');}}
 function drawVisitors(x,W,H,P,ROWS,live,now,shown){
   shown.forEach(m=>{if(!(S.met&&S.met.b.includes(m.id)))met('b',m.id);});
   const t=pnow(),sec=counterMs()/1000,day=skyPhase().day;
   if(live&&!calm&&!VIS2&&t-visitCheck>1){visitCheck=t;const r=Math.random();
     if(sceneStyle()===5&&r<.003)VIS2={k:'ufo',t0:t,dur:7};
     else if(!day&&r<.007)VIS2={k:'star',t0:t,dur:.9,y:.1+Math.random()*.25,x:.2+Math.random()*.6};
-    else if(day&&r<.007)VIS2={k:'bird',t0:t,dur:7,y:.12+Math.random()*.25};
+    else if(r<.011)VIS2={k:'bird',t0:t,dur:6,y:.1+Math.random()*.22}; /* a bat crossing the moon */
     else if(sec>600&&sec-lastRare>600){lastRare=sec;const inBand=shown.map(m=>m.id);let id;do id=Math.floor(Math.random()*BUD.count);while(inBand.includes(id));VIS2={k:'visitor',t0:t,dur:11,id};}}
   if(!VIS2)return;const V=VIS2,a=(t-V.t0)/V.dur;if(a>1){VIS2=null;return;}x.fillStyle=INKC;const px=Math.max(2,SBPX-1);
   if(V.k==='bird'){const g=Math.floor(t*6)%2?GLYPH.bird0:GLYPH.bird1;drawSprite(x,g,-30+a*(W+60),H*V.y+Math.sin(a*12)*6,px);if(a>.5)met('bird');}
@@ -658,7 +712,7 @@ function paintMet(){const box=$('met');if(!box)return;const m=S.met||{b:[],v:{}}
   $('metCount').textContent=n+' / '+BUD.count;
   if(box.childElementCount!==BUD.count){box.textContent='';BUD.list.forEach((B,i)=>{const d=document.createElement('span');d.className='met-b';d.title=B.name;d.appendChild(budCanvas(i,2,INKC));box.appendChild(d);});}
   [...box.children].forEach((d,i)=>{const seen=(m.b||[]).includes(i);d.classList.toggle('seen',seen);d.title=seen?BUD.list[i].name:'not met yet';});
-  $('metSeen').innerHTML=[['bird','BIRD'],['star','SHOOTING STAR'],['ufo','UFO'],['visitor','A VISITOR'],['poke','DINO SAYS HI']].map(([k,l])=>'<span class="'+(m.v&&m.v[k]?'got':'')+'">'+(m.v&&m.v[k]?'✓ ':'? ')+l+'</span>').join('');}
+  $('metSeen').innerHTML=[['bird','BAT'],['star','SHOOTING STAR'],['ufo','UFO'],['visitor','A VISITOR'],['poke','DINO SAYS HI']].map(([k,l])=>'<span class="'+(m.v&&m.v[k]?'got':'')+'">'+(m.v&&m.v[k]?'✓ ':'? ')+l+'</span>').join('');}
 paintMet();
 /* when the music's been playing a while with nobody touching it (and all through the long videos), Dino settles into
    something: reading, fishing at the sea, a campfire at night, stargazing. Touch anything and he's back */
@@ -869,7 +923,7 @@ if(BC){const root=document.documentElement;root.classList.add('broadcast');
   const fade=(e,txt)=>{e.classList.remove('in','out');void e.offsetWidth;if(txt!==undefined)e.textContent=txt;e.classList.add('in');};
   let segStart=0,segN=0,asked=0;
   paintCredits=()=>{const t=BQ.tapes[BQ.i]||cur;$('crName').textContent=t.n;$('crBy').textContent=(t.by||'SMALL BEATS').toUpperCase()+(t.from?' · REMIX OF '+t.from.toUpperCase():'');};
-  const show=t=>{cur=t;paint();fade($('crName'));fade($('crBy'));if(!root.classList.contains('bc-tall'))drawQR($('crQRc'),'https://smallbeats.com/?tape='+encodeTape(t),96);
+  const show=t=>{cur=t;paint();fade($('crName'));fade($('crBy'));if(t.by&&!/^small beats$/i.test(t.by))setTimeout(()=>say('SMALL MAIL FROM '+t.by.toUpperCase(),7000),1800); /* a viewer's tape on air */if(!root.classList.contains('bc-tall'))drawQR($('crQRc'),'https://smallbeats.com/?tape='+encodeTape(t),96);
     $('crNext').textContent=BQ.tapes.length>1?'NEXT ▸ '+BQ.tapes[(BQ.i+1)%BQ.tapes.length].n+(BQ.tapes[(BQ.i+1)%BQ.tapes.length].by?' · MIXED BY '+BQ.tapes[(BQ.i+1)%BQ.tapes.length].by.toUpperCase():''):'SIDE '+(t._side||'A');asked=0;};
   var BQ={tapes,i:0,each,until:0};window.SB_BQ=BQ;
   tapes[0]._plays=1;show(tapes[0]);fitMachine();if(document.fonts)document.fonts.ready.then(fitMachine);
@@ -929,12 +983,13 @@ if(BC){const root=document.documentElement;root.classList.add('broadcast');
     const tapDial=async(key,want)=>{const d=dialBtns.find(x=>x.D.k===key);if(!d)return;const p=at(d.b);await moveTo(p.x+p.w*.5,p.y+p.h*.55,800);
       for(let n=0;n<4;n++){const i=d.D.opts.findIndex(o=>o[0]===cur[key]),nx=d.D.opts[(i+1)%d.D.opts.length][0];
         hand.classList.add('press');d.b.classList.add('pressed');SFX.part(nx>0);await wait(120);hand.classList.remove('press');d.b.classList.remove('pressed');
-        const t2=Object.assign({},cur,{[key]:nx});BQ.tapes[BQ.i]=t2;cur=t2;paint();restart();say(d.D.name+' · '+dialLabel(d.D,nx));jumpAll(5);
+        const was=cur[key],t2=Object.assign({},cur,{[key]:nx});BQ.tapes[BQ.i]=t2;cur=t2;paint();restart();say(d.D.name+' · '+dialLabel(d.D,nx));
+        if(key==='d'&&nx===0)react('confused',3);else if(key==='d'&&was===0)jumpAll(10,false,true);else jumpAll(5);
         if(want==null||nx===want)break;await wait(380);}
       await wait(300);await away();};
     const tall=()=>root.classList.contains('bc-tall');
     (async()=>{while(!isPlaying())await wait(500);
-      if(tall()){const SCRIPT=[[4,riff],[14,()=>tapDial('b')],[23,()=>tapDial('w',1)],[33,riff],[44,pokeDino],[52,()=>tapDial('k')]];let t0=pnow();
+      if(tall()){const SCRIPT=[[4,riff],[13,()=>tapDial('d',0)],[19,()=>tapDial('d',1)],[26,()=>tapDial('w',1)],[35,riff],[46,pokeDino],[54,()=>tapDial('b')]];let t0=pnow();
         for(;;){for(const [sec,fn] of SCRIPT){while(pnow()-t0<sec)await wait(200);if(isPlaying())await fn();}while(pnow()-t0<62)await wait(200);t0=pnow();}}
       else{await wait(40000);for(let k=0;;k++){if(isPlaying())await [riff,pokeDino,riff][k%3]();await wait(200000);}}})();}
 }
