@@ -1,15 +1,17 @@
-/* Small Beats · styles. Two kinds of pixel on purpose: square pixels are the illustration (stickers, the cassette,
-   the keys), round dots are the machine (the display, the counter). Always dark. Colour comes mostly from the stickers. */
+/* Small Beats · styles. One machine, SB-1: a glowing screen with its buddies, a tape door, lit plastic keys and a keyboard.
+   Square pixels everywhere. Always dark. */
 @font-face{font-family:Silk;src:url(fonts/silkscreen-400.woff2) format('woff2');font-weight:100 900;font-display:swap} /* the regular cut at every weight: its bold turns W and M into blobs */
+@font-face{font-family:'Barlow Condensed';src:url(fonts/barlow-condensed-600.woff2) format('woff2');font-weight:500 600;font-display:swap}
+@font-face{font-family:'Barlow Condensed';src:url(fonts/barlow-condensed-700.woff2) format('woff2');font-weight:700;font-display:swap}
 @font-face{font-family:Doto;src:url(fonts/doto-900.woff2) format('woff2');font-weight:900;font-display:swap}
 @font-face{font-family:Plex;src:url(fonts/plex-400.woff2) format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:Plex;src:url(fonts/plex-600.woff2) format('woff2');font-weight:600;font-display:swap}
 
-:root{
+:root{--lcd:#f2d58e;--acc:#e9b44c;
   color-scheme:dark;
   --bg:#2a1915;--panel:#3a251e;--panel2:#452e26;--key:#55403a;--line:#140b08;
   --cream:#efe6d2;--muted:#c9b7a3;--ink:#17140f;
-  --amber:#e8a33a;--orange:#d9733a;--yellow:#f0c94a;--teal:#3fa79a;--blue:#6a9ad1;--purple:#9a82c2;--red:#d0604f;--green:#7fb069;--paper:#d9cfbb;
+  --amber:#e8a33a;--yellow:#f0c94a;--blue:#6a9ad1;--green:#7fb069;--paper:#d9cfbb;
   --px:4px; /* one "pixel" of the hardware */
   --gut:16px;
 }
@@ -25,20 +27,15 @@ a{color:var(--amber)}
 /* ---- header ---- */
 .top{display:flex;align-items:center;justify-content:space-between;gap:4px 12px;max-width:1180px;margin:0 auto;padding:10px var(--gut);flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:14px;color:var(--cream);text-decoration:none}
-.brand-logo{display:block;width:96px;height:96px;image-rendering:pixelated} /* the Small Beats cat: a grey tabby in headphones, at whole-pixel sizes */
-.brand-word{font:400 26px/1 Silk;letter-spacing:2px;white-space:nowrap;text-shadow:3px 3px 0 var(--line)}
-@media (max-width:620px){.brand{gap:8px}.brand-logo{width:64px;height:64px}.brand-word{font-size:15px;letter-spacing:1px;text-shadow:2px 2px 0 var(--line)}}
+.brand-logo{display:block;width:177px;height:60px;margin:18px 0 4px;image-rendering:pixelated;filter:drop-shadow(3px 3px 0 var(--line))} /* the Small Beats logo: Dino in lines with the stacked wordmark, one lockup on one pixel grid, at whole-pixel sizes */
+@media (max-width:620px){.brand-logo{width:118px;height:40px;margin:8px 0 4px;filter:drop-shadow(2px 2px 0 var(--line))}}
 .nav{display:flex;gap:4px 18px;flex-wrap:wrap}
 .nav a{color:var(--muted);text-decoration:none;font:700 13px/1 Silk;letter-spacing:1px;padding:10px 2px}
 .nav a:hover{color:var(--cream)}
 .nav-n{display:inline-block;margin-left:6px;padding:2px 5px;background:var(--amber);color:var(--ink);font:700 10px/1 Silk}
 
-/* ---- hero ---- */
-.hero{max-width:1180px;margin:0 auto;padding:4px var(--gut) 14px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 20px}
-.hero h1{font:700 clamp(22px,4vw,36px)/1.1 Silk;margin:0;letter-spacing:.5px}
-.lede{margin:0;color:var(--muted);font-size:clamp(16px,2.2vw,19px)}
 
-/* ---- pixel buttons: a hard dark outline with notched corners, a lit top edge, a shaded bottom (after the sticker pack) ---- */
+/* ---- pixel buttons: a hard dark outline with notched corners, a lit top edge, a shaded bottom ---- */
 .pb{--c:var(--key);--t:var(--ink);position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;min-width:48px;padding:0 16px;margin:var(--px);
   border:0;border-radius:0;background:var(--c);color:var(--t);font:700 14px/1 Silk;letter-spacing:1px;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;
   box-shadow:0 calc(-1*var(--px)) 0 0 var(--line),0 var(--px) 0 0 var(--line),calc(-1*var(--px)) 0 0 0 var(--line),var(--px) 0 0 0 var(--line),
@@ -49,103 +46,212 @@ a{color:var(--amber)}
 .pb:disabled{cursor:default;filter:saturate(.3) brightness(.7)}
 .pb-big{min-height:56px;font-size:16px;padding:0 20px}
 .pb-sm{min-height:44px;font-size:12px;padding:0 12px}
-.pb-tune{min-height:60px;font-size:18px;padding:0 26px}
 
 /* keys on the machine: unlit is a dark key with light lettering; lit is the colour, full stop */
 .key{--c:var(--key);--t:var(--cream);--on:var(--amber)}
 .key::after{background:rgba(255,255,255,.12)}
 .key[aria-pressed=true]{--c:var(--on);--t:var(--ink)}
-.key[aria-pressed=true]::after{background:rgba(255,255,255,.6)}
-.key[aria-pressed=true]{filter:drop-shadow(0 0 10px color-mix(in srgb,var(--on) 45%,transparent))}
+.key[aria-pressed=true]::after{background:rgba(255,255,255,.3)}
+.key[aria-pressed=true]{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--on) 18%,transparent))} /* lit like old plastic: warm, not neon */
+/* lit plastic: a pressed key glows from inside, like a lamp behind tinted plastic, and its little light comes on. An unlit key is dark plastic */
+.key{background:radial-gradient(80% 75% at 50% 40%,color-mix(in srgb,var(--c) 86%,#fff) 0%,var(--c) 72%)}
+.key[aria-pressed=true]{background:radial-gradient(80% 75% at 50% 45%,color-mix(in srgb,var(--on) 88%,#f2e7d0) 0%,var(--on) 55%,color-mix(in srgb,var(--on) 78%,#2a1915) 100%)} /* lit from behind, like a hardware switch: soft, not glossy */
+.key::before{content:"";position:absolute;right:calc(2*var(--px));top:calc(2*var(--px));width:var(--px);height:var(--px);background:rgba(0,0,0,.4)}
+.key[aria-pressed=true]::before{background:#f6e6c4;box-shadow:0 0 4px 0 #f6e6c4}
 
-/* ---- the machine ---- */
-.deck{max-width:1180px;margin:0 auto;padding:0 var(--gut) 28px;display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
-@media (min-width:980px){.deck{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start}}
-.machine{position:relative;background:var(--panel);padding:22px 18px 16px;
-  box-shadow:0 -4px 0 0 var(--line),0 4px 0 0 var(--line),-4px 0 0 0 var(--line),4px 0 0 0 var(--line),inset 0 4px 0 0 rgba(255,255,255,.07),inset 0 -6px 0 0 rgba(0,0,0,.3)}
+/* ---- the hero: one line under the logo ---- */
+.hero{max-width:1180px;margin:0 auto;padding:0 var(--gut) 12px}
+.hero h1{font:400 12px/1.4 Silk;letter-spacing:2px;margin:0;color:var(--muted);text-transform:uppercase}
+
+/* ==== SB-1: a little stepped-pixel music machine. A backlit LCD with the band on it, the tape door between two speaker grilles,
+   chunky transport keys, the sound keys, six part keys, the keyboard. Case labels are smooth (Barlow); only the LCD is pixel type.
+   No line of text gets a row of its own: every word sits inside a key or on the screen. ==== */
+.deck{max-width:1180px;margin:0 auto;padding:0 var(--gut) 28px}
+.sb1{--ink2:#2d2414;position:relative;isolation:isolate;display:grid;grid-template-columns:128px minmax(0,1fr) 340px;
+  grid-template-areas:"scr scr door" "scr scr rs" "play keys keys" "dials dials dials" "kb kb kb";gap:18px 20px;padding:38px 30px 30px}
+.sb1-bg{position:absolute;inset:0;z-index:-1;filter:drop-shadow(4px 0 0 var(--line)) drop-shadow(-4px 0 0 var(--line)) drop-shadow(0 4px 0 var(--line)) drop-shadow(0 -4px 0 var(--line))}
+.sb1-bg::before{content:"";position:absolute;inset:0;clip-path:polygon(0 18px,6px 18px,6px 12px,12px 12px,12px 6px,18px 6px,18px 0px,calc(100% - 18px) 0,calc(100% - 18px) 6px,calc(100% - 12px) 6px,calc(100% - 12px) 12px,calc(100% - 6px) 12px,calc(100% - 6px) 18px,calc(100% - 0px) 18px,100% calc(100% - 18px),calc(100% - 6px) calc(100% - 18px),calc(100% - 6px) calc(100% - 12px),calc(100% - 12px) calc(100% - 12px),calc(100% - 12px) calc(100% - 6px),calc(100% - 18px) calc(100% - 6px),calc(100% - 18px) calc(100% - 0px),18px 100%,18px calc(100% - 6px),12px calc(100% - 6px),12px calc(100% - 12px),6px calc(100% - 12px),6px calc(100% - 18px),0px calc(100% - 18px));
+  background:linear-gradient(#4a3027 0 6px,transparent 6px),linear-gradient(0deg,#2c1b16 0 8px,transparent 8px),var(--panel)}
 .screw{position:absolute;width:8px;height:8px;background:#6b5348;box-shadow:inset 2px 2px 0 rgba(255,255,255,.18),inset -2px -2px 0 rgba(0,0,0,.4)}
-.s1{left:8px;top:8px}.s2{right:8px;top:8px}.s3{left:8px;bottom:8px}.s4{right:8px;bottom:8px}
-.deck-print{display:flex;justify-content:space-between;gap:10px;margin:14px 0 0;font:700 10px/1 Silk;letter-spacing:1.5px;color:#8a7366}
-.step{margin-top:16px}
-.step-h{margin:0 0 10px;font:700 13px/1 Silk;letter-spacing:1.5px;color:var(--muted);display:flex;align-items:center;gap:10px}
-.step-h b{display:inline-grid;place-items:center;width:22px;height:22px;background:var(--cream);color:var(--ink);font-size:12px}
+.s1{left:10px;top:30px}.s2{right:10px;top:30px}.s3{left:10px;bottom:30px}.s4{right:10px;bottom:30px}
+
+/* the LCD: always amber, dark ink, the cells just visible. A dark status strip along its foot */
+.m-screen{grid-area:scr;position:relative;min-width:0;display:flex;flex-direction:column;padding:12px 16px 0;margin:8px;overflow:hidden;
+  background:linear-gradient(rgba(45,36,20,.06) 1px,transparent 1px) 0 0/3px 3px,linear-gradient(90deg,rgba(45,36,20,.06) 1px,transparent 1px) 0 0/3px 3px,
+    radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.28),transparent 70%),var(--lcd);
+  box-shadow:0 0 0 4px #120a07,0 0 0 8px #4a3027,12px 0 0 0 var(--line),-12px 0 0 0 var(--line),0 12px 0 0 var(--line),0 -12px 0 0 var(--line),inset 0 5px 0 rgba(45,36,20,.18),inset 4px 0 0 rgba(45,36,20,.1);
+  font:400 13px/1.1 Silk,monospace;color:var(--ink2)}
+.vfd-top{display:flex;justify-content:space-between;gap:10px;white-space:nowrap;letter-spacing:1px;opacity:.8}
+.vfd-top span{overflow:hidden;text-overflow:ellipsis}
+.vfd-name{font-size:clamp(22px,3vw,34px);margin:8px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:2px;text-transform:uppercase}
+.vfd-name.flash{animation:lcdBlink .42s steps(2,end) 1}
+@keyframes lcdBlink{50%{opacity:.35}}
+.stage{display:block;width:100%;flex:1;min-height:170px}
+.lcd-strip{display:flex;justify-content:space-between;gap:10px;margin:6px -16px 0;padding:6px 16px;background:var(--ink2);color:var(--lcd);font-size:11px;letter-spacing:1px;white-space:nowrap}
+.lcd-strip span{overflow:hidden;text-overflow:ellipsis}
+
+/* the tape door: smoked plastic between two speaker grilles */
+.m-door{grid-area:door;min-width:0;display:grid;grid-template-columns:20px minmax(0,1fr) 20px;gap:12px;align-items:stretch;background:#2f1f1a;padding:12px;margin:4px;
+  box-shadow:4px 0 0 0 var(--line),-4px 0 0 0 var(--line),0 4px 0 0 var(--line),0 -4px 0 0 var(--line),inset 0 4px 0 rgba(255,255,255,.08),inset 0 -4px 0 rgba(0,0,0,.25)}
+.grille{display:block;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Crect width='4' height='4' fill='%23120a07'/%3E%3C/svg%3E") 2px 2px/8px 8px;min-height:40px}
+.door-win{display:flex;justify-content:center;align-items:center;cursor:pointer;background:#1c1418;padding:10px;box-shadow:inset 0 0 0 3px #120a07,inset 0 6px 0 rgba(255,255,255,.06)}
+.door-win .cass{width:100%;max-width:280px;margin:0}
+.m-recsend{grid-area:rs;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:end}
+
+/* keys: chunky plastic, notched pixel corners, smooth labels */
+.mk{--c:#5a4038;--t:var(--cream);position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-height:50px;margin:4px;border:0;padding:0 10px;cursor:pointer;background:var(--c);color:var(--t);
+  font:700 15px/1 'Barlow Condensed',system-ui,sans-serif;letter-spacing:1.5px;text-transform:uppercase;-webkit-tap-highlight-color:transparent;user-select:none;
+  box-shadow:4px 0 0 0 var(--line),-4px 0 0 0 var(--line),0 4px 0 0 var(--line),0 -4px 0 0 var(--line),inset 0 4px 0 rgba(255,255,255,.22),inset 0 -5px 0 rgba(0,0,0,.25);transition:transform .06s,filter .1s}
+.mk:hover{filter:brightness(1.08)}.mk:active{transform:translateY(2px)}
+.mk:disabled{cursor:default;opacity:.45;filter:none}
+.mk .rec{width:10px;height:10px;background:#5c1d16;display:block}
+.mk-rec{--c:#cbbd9f;--t:#2a1915}
+.mk-rec .rec{background:#ff3b2e;box-shadow:0 0 8px #ff3b2e}
+.mk-rec[aria-pressed=true]{--c:#b3a68c;--t:#4a3c30}
+.mk-rec[aria-pressed=true] .rec{background:#3aa84a;box-shadow:0 0 8px #7fd36a}
+.mk-send{--c:#cbbd9f;--t:#2a1915} /* SAVE and EJECT: a step quieter than the screen and the style keys */
+.mk-play{grid-area:play;--c:#e8782e;--t:#2a1306;min-height:64px;font-size:17px}
+.mk-play[aria-pressed=true]{--c:#e8782e;box-shadow:4px 0 0 0 var(--line),-4px 0 0 0 var(--line),0 4px 0 0 var(--line),0 -4px 0 0 var(--line),inset 0 4px 0 rgba(255,255,255,.3),inset 0 -5px 0 rgba(0,0,0,.25),0 0 14px rgba(232,120,46,.35)}
+.play-i{display:block;width:0;height:0;border-left:16px solid currentColor;border-top:10px solid transparent;border-bottom:10px solid transparent}
+.mk-play[aria-pressed=true] .play-i{border:0;width:16px;height:18px;background:linear-gradient(90deg,currentColor 0 6px,transparent 6px 10px,currentColor 10px)}
+.m-keys{grid-area:keys;display:grid;grid-template-columns:64px 64px repeat(6,minmax(0,1fr));gap:12px;min-width:0}
+.m-keys .key{width:calc(100% - 8px);min-width:0;min-height:64px;padding:0 4px;font:700 14px/1 'Barlow Condensed',system-ui,sans-serif;letter-spacing:1px}
+.mk-dice{--c:#cbbd9f;--t:#2a1915;flex-direction:column;gap:5px;min-height:64px;padding:0}
+.mk-undo{flex-direction:column;gap:5px;min-height:64px;padding:0}
+.mk-sub{font-size:11px;letter-spacing:1px}
+.mk-dice svg path:first-child{fill:#2a1915}
+
+/* six part keys: the part, a ladder of lights, its setting in the style's colour */
+.m-dials{grid-area:dials;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.dial{--dc:#efe6d2;display:flex;flex-direction:column;justify-content:space-between;min-width:0;height:58px;margin:3px;padding:8px 10px;border:0;cursor:pointer;text-align:left;background:#2a1915;color:var(--cream);
+  box-shadow:3px 0 0 0 var(--line),-3px 0 0 0 var(--line),0 3px 0 0 var(--line),0 -3px 0 0 var(--line),inset 0 3px 0 rgba(255,255,255,.06);-webkit-tap-highlight-color:transparent;transition:transform .06s}
+.dial:active{transform:translateY(2px)}
+.dial-top{display:flex;justify-content:space-between;align-items:center;width:100%;gap:6px}
+.dial-name{font:600 12px/1 'Barlow Condensed',system-ui,sans-serif;letter-spacing:1.5px;color:#a8927f}
+.dial-leds{display:flex;gap:3px}
+.dial-leds i{display:block;width:7px;height:7px;background:#4a342c}
+.dial-val{font:700 18px/1 'Barlow Condensed',system-ui,sans-serif;letter-spacing:1px;color:var(--dc);text-shadow:0 0 5px color-mix(in srgb,var(--dc) 22%,transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dial.off .dial-val{color:#6e5a4e;text-shadow:none}
+.dial.hit .dial-val{filter:brightness(1.15);text-shadow:0 0 6px color-mix(in srgb,var(--dc) 45%,transparent)}
+.dial.turn{animation:turn .18s steps(2,end)}
+@keyframes turn{0%{background:#4a3128}}
+.key[aria-pressed=true].hit{filter:brightness(1.1) drop-shadow(0 0 8px color-mix(in srgb,var(--on) 50%,transparent))}
+.key[aria-pressed=true].hit::before{background:#fff;box-shadow:0 0 10px 3px #fff4e0}
+
+/* the keyboard, with the step lights and the PLAY ALONG button (and on phones KEYBOARD / PARTS) on the rail along its top */
+.m-kb{grid-area:kb;--glow:#55d6c2;background:#1d1c21;padding:8px 6px 6px;margin:4px;box-shadow:4px 0 0 0 var(--line),-4px 0 0 0 var(--line),0 4px 0 0 var(--line),0 -4px 0 0 var(--line)}
+.rail{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+.beat{flex:1;display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:4px}
+.beat i{display:block;height:6px;background:#3a1a14}
+.beat i:nth-child(4n+1){background:#552219}
+.beat i.on{background:#e8782e;box-shadow:0 0 8px 1px rgba(232,120,46,.6)}
+.beat i:nth-child(4n+1).on{background:#f4a259;box-shadow:0 0 8px 1px rgba(244,162,89,.65)}
+.pp{flex:0 0 auto;display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;border:0;cursor:pointer;background:#2e2c33;color:#8c8394;font:700 12px/1 'Barlow Condensed',system-ui,sans-serif;letter-spacing:1.5px;box-shadow:3px 0 0 0 var(--line),-3px 0 0 0 var(--line),0 3px 0 0 var(--line),0 -3px 0 0 var(--line),inset 0 2px 0 #55525c}
+.kb{position:relative;display:flex;gap:4px;height:112px;touch-action:none;user-select:none;-webkit-user-select:none}
+.kk{--lv:0;border:0;padding:0;margin:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.kk-w{flex:1;position:relative;background:color-mix(in srgb,var(--glow) calc(var(--lv)*100%),#f2e7d0);
+  box-shadow:inset 0 -10px 0 color-mix(in srgb,var(--glow) calc(var(--lv)*70%),#cdbfa2),inset 0 4px 0 #fffaf0,0 0 calc(var(--lv)*20px) var(--glow)}
+.kk-b{position:absolute;top:0;height:60%;z-index:2;background:color-mix(in srgb,var(--glow) calc(var(--lv)*100%),#2e2c33);
+  box-shadow:0 0 0 3px #1d1c21,inset 0 -8px 0 color-mix(in srgb,var(--glow) calc(var(--lv)*60%),#141317),inset 0 3px 0 #55525c,0 0 calc(var(--lv)*18px) var(--glow)}
+.kk.down{transform:translateY(2px)}
+.kk:focus-visible{outline:3px solid var(--amber);outline-offset:-3px}
+@media (prefers-reduced-motion:reduce){.kk.down{transform:none}.vfd-name.flash{animation:none}}
+
+/* phones: the LCD, then PLAY with the tape door and SAVE/EJECT, the sounds (dice and undo with them), the six part keys, the keyboard */
+@media (max-width:760px){
+  .sb1{grid-template-columns:1fr 1.6fr 1fr;grid-template-areas:"scr scr scr" "play door rs" "keys keys keys" "dials dials dials" "kb kb kb";gap:14px 10px;padding:28px 14px 18px}
+  .s1,.s2{top:24px}.s1,.s3{left:5px}.s2,.s4{right:5px}.s3,.s4{bottom:22px}
+  .m-screen{padding:9px 10px 0;margin:8px 6px}
+  .vfd-top{font-size:10px}
+  .vfd-name{font-size:22px;margin:6px 0 2px}
+  .stage{min-height:128px}
+  .lcd-strip{margin:4px -10px 0;padding:5px 10px;font-size:9px}
+  .m-door{grid-template-columns:8px minmax(0,1fr) 8px;gap:5px;padding:6px}
+  .grille{background-size:6px 6px;background-position:1px 1px}
+  .door-win{padding:5px}
+  .door-win .cass{max-width:130px}
+  .m-recsend{grid-template-columns:1fr;gap:12px;align-content:stretch}
+  .m-recsend .mk{min-height:0;font-size:13px;letter-spacing:.5px;gap:6px;padding:0 4px}
+  .mk-play{flex-direction:column;gap:8px;font-size:14px;min-height:72px}
+  .m-keys{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  .m-keys .key{min-height:46px;font-size:13px;letter-spacing:.5px;order:1}
+  .mk-dice,.mk-undo{order:2;min-height:46px;flex-direction:row;gap:8px}
+  .mk-dice svg,.mk-undo svg{width:16px;height:16px}
+  .m-dials{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .dial{height:48px;padding:7px 8px}
+  .dial-name{font-size:11px;letter-spacing:1px}
+  .dial-leds i{width:5px;height:5px}.dial-leds{gap:2px}
+  .dial-val{font-size:15px;letter-spacing:.5px}
+  .rail{gap:8px;margin-bottom:6px}.beat{gap:2px}.beat i{height:5px}
+  .pp{height:26px;padding:0 7px;font-size:11px;gap:6px}
+  .kb{height:100px;gap:3px}
+  .deck{padding:0 8px 24px}
+}
+
+/* ==== the label sheet (EJECT): slides up over the machine; the music keeps playing ==== */
+.sheet{position:fixed;inset:0;z-index:20}
+.sheet-scrim{position:absolute;inset:0;background:rgba(0,0,0,.5)}
+.sheet-panel{position:absolute;left:0;right:0;bottom:0;max-height:90vh;overflow-y:auto;background:var(--panel);padding:14px var(--gut) calc(18px + env(safe-area-inset-bottom));
+  box-shadow:0 -4px 0 0 var(--line),inset 0 4px 0 rgba(255,255,255,.07);animation:up .18s ease-out}
+@media (min-width:900px){.sheet-panel{left:50%;width:960px;margin-left:-480px}}
+@keyframes up{from{transform:translateY(30px);opacity:.4}}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sheet-head .step-h{margin:0;color:var(--cream)}
+.sheet-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:18px 28px;align-items:start}
+@media (max-width:760px){.sheet-body{grid-template-columns:1fr}}
+.sheet-tape .cass{max-width:400px;margin:10px auto 14px;transform:rotate(-2deg)}
+.sheet-acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.sheet-acts .pb{margin:4px}
+.tape-qr{display:flex;gap:14px;align-items:center;margin-top:10px}
+.tape-qr canvas{width:160px;height:160px;image-rendering:pixelated;box-shadow:0 0 0 4px var(--line)}
+.tape-qr .hint{max-width:22ch}
+.step-h{margin:16px 0 10px;font:400 12px/1 Silk;letter-spacing:1.5px;color:var(--muted);display:flex;align-items:baseline;gap:10px}
+.step-sub{font-size:10px;letter-spacing:1px;color:#8c7766}
 .hint{margin:8px 0 0;color:var(--muted);font-size:14px}
-
-/* the display: round dots, like the machine's own readout */
-.readout{display:flex;gap:16px;align-items:stretch}
-.play{flex:0 0 auto;width:104px;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font:400 15px/1 Silk;letter-spacing:1.5px;color:var(--ink);border:0;cursor:pointer;background:var(--green);position:relative;margin:4px;
-  box-shadow:0 -4px 0 0 var(--line),0 4px 0 0 var(--line),-4px 0 0 0 var(--line),4px 0 0 0 var(--line),inset 0 4px 0 0 rgba(255,255,255,.35),inset 0 -4px 0 0 rgba(0,0,0,.22)}
-.play:active{transform:translateY(2px)}
-.play-i{display:block;width:0;height:0;border-left:22px solid var(--ink);border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:6px}
-.play[aria-pressed=true]{background:var(--amber)}
-.play[aria-pressed=true] .play-i{border:0;width:22px;height:24px;margin:0;background:linear-gradient(90deg,var(--ink) 0 8px,transparent 8px 14px,var(--ink) 14px)}
-.vfd{flex:1;min-width:0;background:#0b0c0a;padding:10px 14px;margin:4px;box-shadow:0 0 0 4px var(--line),inset 0 0 24px rgba(0,0,0,.8);font:900 15px/1.1 Doto,monospace;color:#55d6c2;text-shadow:0 0 6px rgba(85,214,194,.6);overflow:hidden}
-.vfd-top{display:flex;justify-content:space-between;color:var(--amber);text-shadow:0 0 6px rgba(232,163,58,.6)}
-.vfd-name{font-size:clamp(22px,4vw,30px);margin:6px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:1px}
-.vu{display:block;width:100%;height:18px;image-rendering:pixelated}
-
-.starts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.starts .pb{margin:4px;width:calc(100% - 8px);min-width:0;padding:0 4px}
-.layers{display:grid;gap:8px}
-.layer{display:grid;grid-template-columns:112px 1fr;align-items:center;gap:8px}
-.layer-name{font:700 12px/1.2 Silk;letter-spacing:1.5px;color:var(--muted)}
-.layer-keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px}
-.layer-keys .pb{width:calc(100% - 8px);min-width:0;padding:0 6px}
-@media (max-width:620px){.starts{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:520px){.layer{grid-template-columns:1fr}.layer-keys{gap:10px 8px}.layer-keys .pb{font-size:12px;letter-spacing:.5px;padding:0 2px}}
-.step-tune{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.step-tune .hint{margin:0}
-
-/* ---- the tape side: one bench where the tape gets made ---- */
-.tapeside{min-width:0}
-.bench{position:relative;background:#3a251e;padding:22px 18px 18px;box-shadow:0 -4px 0 0 var(--line),0 4px 0 0 var(--line),-4px 0 0 0 var(--line),4px 0 0 0 var(--line),inset 0 4px 0 0 rgba(255,255,255,.07),inset 0 -6px 0 0 rgba(0,0,0,.3)}
-.bench .step:first-of-type{margin-top:6px}
-.linkbox{width:calc(100% - 8px);font:400 14px/1.3 ui-monospace,Menlo,monospace;color:var(--ink);background:var(--cream);border:0;padding:10px;margin:10px 4px 0;box-shadow:0 0 0 4px var(--line)}
-.cass-wrap{display:flex;justify-content:center}
-.quick{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
-
-.sbtn{position:relative;aspect-ratio:1;min-height:56px;overflow:hidden;border:0;padding:0;cursor:pointer;background:var(--panel2);display:grid;place-items:center;
-  box-shadow:0 0 0 2px var(--line);-webkit-tap-highlight-color:transparent}
-.sbtn:hover{background:#523a31}
-.sbtn[aria-pressed=true]{background:var(--cream);box-shadow:0 0 0 2px var(--line),0 0 0 6px var(--amber)}
-.linkish{background:none;border:0;color:var(--amber);font:700 13px/1 Silk;letter-spacing:1px;padding:14px 0;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
-.namebox{display:flex;gap:8px;align-items:center}
-.namebox input,.from input,.sent input{flex:1;min-width:0;font:700 18px/1.2 Silk;letter-spacing:1px;text-transform:uppercase;color:var(--ink);background:var(--cream);border:0;padding:12px 12px;margin:4px;
-  box-shadow:0 0 0 4px var(--line),inset 0 4px 0 rgba(0,0,0,.12)}
-.namebox.from{margin-top:14px;padding-right:60px}
-.namebox.from input{font:400 16px/1.2 Plex;text-transform:none;letter-spacing:0;padding:11px 12px}
+.namebar{display:grid;grid-template-columns:1.3fr 1fr;gap:12px}
+@media (max-width:520px){.namebar{grid-template-columns:1fr}}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0;font:400 10px/1 Silk;letter-spacing:2px;color:#a8927f}
+.namebox{display:flex;gap:6px;align-items:center;min-width:0}
+.namebox input{flex:1;min-width:0;font:400 16px/1.2 Silk;letter-spacing:1px;text-transform:uppercase;color:var(--ink);background:var(--cream);border:0;padding:12px 10px;margin:4px;box-shadow:0 0 0 4px var(--line),inset 0 4px 0 rgba(0,0,0,.12)}
+.namebox.from input{font:400 16px/1.2 Plex;text-transform:none;letter-spacing:0}
 .namebox input::placeholder{color:#9c8676;opacity:1}
-.row-btns{display:flex;flex-wrap:wrap;gap:12px 14px;align-items:center}
-.rec{width:10px;height:10px;background:#5c1d16;display:inline-block}
-.dirty .rec{background:#ff3b2a;box-shadow:0 0 8px #ff3b2a}
-.sent{margin-top:14px}
-.sent input{font:400 14px/1.3 ui-monospace,Menlo,monospace;text-transform:none;letter-spacing:0;width:calc(100% - 8px)}
-.note{margin:6px 0 0;color:var(--muted);font-size:14px;min-height:1.4em}
-
-.shells{margin-top:2px}
-.shells .step-h{margin-bottom:8px}
+.grp-h{margin:4px 0 10px;font:700 15px/1 'Barlow Condensed',system-ui,sans-serif;letter-spacing:2px;color:var(--cream);display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.grp-h:not(:first-child){margin-top:20px}
+.grp-h .step-sub{font:600 13px/1 'Barlow Condensed',system-ui,sans-serif;letter-spacing:1px;color:#a8927f}.grp-h b{color:var(--cream)}
+.send-tape{display:flex;width:calc(100% - 8px);font-size:18px;color:#13213a;margin-bottom:12px}
+.buddies{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:9px;max-height:256px;overflow-y:auto;padding:5px}
+.bud{height:70px;border:0;padding:6px 2px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:space-between;background:var(--lcd,#efe2a6);color:#2d2414;font:400 8px/1 Silk;letter-spacing:.5px;box-shadow:0 0 0 3px var(--line);-webkit-tap-highlight-color:transparent;overflow:hidden}
+.bud canvas{flex:1;object-fit:contain;min-height:0}
+.bud canvas{display:block;image-rendering:pixelated}
+.bud:hover{filter:brightness(1.06)}
+.bud[aria-pressed=true]{box-shadow:0 0 0 3px var(--line),0 0 0 6px var(--acc,#ffb347)}
 .shell-name{color:var(--cream);letter-spacing:1px}
-.shell-row{display:flex;gap:10px;overflow-x:auto;padding:6px 4px 10px;scrollbar-width:thin}
-.shell{flex:0 0 auto;width:64px;padding:3px;border:0;background:transparent;cursor:pointer;box-shadow:0 0 0 2px transparent}
+.shell-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:6px 4px;max-width:420px}
+.shell{min-width:0;padding:4px;border:0;background:transparent;cursor:pointer;box-shadow:0 0 0 2px transparent}
 .shell svg{display:block;width:100%;height:auto}
 .shell:hover{background:rgba(255,255,255,.08)}
-.shell[aria-pressed=true]{box-shadow:0 0 0 3px var(--amber);background:rgba(232,163,58,.15)}
-@media (min-width:980px){.shell-row{flex-wrap:wrap;overflow:visible}.shell{width:56px}}
+.shell[aria-pressed=true]{box-shadow:0 0 0 3px var(--acc,#ffb347);background:rgba(255,255,255,.08)}
+.linkish{background:none;border:0;color:var(--amber);font:400 13px/1 Silk;letter-spacing:1px;padding:14px 0;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+.linkbox{width:calc(100% - 8px);font:400 14px/1.3 ui-monospace,Menlo,monospace;color:var(--ink);background:var(--cream);border:0;padding:10px;margin:10px 4px 0;box-shadow:0 0 0 4px var(--line)}
+.row-btns{display:flex;flex-wrap:wrap;gap:12px 14px;align-items:center}
+.note{margin:6px 0 0;color:var(--muted);font-size:14px;min-height:1.4em}
+.note:empty{display:none}
+#tapeName.rolled{animation:rolled .6s steps(3,end)}
+@keyframes rolled{0%{background:var(--yellow)}100%{background:var(--cream)}}
+@media (prefers-reduced-motion:reduce){#tapeName.rolled,.dial.turn{animation:none}}
+.spine canvas{flex:0 0 auto;image-rendering:pixelated}
 
-/* ---- stickers: square pixels, integer scale only ---- */
-.stk{display:block;width:32px;height:32px;background-image:url(stickers.png?v=6);background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;flex:0 0 auto}
-.stuck{filter:drop-shadow(2px 0 0 #fbf6ea) drop-shadow(-2px 0 0 #fbf6ea) drop-shadow(0 2px 0 #fbf6ea) drop-shadow(0 -2px 0 #fbf6ea) drop-shadow(2px 3px 0 rgba(0,0,0,.25))} /* die-cut edge */
+/* header on phones */
+@media (max-width:620px){.top{flex-wrap:nowrap}.nav{gap:4px 14px;justify-content:flex-end}.nav a[href="#make"],.nav a[href="/#make"]{display:none}.nav a{font-size:12px}}
+@media (max-width:420px){.nav a[href*="youtube"]{display:none}}
+@media (max-width:359px){.nav a[href="#about"]{display:none}}
+@keyframes bcIn{from{opacity:0}to{opacity:1}}
 
-/* ---- the cassette: pixel art, with the sticker in the window ---- */
+/* ---- the cassette: pixel art, with the buddy on its label ---- */
 .cass{position:relative;width:min(100%,460px);margin:6px auto 18px;text-align:left;container-type:inline-size}
-.cass .stk.slap{animation:slap .32s steps(4,end)}
-@keyframes slap{0%{transform:scale(1.5) rotate(-10deg)}60%{transform:scale(.92) rotate(2deg)}100%{transform:none}}
 .cass-svg svg{display:block;width:100%;height:auto;filter:drop-shadow(0 6px 0 rgba(0,0,0,.4))}
-.cass .stk{position:absolute;left:0;top:0} /* placed and sized in whole pixels by the script */
 .cass.pop{animation:pop .5s ease-out}
 @keyframes pop{30%{transform:translateY(-6px)}}
-@media (prefers-reduced-motion:reduce){.cass.pop,.cass .stk.slap{animation:none}}
-
+@media (prefers-reduced-motion:reduce){.cass.pop{animation:none}}
 /* ---- a tape somebody sent you ---- */
 .shared-tape{max-width:640px;margin:8px auto 20px;padding:22px var(--gut);text-align:center;display:flex;flex-direction:column;align-items:center}
 .kick{font:700 14px/1 Silk;letter-spacing:2px;color:var(--amber);margin:0 0 8px}
@@ -176,122 +282,18 @@ a{color:var(--amber)}
 .faq summary::after{content:"+";font:400 16px/1 Silk;color:var(--amber)}
 .faq details[open] summary::after{content:"–"}
 .faq details p{margin:0 4px 14px}
-.new dl{margin:0}.new dt{font:400 11px/1.4 Silk;letter-spacing:1px;color:var(--amber);margin:12px 0 4px}.new dd{margin:0;color:#d8cfbe;max-width:60ch}
 .foot{max-width:1180px;margin:0 auto;padding:22px var(--gut) 40px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;color:var(--muted);font-size:14px;border-top:2px solid #3a251e}
 .foot nav{display:flex;gap:6px 18px;flex-wrap:wrap}
 .foot a{color:var(--muted)}
 .foot p{margin:0}
 .foot{align-items:center}
-.ph-badge{display:block;line-height:0}.ph-badge img{display:block;width:250px;height:54px}
-
-/* ---- all stickers: a tray that slides up; the tape stays where it is ---- */
-.drawer{position:fixed;inset:0;z-index:20}
-.drawer-scrim{position:absolute;inset:0;background:rgba(0,0,0,.5)}
-.drawer-panel{position:absolute;left:0;right:0;bottom:0;max-height:78vh;display:flex;flex-direction:column;background:var(--panel);padding:14px var(--gut) calc(14px + env(safe-area-inset-bottom));
-  box-shadow:0 -4px 0 0 var(--line),inset 0 4px 0 rgba(255,255,255,.07);animation:up .18s ease-out}
-@media (min-width:900px){.drawer-panel{left:50%;width:860px;margin-left:-430px}}
-@keyframes up{from{transform:translateY(30px);opacity:.4}}
-.drawer-head{display:flex;justify-content:space-between;align-items:center}
-.drawer-head .step-h{margin:0}
-.sticker-tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 4px 10px;scrollbar-width:thin}
-.sticker-tab{flex:0 0 auto;border:0;background:var(--key);color:var(--cream);font:700 11px/1 Silk;letter-spacing:1px;padding:10px 12px;cursor:pointer;box-shadow:0 0 0 2px var(--line)}
-.sticker-tab[aria-selected=true]{background:var(--amber);color:var(--ink)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));grid-auto-rows:76px;gap:8px;overflow-y:auto;padding:6px 6px 8px;min-height:0}
-.grid .sbtn{aspect-ratio:auto;height:76px}
-.grid[data-cat=cats]{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
-@media (min-width:700px){.grid[data-cat=cats]{grid-template-columns:repeat(8,76px)}} /* four faces per coat: two coats a row */
-
-/* ---- broadcast: just the tape, for recordings ---- */
-.broadcast body{background:#1c100d}
-.broadcast .top,.broadcast .hero,.broadcast .machine,.broadcast .tapeside .step,.broadcast .namebar,.broadcast .savebar,.broadcast .stickers,.broadcast .shells,.broadcast .bench-h,.broadcast .bench .screw,.broadcast .shelf,.broadcast .about,.broadcast .foot,.broadcast .shared-tape,.broadcast .skip{display:none!important}
-.broadcast .deck{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:0}
-.broadcast .bench{background:none;box-shadow:none;padding:0}
-/* long play: the tape, a dot-matrix equalizer under it, the cat in the corner, credits in the top corners */
-.broadcast body{background:#24150f}
-.broadcast .deck{display:flex!important;position:relative;z-index:1;transform:translate(var(--bx,0),var(--by,0));transition:transform 4s ease-in-out}
-.broadcast .tapeside{display:block!important;width:min(52vw,92vh);margin-top:-6vh}
-.broadcast .cass{width:100%;margin:0}
-.broadcast .cass-wrap{display:block!important;width:100%;margin:0}
-.broadcast .cass-svg svg{filter:drop-shadow(.9vmin 1.2vmin 0 rgba(0,0,0,.35))}
-.bc-sky{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:0;pointer-events:none;image-rendering:pixelated}
-.bc-grain{position:fixed;inset:0;z-index:0;pointer-events:none;image-rendering:pixelated;opacity:.55}
-.bc-vig{position:fixed;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,0) 45%,rgba(8,4,2,.55) 100%)}
-.bc-eq{display:block;width:100%;aspect-ratio:56/9.6;margin-top:4.5%}
-.bc-tag,.bc-next,.bc-ask{position:fixed;z-index:4;margin:0;max-width:46vw;font:400 2.2vmin/1.3 Silk;letter-spacing:.35vmin;opacity:0;transform:translate(var(--bx,0),var(--by,0))}
-.bc-tag{left:4.5vmin;top:4.5vmin;color:#c9b7a3}
-.bc-ask{left:4.5vmin;top:calc(4.5vmin + 4vmin);color:#e8a33a}
-.bc-next{right:4.5vmin;top:4.5vmin;text-align:right;color:#e8a33a}
-.bc-tag.in,.bc-next.in,.bc-ask.in{animation:bcIn 1.6s ease-out forwards}
-.bc-tag.out,.bc-next.out,.bc-ask.out{animation:bcOut 1.6s ease-in forwards}
-.bc-brand{position:fixed;z-index:4;left:4.5vmin;bottom:4.5vmin;display:flex;align-items:center;gap:2.2vmin;transform:translate(var(--bx,0),var(--by,0))}
-.bc-brand .stk{position:relative}
-.bc-brand b{display:block;font:400 3.1vmin/1 Silk;letter-spacing:.5vmin;color:#efe6d2;font-weight:400}
-.bc-brand small{display:block;margin-top:1.3vmin;font:400 1.9vmin/1 Silk;letter-spacing:.4vmin;color:#9c8676}
-@media (orientation:portrait){
-  .broadcast .tapeside{width:88vw;margin-top:-26vh}
-  .bc-eq{aspect-ratio:56/19}
-  .bc-tag,.bc-next,.bc-ask{max-width:88vw;font-size:2.4vmin}
-  .bc-next{right:auto;left:4.5vmin;text-align:left;top:calc(4.5vmin + 4.4vmin)}.bc-ask{top:calc(4.5vmin + 8.8vmin)}
-  .bc-brand{bottom:auto;top:66vh}.bc-brand b{font-size:5vmin}.bc-brand small{font-size:3vmin}} /* above where Shorts and Reels put their captions */
-.stk.hop{animation:hop .14s step-end}
-@keyframes hop{0%{transform:translateY(calc(-1px * var(--s,2)))}100%{transform:none}} /* one of the sticker's own pixels, on the beat */
-.stk.squish{animation:squish .22s steps(2,end)}
-@keyframes squish{0%{transform:scale(1.15,.85)}50%{transform:scale(.92,1.08)}100%{transform:none}}
-@media (prefers-reduced-motion:reduce){.stk.hop,.stk.squish{animation:none}}
-
-/* ---- the bench: tape, its name and the save button together; stickers and shells under them ---- */
-.bench-h{margin-bottom:4px}
-.bench .cass{margin:4px auto 12px}
-.namebar{display:flex;gap:10px;flex-wrap:wrap}
-.namebar .namebox{flex:3 1 200px;min-width:0}
-.namebar{min-width:0}
-.namebar .namebox.from{flex:2 1 130px;margin:0;padding:0}
-.savebar{margin-top:8px}
-.savebar .note{margin:4px 0 0;min-height:0}
-.savebar .note:empty{display:none}
-.stickers{margin-top:12px}
-.stickers .step-h,.shells .step-h{margin-bottom:8px}
-.shells{margin-top:12px}
-.shell-row{flex-wrap:nowrap!important;overflow-x:auto!important}
-.sbtn-more{font:400 12px/1 Silk;letter-spacing:1px;color:var(--amber);background:#2f1d17;box-shadow:0 0 0 2px var(--line),inset 0 0 0 2px #55403a}
-.sbtn-more:hover{background:#3d271f}
-#shareRow .linkish{padding:8px 4px}
-
-/* phones: the tape comes first, stickers in one swipeable row, then the machine, then name and save */
-@media (max-width:979px){
-  .deck{display:flex;flex-direction:column;gap:16px}
-  .tapeside.bench{display:contents}
-  .bench .screw,.bench-h{display:none}
-  .cass-wrap{order:1}
-  .stickers{order:2;margin:0}
-  .machine{order:3}
-  .namebar{order:4}
-  .namebar .namebox,.namebar .namebox.from{flex-basis:100%}
-  .savebar{order:5;margin:0}
-  .shells{order:6;margin:0}
-  .stickers .step-h{display:none}
-  .quick{display:flex!important;gap:8px;overflow-x:auto;padding:4px 4px 8px;scrollbar-width:none}
-  .quick::-webkit-scrollbar{display:none}
-  .quick .sbtn{flex:0 0 68px;height:68px;min-height:0}
-  .bench .cass{margin:0 auto}
-  .hero{padding-bottom:10px}
-}
-
-#tapeName.rolled{animation:rolled .6s steps(3,end)}
-@keyframes rolled{0%{background:var(--yellow)}100%{background:var(--cream)}}
-@media (prefers-reduced-motion:reduce){#tapeName.rolled{animation:none}}
-@media (max-width:620px){.top{flex-wrap:nowrap}.nav{gap:4px 14px;justify-content:flex-end}.nav a[href="#make"],.nav a[href="/#make"]{display:none}.nav a{font-size:12px}} /* phones: logo and links on one line */
-@media (max-width:420px){.nav a[href*="youtube"]{display:none}} /* YouTube is in the footer and About */
-@media (max-width:359px){.nav a[href="#about"]{display:none}.brand-word{font-size:13px}}
-
 /* the five-colour stripe across the top (drawn by drawStripe in app.js). Computers: behind the logo, bending up before the links. Phones: one straight band under the header */
 .stripe-wrap{position:absolute;left:0;right:0;top:0;overflow:hidden;pointer-events:none;z-index:0}
 .stripe{display:block;image-rendering:pixelated}
 .striped .top{position:relative;z-index:1}
-.striped .top{margin-bottom:30px} /* room for the stripe under the name */
-@media (max-width:620px){.striped .top{margin-bottom:62px}}
+@media (max-width:900px){.striped .top{margin-bottom:88px}}
+@media (max-width:620px){.striped .top{margin-bottom:92px}}
 .broadcast .stripe-wrap{display:none}
-
 /* ---------- the shelf: three up front, the rack, from friends ---------- */
 .shelf-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px}
 .shelf-head h2{margin:0}
@@ -313,7 +315,6 @@ a{color:var(--amber)}
 .spine-art{display:flex;gap:2px;flex:0 0 auto}.spine-art i{display:block;width:4px;height:18px}
 .spine-name{flex:1;min-width:0;font:900 17px/1 Doto,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .spine-from{flex:0 1 auto;min-width:0;font:400 10px/1 Silk;letter-spacing:.5px;color:var(--acc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.spine .stk{flex:0 0 auto}
 .rack-item.playing .spine,.rack-item.open .spine{transform:translateX(10px)} /* pulled out of the rack */
 .spine-acts{grid-column:1/-1;display:none;gap:8px 10px;padding:8px 0 6px 12px}
 .rack-item.open .spine-acts{display:flex}
@@ -337,5 +338,244 @@ a{color:var(--amber)}
 .shelf-item .row-btns .pb{white-space:nowrap;padding:0 10px}
 @media (max-width:420px){.shelf-row{grid-template-columns:1fr}.shelf-item .row-btns .pb{padding:0 9px;font-size:11px}}
 @media (max-width:359px){.shelf-item .row-btns{flex-wrap:wrap}}
-@keyframes bcIn{from{opacity:0}to{opacity:1}}
-@keyframes bcOut{from{opacity:1}to{opacity:0}}
+
+
+/* ==== broadcast: the whole machine, playing, scaled to the frame ==== */
+.broadcast body{background:#24150f;overflow:hidden}
+.broadcast .top,.broadcast .hero,.broadcast .shelf,.broadcast .about,.broadcast .foot,.broadcast .shared-tape,.broadcast .skip,.broadcast .stripe-wrap,.broadcast .sheet{display:none!important}
+.broadcast .deck{padding:0;max-width:none;position:fixed;inset:0;z-index:1}
+.broadcast .sb1{position:absolute;left:0;top:0;width:1180px;padding-bottom:30px;transform-origin:0 0;margin:var(--by,0) 0 0 var(--bx,0);transition:margin 4s ease-in-out;
+  grid-template-areas:"scr scr door" "scr scr door" "dials dials dials" "kb kb kb" "cred cred cred"}
+.broadcast .mk-play,.broadcast .m-keys,.broadcast .m-recsend,.broadcast .pp{display:none!important}
+.broadcast .stage{min-height:200px}
+.broadcast .m-door{display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.broadcast .door-win .cass{max-width:300px}
+.bc-prog{display:flex;flex-direction:column;gap:7px;background:var(--lcd);padding:8px 10px;box-shadow:0 0 0 3px var(--line)}
+.bc-prog-t{display:flex;justify-content:space-between;font:400 12px/1 Silk,monospace;color:#2d2414;letter-spacing:1px}
+.bc-prog-bar{display:block;height:6px;background:rgba(45,36,20,.15)}.bc-prog-bar i{display:block;height:100%;width:0;background:#2d2414}
+.m-credits{grid-area:cred;display:flex;align-items:stretch;gap:22px;min-height:62px}
+.cr-now{display:flex;flex-direction:column;justify-content:center;gap:7px;padding:8px 18px;background:var(--amber);color:var(--ink);box-shadow:0 0 0 4px var(--line);margin:4px}
+.cr-now span,.cr-by span,.cr-more span{font:400 10px/1 Silk;letter-spacing:2px}
+.cr-now b{font:900 24px/1 Doto,monospace;letter-spacing:1px}
+.cr-by{display:flex;flex-direction:column;justify-content:center;gap:8px}
+.cr-by span{color:#a8927f}.cr-by b{font:400 18px/1 Silk;letter-spacing:1.5px;font-weight:400}
+.cr-more{margin-left:auto;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:8px;text-align:right}
+.cr-more span{color:#a8927f}.cr-more b{font:400 13px/1 Silk;letter-spacing:1.5px;color:#ffd36b;font-weight:400;opacity:.35;transition:opacity 1.6s}
+.bc-asking .cr-more b{opacity:1}
+.m-credits .in{animation:bcIn 1.6s ease-out}
+.bc-sky{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:0;pointer-events:none;image-rendering:pixelated}
+.bc-grain{position:fixed;inset:0;z-index:2;pointer-events:none;image-rendering:pixelated;opacity:.55}
+/* Shorts (9:16): the phone layout, the tape window full width, the credits at the bottom */
+.broadcast.bc-tall .sb1{width:440px;grid-template-areas:"scr scr scr" "door door door" "dials dials dials" "kb kb kb" "cred cred cred"}
+.bc-tall .m-door{flex-direction:row!important;align-items:center!important}
+.bc-tall .door-win .cass{max-width:190px}
+.bc-tall .bc-prog{flex:1}
+.bc-tall .m-credits{flex-wrap:wrap;gap:10px 14px}
+.bc-tall .cr-now{flex:1 1 100%}
+.bc-tall .cr-now b{font-size:20px}
+.bc-tall .cr-more{margin-left:0;align-items:flex-start;text-align:left;flex:1 1 100%}
+.bc-tall .cr-more b{font-size:10px;letter-spacing:1px}
+.bc-tall .sb1{grid-template-columns:1fr 1.6fr 1fr;gap:14px 10px;padding:28px 14px 18px}
+.bc-tall .lcd-strip{margin:4px -10px 0;padding:5px 10px;font-size:9px}
+.bc-tall .m-screen{margin:8px 6px}
+.bc-tall .s1,.bc-tall .s2{top:20px}
+.bc-tall .m-screen{padding:9px 10px 0}
+.bc-tall .vfd-top{font-size:10px}
+.bc-tall .vfd-name{font-size:22px;margin:6px 0 2px}
+.bc-tall .stage{min-height:130px}
+.bc-tall .m-door{padding:6px}
+.bc-tall .door-win .cass{max-width:130px}
+.bc-tall .m-recsend{grid-template-columns:1fr;gap:12px;align-content:stretch}
+.bc-tall .m-recsend .mk{min-height:0;font-size:11px;letter-spacing:1px;gap:6px}
+.bc-tall .mk-play{flex-direction:column;gap:8px;font-size:11px;min-height:72px}
+.bc-tall .m-keys{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.bc-tall .m-keys .key{min-height:46px;font-size:11px;letter-spacing:.5px;order:1}
+.bc-tall .mk-dice,.bc-tall .mk-undo{order:2;min-height:46px;flex-direction:row;gap:8px}
+.bc-tall .mk-sub{display:inline;font-size:10px}
+.bc-tall .mk-dice svg,.bc-tall .mk-undo svg{width:16px;height:16px}
+.bc-tall .m-dials{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.bc-tall .dial{height:48px;padding:7px 8px}
+.bc-tall .dial-name{font-size:8px;letter-spacing:1px}
+.bc-tall .dial-leds i{width:5px;height:5px}
+.bc-tall .dial-leds{gap:2px}
+.bc-tall .dial-val{font-size:12px;letter-spacing:.5px}
+.bc-tall .rail{gap:8px;margin-bottom:6px}
+.bc-tall .beat{gap:2px}
+.bc-tall .beat i{height:5px}
+.bc-tall .pp{height:26px;padding:0 7px;font-size:8px;gap:6px}
+.bc-tall .kb{height:100px;gap:3px}
+.bc-tall .deck{padding:0 8px 24px}
+.broadcast .m-door{justify-content:center}
+.bc-tall .door-win{width:auto;flex:0 0 200px}
+.bc-tall .bc-prog{min-width:0}
+.bc-tall .bc-prog-t{font-size:12px}
+/* the sheet's keys use the case's smooth labels */
+
+.sheet .pb{font-family:'Barlow Condensed',system-ui,sans-serif;font-weight:700;letter-spacing:1.5px;font-size:15px;white-space:nowrap}
+.sheet .send-tape{font-size:20px;letter-spacing:2px}
+.sheet-head .step-h{font:700 16px/1 'Barlow Condensed',system-ui,sans-serif;letter-spacing:2px}
+.sheet-head .step-sub{font:600 13px/1 'Barlow Condensed',system-ui,sans-serif;letter-spacing:1px;color:#a8927f}
+.sheet .fld{font:600 12px/1 'Barlow Condensed',system-ui,sans-serif;letter-spacing:1.5px}
+.bud{padding-bottom:5px}
+/* the bold band behind the machine (drawBand); the machine's own thin stripe is gone, the band is the stripe now */
+.deck{position:relative}
+.deck-band{position:absolute;top:0;z-index:0;pointer-events:none;image-rendering:pixelated}
+.sb1{z-index:1}
+.sb1{padding-top:30px}
+@media (max-width:760px){.sb1{padding-top:22px}}
+.broadcast .deck-band{display:none}
+/* the tape fills its door */
+@media (max-width:760px){html:not(.broadcast) .door-win .cass{max-width:none;width:100%}}
+/* computers: the tape lies flat and fills its door; the screen is exactly as tall as the door with SAVE/EJECT under it, so the top row is one even block */
+@media (min-width:761px){
+  html:not(.broadcast) .sb1{grid-template-columns:128px minmax(0,1fr) clamp(320px,37%,430px);grid-template-rows:auto auto}
+  html:not(.broadcast) .door-win .cass{max-width:none;width:100%}
+  html:not(.broadcast) .m-door{grid-template-columns:1fr;grid-template-rows:14px auto 14px;gap:10px}
+  html:not(.broadcast) .grille{min-height:0}
+  html:not(.broadcast) .door-win{padding:12px 14px}
+  html:not(.broadcast) .stage{min-height:0;height:0}  /* the screen takes its height from the tape door and SAVE/EJECT beside it */
+}
+@media (max-width:760px){
+  html:not(.broadcast) .sb1{grid-template-columns:1fr 1.8fr 1.1fr}
+  html:not(.broadcast) .m-door{grid-template-columns:5px minmax(0,1fr) 5px;gap:4px;padding:5px}
+  html:not(.broadcast) .grille{background-size:5px 5px;background-position:0 0}
+  html:not(.broadcast) .door-win{padding:3px}
+}
+/* narrow computer windows: the sound keys wrap to two rows of four (NEW and UNDO at the end), so no label gets squeezed */
+@media (min-width:761px) and (max-width:1060px){
+  html:not(.broadcast) .m-keys{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px}
+  html:not(.broadcast) .m-keys .key{order:1;min-height:52px}
+  html:not(.broadcast) .mk-dice,html:not(.broadcast) .mk-undo{order:2;min-height:52px;flex-direction:row;gap:8px}
+  html:not(.broadcast) .mk-dice svg,html:not(.broadcast) .mk-undo svg{width:16px;height:16px}
+  html:not(.broadcast) .mk-play{flex-direction:column;gap:8px}
+}
+/* PLAY ALONG on the keyboard's rail: off, playing along (red, blinking), your notes in the song (lit in the style's colour) */
+.loop-led{display:block;width:10px;height:10px;background:#4a4650}
+.loop[data-state=rec]{color:#ff7a66}.loop[data-state=rec] .loop-led{background:#ff3b2e;box-shadow:0 0 8px #ff3b2e;animation:recBlink .5s steps(2,end) infinite}
+.loop[data-state=on]{color:var(--glow)}.loop[data-state=on] .loop-led{background:var(--glow);box-shadow:0 0 8px var(--glow)}
+@keyframes recBlink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.loop[data-state=rec] .loop-led{animation:none}}
+@media (max-width:760px){.loop{padding:0 7px;font-size:11px;gap:5px}.loop-led{width:8px;height:8px}}
+/* the palette: a brown body, cream keys, one hero colour (PLAY, in Braun orange), record red only for recording,
+   and each style one colour you can say out loud (8-Bit is Game Boy green). The part keys stay neutral: cream readings, amber lights */
+.mk-dice svg path:last-child{fill:#efe6d2}
+.dial-leds i.on{background:#e5a24e;box-shadow:0 0 3px rgba(229,162,78,.55)}
+/* EJECT: the tape pops up out of the door before the sheet slides in */
+.door-win .cass.eject{animation:ejectPop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes ejectPop{0%{transform:translateY(0)}35%{transform:translateY(-22%)}100%{transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.door-win .cass.eject{animation:none}}
+.m-recsend .mk{box-shadow:4px 0 0 0 var(--line),-4px 0 0 0 var(--line),0 4px 0 0 var(--line),0 -4px 0 0 var(--line),inset 0 3px 0 rgba(255,255,255,.16),inset 0 -4px 0 rgba(0,0,0,.2)}
+/* the step lights race on NEW, PLAY waves at you, the screen flips when you poke Dino five times */
+.beat i.chase{background:#e8782e!important;box-shadow:0 0 8px 1px rgba(232,120,46,.6)!important}
+.mk-play.attract{animation:attract 1.2s ease-in-out infinite}
+@keyframes attract{50%{box-shadow:4px 0 0 0 var(--line),-4px 0 0 0 var(--line),0 4px 0 0 var(--line),0 -4px 0 0 var(--line),inset 0 4px 0 rgba(255,255,255,.3),inset 0 -5px 0 rgba(0,0,0,.25),0 0 22px rgba(232,120,46,.55);filter:brightness(1.08)}}
+.stage{cursor:pointer;touch-action:manipulation}
+.m-screen.invert{animation:invert .45s steps(2,end)}
+@keyframes invert{0%,100%{filter:none}50%{filter:invert(1) hue-rotate(180deg)}}
+@media (prefers-reduced-motion:reduce){.mk-play.attract,.m-screen.invert{animation:none}}
+/* buddies met */
+.met-count{color:var(--muted);margin-left:8px}
+.met{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:6px;max-width:760px}
+.met-b{display:grid;place-items:center;height:42px;background:var(--lcd);box-shadow:0 0 0 2px var(--line);opacity:.28}
+.met-b.seen{opacity:1}
+.met-b canvas{max-width:34px;max-height:34px;image-rendering:pixelated}
+.met-seen{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 0;font:400 11px/1.4 Silk;letter-spacing:1px;color:#8c7766}
+.met-seen .got{color:var(--cream)}
+/* features */
+.feat{list-style:none;margin:0;padding:0;display:grid;gap:10px;max-width:62ch}
+.feat li{color:#d8cfbe;line-height:1.5}.feat b{color:var(--cream);font-weight:600}
+/* the tape window: an old, slightly yellowed plastic cover over the tape, with a highlight across it and a few fine scuffs */
+.door-win{position:relative}
+.door-win::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:linear-gradient(112deg,rgba(255,244,220,.13) 0 9%,transparent 9% 27%,rgba(255,244,220,.07) 27% 30%,transparent 30% 100%),
+    repeating-linear-gradient(97deg,rgba(255,240,210,.035) 0 1px,transparent 1px 29px),
+    repeating-linear-gradient(8deg,rgba(255,240,210,.025) 0 1px,transparent 1px 41px),
+    rgba(150,110,60,.13);
+  box-shadow:inset 0 0 22px rgba(0,0,0,.5),inset 0 2px 0 rgba(255,240,210,.12)}
+.more-tapes{margin-top:18px}
+.more-tapes>summary{list-style:none;cursor:pointer;font-family:'Barlow Condensed',system-ui,sans-serif;font-weight:700;letter-spacing:1.5px;font-size:15px;color:#2a1915}
+.more-tapes>summary::-webkit-details-marker{display:none}
+.more-tapes[open]>summary{margin-bottom:4px}
+/* computers: the whole machine, down to the foot of the keys, fits a laptop screen. The header tightens, the line under it moves up beside the stripe,
+   and on shorter screens the tape (and so the screen beside it) gets a little smaller; the keys never do */
+@media (min-width:901px){
+  html:not(.broadcast) .brand-logo{margin:8px 0 2px}
+  .striped .top{margin-bottom:86px}
+  .hero{position:relative;height:0;padding:0}
+  .hero h1{position:absolute;right:var(--gut);top:-104px;text-align:right;line-height:1.7}
+  .hero h1 span{display:block}
+}
+@media (min-width:761px){
+  html:not(.broadcast) .sb1{padding:22px 26px 56px;row-gap:9px}
+  html:not(.broadcast) .door-win .cass{width:min(100%,max(210px,calc((100svh - 760px) * 1.54)))}
+  html:not(.broadcast) .m-door{grid-template-rows:8px auto 8px;gap:6px}
+  html:not(.broadcast) .door-win{padding:8px 12px}
+  html:not(.broadcast) .m-screen{contain:size} /* the screen takes the height of the door beside it, never the other way round */
+}
+/* shorter laptop screens: the rows above the keys get a little slimmer */
+@media (min-width:761px) and (max-height:860px){
+  html:not(.broadcast) .m-keys .key,html:not(.broadcast) .mk-dice,html:not(.broadcast) .mk-undo{min-height:54px}
+  html:not(.broadcast) .mk-play{min-height:54px}
+  html:not(.broadcast) .dial{height:50px;padding:6px 10px}
+  html:not(.broadcast) .m-recsend .mk{min-height:44px}
+}
+/* phones: the whole machine, keyboard included, fits an iPhone screen. The tagline is read out but not shown, the stripe is slimmer,
+   the screen and buttons a little shorter, and the six part keys share the bottom with the keyboard (KEYBOARD / PARTS on the rail) */
+.kb-tabs{display:none}
+@media (max-width:760px){
+  html:not(.broadcast) .hero{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);padding:0}
+  html:not(.broadcast) .top{padding-top:4px;padding-bottom:4px}
+  html:not(.broadcast) .striped .top{margin-bottom:54px}
+  html:not(.broadcast) .brand-logo{margin:4px 0 4px}
+  html:not(.broadcast) .sb1{padding:10px 10px 27px;gap:7px 8px;grid-template-areas:"scr scr scr" "play door rs" "keys keys keys" "kb kb kb" "dials dials dials"}
+  html:not(.broadcast) .s1,html:not(.broadcast) .s2{top:6px}html:not(.broadcast) .s3,html:not(.broadcast) .s4{bottom:4px}
+  html:not(.broadcast) .vfd-name{font-size:18px;margin:4px 0 0}
+  html:not(.broadcast) .stage{flex:none;min-height:0;height:clamp(84px,calc(100svh - 596px),210px)} /* a set height: a canvas left to size itself keeps whatever height it last had */
+  html:not(.broadcast) .sb1{grid-template-rows:auto 74px}
+  html:not(.broadcast) .door-win .cass{max-width:104px}
+  html:not(.broadcast) .m-door,html:not(.broadcast) .mk-play,html:not(.broadcast) .m-recsend{min-height:0;height:74px;margin-top:0;margin-bottom:0}
+  html:not(.broadcast) .m-recsend .mk{min-height:0}
+  html:not(.broadcast) .m-recsend{gap:8px}
+  html:not(.broadcast) .m-recsend .mk{margin:2px 4px}
+  html:not(.broadcast) .mk-play{gap:4px}
+  html:not(.broadcast) .m-keys{gap:6px 8px}
+  html:not(.broadcast) .m-keys .key,html:not(.broadcast) .mk-dice,html:not(.broadcast) .mk-undo{min-height:38px;margin-top:2px;margin-bottom:2px}
+  html:not(.broadcast) .kb-tabs{display:flex;gap:6px}
+  html:not(.broadcast) .kb-tab{padding:0 9px}
+  html:not(.broadcast) .kb-tab[aria-pressed=true]{background:#e5a24e;color:#2a1915}
+  html:not(.broadcast) .sb1:not(.parts) .m-dials{display:none}
+  html:not(.broadcast) .sb1.parts .kb{display:none}
+  html:not(.broadcast) .sb1.parts .m-kb .rail{margin-bottom:0}
+  html:not(.broadcast) .loop{margin-left:auto}
+}
+@media (max-width:380px){html:not(.broadcast) .beat{display:none}}
+.bc-tall .s3,.bc-tall .s4{display:none} /* Shorts: the bottom screws would sit on the credits */
+/* broadcast: the demo hand that plays the machine now and then, the QR to play the tape yourself, a pressed part key */
+.bc-hand{position:absolute;left:0;top:0;z-index:30;pointer-events:none;opacity:0;transition-property:transform,opacity;transition-timing-function:cubic-bezier(.3,.7,.3,1)}
+.bc-hand.on{opacity:1}
+.bc-hand svg{display:block;width:48px;height:56px;margin-left:-18px;filter:drop-shadow(4px 4px 0 rgba(20,11,8,.55));transition:transform .07s}
+.bc-hand.press svg{transform:translateY(5px) scale(.94)}
+.bc-tall .bc-hand svg{width:60px;height:70px;margin-left:-22px}
+.broadcast .dial.pressed{transform:translateY(3px);filter:brightness(1.18)}
+.cr-qr{display:flex;align-items:center;gap:10px;margin:4px 4px 4px 2px}
+.cr-qr canvas{display:block;width:66px;height:66px;image-rendering:pixelated;box-shadow:0 0 0 3px var(--line)}
+.broadcast:not(.bc-tall) .cr-now b,.broadcast:not(.bc-tall) .cr-by b,.broadcast:not(.bc-tall) .cr-more b{white-space:nowrap}
+.broadcast:not(.bc-tall) .m-credits{gap:18px}
+.cr-qr span{font:400 10px/1.6 Silk;letter-spacing:1.5px;color:#ffd36b;text-align:right}
+.cr-logo{display:block;flex:0 0 auto;align-self:center;width:118px;height:40px;margin:0 10px 0 8px;image-rendering:pixelated;filter:drop-shadow(3px 3px 0 var(--line))}
+.bc-tall .cr-logo{margin-left:auto;order:2}.bc-tall .cr-now{order:0}.bc-tall .cr-by{order:1;flex:1}.bc-tall .cr-more{order:3}
+.cr-qr span{white-space:nowrap}
+.bc-tall .cr-qr{display:none}
+/* broadcast: the diagonal stripe behind the machine, as on the site */
+.bc-band{position:absolute;left:-8px;top:-8px;z-index:0;pointer-events:none;image-rendering:pixelated;margin:calc(var(--by,0px) * -2) 0 0 calc(var(--bx,0px) * -2);transition:margin 4s ease-in-out}
+/* the logo, stamped on the case: lower right, in the bezel under the keyboard (inside the screws), never larger than a badge */
+.m-stamp{position:absolute;right:34px;bottom:9px;z-index:1;line-height:0;pointer-events:none}
+.m-stamp img{display:block;width:118px;height:40px;image-rendering:pixelated;filter:drop-shadow(2px 2px 0 var(--line))}
+@media (max-width:760px){.m-stamp{right:18px;bottom:4px}.m-stamp img{width:59px;height:20px;filter:drop-shadow(1px 1px 0 var(--line))}}
+.broadcast .m-stamp{display:none}
+/* computers: the keys a little taller, still chunky toy keys: notched pixel corners at the tips, a thick lip, black keys kept short so the white tips are big and easy to hit */
+@media (min-width:761px){
+  html:not(.broadcast) .kb{height:126px}
+  html:not(.broadcast) .kk-b{height:56%}
+  html:not(.broadcast) .kk-w{box-shadow:inset 0 -12px 0 color-mix(in srgb,var(--glow) calc(var(--lv)*70%),#cdbfa2),inset 0 4px 0 #fffaf0;clip-path:polygon(0 0,100% 0,100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px))}
+}

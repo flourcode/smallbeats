@@ -1,143 +1,132 @@
 # Small Beats
 
-**Make your own mixtape.** A tiny music machine at [smallbeats.com](https://smallbeats.com): pick a sound, mix a few parts, try another tune, put a sticker on the tape, name it, save it and share it. Whoever opens the link hears the same tape and can remix it.
+**Make your own mixtape.** A tiny music machine at [smallbeats.com](https://smallbeats.com). Pick a style, tap the parts, play along on the keys, SAVE TAPE, then EJECT to name it, pick a buddy for the label and send the link. Whoever opens it hears the same tape and can remix it.
 
-No accounts, no server, no build step. YouTube: [@smallbeatsfm](https://www.youtube.com/@smallbeatsfm).
+No accounts, no server, no build step, nothing loaded from other websites except Google Analytics. YouTube: [@smallbeatsfm](https://www.youtube.com/@smallbeatsfm).
 
 ## Run it locally
-
-Any static file server works:
 
 ```
 cd smallbeats
 python3 -m http.server 8000
 ```
 
-Then open http://localhost:8000. Analytics stays off on localhost. The service worker only registers over https.
+Open http://localhost:8000. Analytics stays off on localhost; the service worker only registers over https.
 
 ## Files
 
 | File | What it is |
 |---|---|
-| `index.html` | The page: header, the mixer, the tape bench, your shelf, about |
-| `app.js` | Mixer, tape, stickers, shelf, sharing, share picture, broadcast mode |
+| `index.html` | The page: header, the SB-1 machine, the EJECT sheet, your shelf, Buddies Met, about |
+| `app.js` | The machine, the screen (scenes, sky, weather, the band), the keyboard and PLAY ALONG, tapes, shelf, sharing, the share picture, broadcast mode |
 | `engine.js` | The music engine (`window.SBE.band`) |
-| `stickers.js`, `stickers.png` | Sticker metadata and the sticker sheet |
-| `qr.js` | QR code generator (Kazuhiko Arase, MIT), loaded only when the shelf link is opened |
+| `composer.js` | The newer composer, used for Trance (`window.SBC`) |
+| `buddies.js` | The 50 buddies, one-colour pixel sprites as hex bitmasks, with draw helpers |
+| `qr.js` | QR code generator (Kazuhiko Arase, MIT), used for the shelf link and a tape's QR |
 | `app.css` | All styles |
 | `analytics.js` | Google Analytics 4 (`G-SBX0G743FR`); empty the ID to switch it off |
 | `privacy.html`, `terms.html`, `404.html` | The other pages |
+| `how-it-works/index.html` | The write-up: how every note is made |
 | `studio.html` | The Studio: builds broadcast addresses for OBS (unlisted, noindex) |
-| `how-it-works/index.html` | The write-up: how every note is made (at /how-it-works/) |
 | `sw.js`, `manifest.webmanifest` | Offline copy and home-screen install |
-| `og.png` | Link preview image, 1200 × 630 |
-| `favicon.ico`, `icons/` | Tab and app icons, and `mark-2/3/4/6.png`: the Small Beats cat at 2, 3, 4 and 6 px per pixel for the header |
-| `fonts/` | Silkscreen (labels and keys), Doto (the display and tape labels), IBM Plex Sans (body), with licenses |
+| `og.png` | Link preview, 1200 × 630 |
+| `favicon.ico`, `icons/` | Tab and app icons; `logo-2/3/4/6.png` are the header logo (Dino plus the stacked wordmark) at 2, 3, 4 and 6 px per pixel; `mark-3.png` and `mark-6.png` are Dino alone (the 404 page) |
+| `fonts/` | Silkscreen (the LCD, labels), Barlow Condensed (case labels), IBM Plex Sans (body), Doto, with licenses |
 | `CNAME`, `robots.txt`, `sitemap.xml` | Hosting and search |
+| `../smallbeats-youtube/` | YouTube profile picture (800 × 800), banner (2560 × 1440), a safe-area guide, and `brand/` (the logo large, on transparent and on brown, plus the alternate) |
 
-## How it works
+## The machine
 
-**The loop.** 1 START HERE (pick a sound) → 2 MIX IT → NEW TUNE → 3 MAKE IT YOURS (sticker, shell, name) → SAVE TAPE → COPY LINK / SHARE TAPE → they PLAY → REMIX → share again.
+- **The screen:** a fixed amber LCD. Top line: the tape number, style and tempo; the tape's name; the band standing on a dot equalizer; a status strip (time, and what Dino is doing).
+- **The tape door:** the Mini Tape (a pixel microcassette) behind an aged plastic cover, between speaker grilles. Tapping it opens EJECT.
+- **SAVE TAPE** puts the tape on your shelf (RECORDING… / PRINTING LABEL… / SAVED on the screen). **EJECT** pops the tape and opens the sheet: SEND TAPE (the share menu, or copies the link), COPY LINK, QR, SAVE CARD; then the label (NAME, MIXED BY) and the look (buddy, shell).
+- **PLAY** (the one orange key). The first PLAY of a visit powers on: SMALL BEATS drops down the screen with a ding.
+- **Six styles:** Lo-fi, House, Ambient, 8-Bit, Dub, Trance. Choosing one sets the drums, bass and keys for that style and keeps your TEXTURE. Each has one colour (blue, yellow, sky, Game Boy green, red, purple, all the same lightness), shown only on its own key, the keys as they light, the PLAY ALONG light.
+- **NEW** is a "?" block: the step lights race, the reels spin, the band freezes, and the new tune lands on beat 1. Hold it and the names spin like a slot machine. **UNDO** takes back any change.
+- **Six parts:** DRUMS, BASS, KEYS, TEXTURE, SPEED, VOLUME. Tap to change; the music changes on the next beat. Cream readings, amber lights.
+- **The keyboard:** every key is a note of the song's pentatonic scale, so nothing clashes. It's a little synth voiced per style, played through the song's own echo; hold a key to hold the note. The keyboard has its own channel, a little louder than the band, and the band dips gently while you play and comes back when you stop, so your notes always sit on top. The keys light up as the tune plays (a player piano); the keys you press light brighter. **PLAY ALONG:** while the music plays, whatever you play joins the song: play, stop for a moment, and your last two bars become part of the tape (they repeat, and travel with the link). The button's light blinks red while you're playing; your notes hush while you play over them; a new phrase replaces the old one, and one stray tap doesn't count. CLEAR MY NOTES takes them out; UNDO brings them back.
+- **Every press** makes a tiny sound and, on Android, a tiny buzz.
+- **The stamp:** the logo is stamped on the case, lower right in the bezel under the keyboard (`icons/stamp-1/2/4.png`, the same lockup at 1, 2 and 4 px per pixel). In the videos it sits in the credits, with the QR code to its left.
+- **On phones** the whole machine fits the screen: the keyboard and the six part keys share the bottom of the machine, swapped with KEYBOARD / PARTS on the keyboard's rail (PLAY ALONG brings the keyboard back). On very short phones, the first PLAY scrolls the machine fully into view.
+- **Fits a laptop:** on computers the header tightens and, on shorter screens, the tape (and the screen beside it) gets a little smaller, so the keys are always on screen; the keys never shrink.
 
-**State.** One draft (the tape you're making), the shelf (saved tapes), and what's in the player: the draft, a shelf tape, or a shared tape opened from a link. Touching any control while a shelf or shared tape is playing turns it into a new draft, a remix, credited "remixed from" its maker (one generation deep). Everything is kept in `localStorage` under `smallBeats`.
+## The screen
 
-**Names.** A new tape gets a random name, and it rolls again when you change the sound or hit NEW TUNE (the field flashes). Typing your own name stops that; ↻ hands it back. After a save, the next tape rolls again.
+- **The band:** the tape's buddy hosts, and each part that's on (drums, bass, keys) brings a buddy of its own. They wander like virtual pets, a step per beat (SPEED sets the pace), leap over each other, never overlap, and stand on the equalizer bars. VOLUME sets how high they jump.
+- **They react:** a style change makes them jump, a new part's buddy bounces in, saving makes them cheer. Dino headbangs to more bass, chills on Ambient, glitches on 8-Bit, looks around confused when the drums stop, and gets up to nonsense when left alone. After a while with nobody touching anything he settles into reading, fishing (at the sea), a campfire (at night) or stargazing. Dino always looks the same: sunglasses and headphones, and nothing floats over his head.
+- **Poke them:** each buddy sings its own note. Poke Dino five times quickly for a surprise.
+- **Scenes,** in faint "ghost ink", scrolling with the tempo: lo-fi a city at night, house a skyline blinking on the beat, ambient mountains and clouds, 8-bit hills and blocky clouds, dub the sea, trance stars over a running grid. The bass makes the ground thump.
+- **The sky** follows your real time of day (a sun by day, a moon at night).
+- **Weather** from TEXTURE: rain (falling at the tape's SPEED), hiss (static), fire (embers).
+- **Visitors:** birds by day, shooting stars by night, a rare UFO on Trance, and after ten minutes a buddy passing through. Each first sighting is recorded in Buddies Met.
+- **Attract mode:** before the first PLAY, PRESS ▶ PLAY blinks and Dino walks over towards it. A tape someone sent you shows A TAPE FROM …
 
-**First visit.** The shelf starts with three tapes, `STARTERS` in `app.js`: GROCERY RUN (house, Smoked, happy calico), SIDE QUEST (8-bit, Lavender, wizard), SADURDAY BEATS (lo-fi, Sunset, crying face). They're added on a first visit, and again whenever the shelf is empty. `STARTER_V` in `app.js` goes up when the starters change: returning visitors then get the new versions in place of the old copies (and an old starter left as the draft becomes the new one). Throwing out one starter keeps it gone. The player opens on GROCERY RUN.
+## Your shelf
 
-**Web Audio.** `band(ctx, destination, recipe)` builds one tape's sound and returns `{src, tick(until), bpm}`. The app calls `tick()` every 400 ms to schedule bars about two seconds ahead. Drums are synthesized noise and oscillators, the bass and keys are FM, subtractive and plucked-string (Karplus-Strong) voices, and 8-bit uses pulse waves. The seed picks a key, a mood, chord changes and a hook, and every part follows the same chords, so any combination fits. A lo-fi tape runs through a soft cassette chain (saturation, wow and flutter, a little hiss). Hiss (tape noise, a faint hum and the odd tick of dust), rain and fire are generated too, with random timing so they never loop. TIGHT drums play dead straight; SWING leans on the offbeats. Changing a part rebuilds the band with a short crossfade. Pause suspends the audio context, so the tune picks up where it stopped. On iPhone the audio session is set to playback, so it plays with the ring switch on silent.
-
-## The shelf
-
-- **Up front:** your three newest tapes as full cassettes, starred ones first. Each has PLAY, REMIX, COPY LINK, ✕ and a star on its corner.
-- **The rack:** the rest of your tapes as spines (the cassette seen from the side: shell colour, the name, the sticker on the end). Tap a spine to play it; it slides out and shows REMIX, COPY LINK and ✕.
-- **From friends:** a tape somebody else made goes onto your shelf as soon as you open its link (`gift`), with "from NAME" on its spine. Opening a link to one of your own tapes (same "mixed by") just offers KEEP.
-- **Stars:** `fav` on the tape. Starred tapes move to the front of their section.
-- **Throwing out:** one tap, then UNDO for seven seconds. No confirm dialogs.
-- **PLAY THE SHELF:** plays yours (starred first), then your friends', three minutes each with a slow crossfade, round and round. The display shows SHELF 2/7. Touching anything else stops it.
-- Up to 300 tapes in all. The first visit starts with three (GROCERY RUN starred), so the shelf explains itself. When you save a tape the site asks the browser, quietly, to keep its storage (not in Firefox, which would show a prompt).
-
-**The shelf link** is the backup, with no accounts. SHELF LINK shows one link (and a QR code) holding every tape; opening it in any browser shows the tapes and a PUT THEM ON MY SHELF button, which adds the ones that aren't there yet and carries stars over. Format: `?shelf=z` + base64url of the raw-deflated JSON `[1, [[name, shell, drums, bass, keys, texture, speed, sound, seed, sticker, by, from, flags], ...]]`, flags 1 starred and 2 from a friend. Browsers without `CompressionStream` write `j` + the plain JSON instead. Ten tapes make a link of about 400 characters; past a few dozen tapes the QR code gets too dense and the panel says to use the link.
+- Your newest tapes up front (starred first), with PLAY, REMIX, COPY LINK and ✕.
+- **ALL YOUR TAPES ▾** opens the rack (the rest, as spines) and FROM FRIENDS (tapes people sent you; opening a link puts it here).
+- **Buddies Met:** all 50 buddies, lit once you've seen them, plus the sightings (bird, shooting star, UFO, a visitor, Dino says hi). Nothing is locked.
+- **PLAY THE SHELF** plays them in turn. **SHELF LINK** (and QR) moves every tape (with any notes played along) to another browser: `?shelf=z` + base64url of raw-deflated JSON.
+- Throwing a tape out has UNDO; no confirm dialogs. Up to 300 tapes. Everything is kept in `localStorage` under `smallBeats`.
+- **First visit:** three starters, all Graphite: GROCERY RUN (house, Dino), SIDE QUEST (8-bit, Oink), SADURDAY BEATS (lo-fi, Shroom). `STARTER_V` goes up when they change.
 
 ## Tape format
 
-A tape link is `https://smallbeats.com/?tape=` + base64url of a JSON array:
+`https://smallbeats.com/?tape=` + base64url of:
 
 ```
-[1, name, shell, drums, bass, keys, texture, speed, sound, seed, sticker, by?, from?]
+[1, name, shell, drums, bass, keys, texture, speed, sound, seed, buddy, by?, from?, notes?]
 ```
 
 | Field | Values |
 |---|---|
 | `1` | format version |
 | name | up to 24 characters |
-| shell | 0–13, the cassette look (`SHELLS` in `app.js`; never reorder) |
-| drums | 0 off, 1 tight (straight), 2 swing. The kit comes with the sound: soft for ambient, lo-fi for lo-fi and 8-bit, house, dub |
-| bass | 0 off, 1 warm, 2 deep, 3 synth |
+| shell | 0 Graphite, 1 Tangerine, 2 Creme, 3 Bubblegum |
+| drums | 0 off, 1 tight, 2 swing |
+| bass | 0 off, 1 warm, 2 deep, 3 synth, 4 wave |
 | keys | 0 off, 1 Rhodes, 2 guitar, 3 pad, 4 8-bit |
-| texture | 0 off, 1 rain, 2 hiss, 3 fire (shown as HISS, RAIN, FIRE) |
+| texture | 0 off, 1 rain, 2 hiss, 3 fire |
 | speed | 0 slow, 1 steady, 2 fast |
-| sound | 0 lo-fi, 1 house, 2 ambient, 3 8-bit, 4 dub (sets groove, tempo and drum kit; drums come in SWING for lo-fi, ambient and dub, TIGHT for house and 8-bit) |
-| seed | 1–2147483647, the tune |
-| sticker | 0–249, a sticker id |
-| by, from | optional "mixed by" and "remixed from" names, 24 characters |
+| sound | 0 lo-fi, 1 house, 2 ambient, 3 8-bit, 4 dub, 5 trance |
+| seed | 1–2147483647, the tune (and the tape's number) |
+| buddy | 0–49, a place in `buddies.js` (49 is Dino); never reorder |
+| by, from | optional "mixed by" and "remixed from" names |
+| notes | optional, the notes played along on the keyboard: 3 base-36 characters a note (sixteenth 0–31, scale step, length 1–16) |
 
-Anything that doesn't decode to this is ignored and the page opens normally. A link is about 100 characters.
+Anything that doesn't decode is ignored and the page opens normally.
 
-## Stickers
+## Sound
 
-`stickers.png` is an 800 × 352 sheet, 25 columns × 11 rows of 32 × 32. Rows 0–9 are the sticker pack (CC0, commercial use, no attribution needed). The CATS tab is ours, drawn for this site: five coats (warm tabby, orange, black, calico, siamese) in four faces (normal, happy, sleepy, headphones). They sit in the pack's old cat cells (200–208, redrawn) and in row 10 (250–260); the category's `ids` list sets their order in the tray. Each entry in `stickers.js` is `{id, slug, name, category, row, col}`, where `id = row × 25 + col`. That id is what a tape stores, so a sticker must never move to another cell. Each row is a category: smileys, love, sad, angry, shocked, silly, sleepy, characters, animals, symbols, plus CATS. `quick` lists the 15 shown under the tape; the last tile opens the rest in a tray. When the sheet changes, bump `stickers.png?v=` everywhere it's referenced. Stickers are drawn at whole-number scales only, with `image-rendering: pixelated` and a white die-cut edge. On the cassette the sticker sits between the hubs: 96 px on a computer, 64 px on a phone.
+`band(ctx, destination, recipe)` builds a tape's sound; the app schedules bars about two seconds ahead on the audio clock. Drums are synthesized noise and oscillators; bass and keys are FM, subtractive and plucked-string voices; 8-bit is pulse waves. The seed picks a key, a mood, chord changes and a hook, and every part follows the same chords. Lo-fi runs through a soft cassette chain. Rain, hiss and fire are generated with random timing so they never loop, and sit well under the music. Every style is trimmed to the same loudness (measured), with a gentle compressor on the way out. On iPhone the audio session is set to playback, so it plays with the ring switch on silent.
 
-## Motion
+## Broadcast mode and the Studio (YouTube)
 
-- **The hop:** while a tape plays, its sticker hops up by one of its own pixels on beats 1 and 3, in time with the music.
-- **Cats blink:** an open-eyed cat on a cassette closes its eyes for a moment every 5 to 8 seconds (`blink` in `stickers.js` pairs each with its closed-eye frame; 261-265 are blink frames for the headphone cats and never appear in the tray).
-- **The squash:** a sticker squashes when you pick it.
-All three are off for anyone whose device asks for reduced motion.
-
-## Cassettes
-
-Pixel art on a 56 × 33 grid (`cassPix` in `app.js`): a shell with stepped corners, a label with the name strip, the shell's print (stripes, swoosh, rainbow…), a window with two hubs whose teeth step round while it plays, and the bottom trapezoid. Drawn as SVG on the page and on a canvas for the share picture and `og.png`.
-
-## Layout
-
-- **Computers:** the mixer on the left, the tape bench on the right: tape, name with "mixed by (optional)", SAVE TAPE, then stickers and shells. SAVE TAPE is above the fold on a 1366 × 768 laptop.
-- **Phones:** tape first, a swipeable row of stickers, then the mixer, then name, save and shells.
-
-No keyboard shortcuts, no dialogs, and nothing that stops the music: the sticker tray slides over the page, and YouTube links open in a new tab. Always dark: a deep brown (`--bg:#2a1915`) so the tapes pop, with the display kept near-black.
-
-**The stripe.** Five pixel stripes (cream, gold, orange, red, brown; `STRIPE` in `app.js`) drawn in 4 px cells on a canvas by `drawStripe()`. On computers it runs under the name, behind the cat's chin, and bends up before the links; on phones it's one straight band under the header. It redraws on resize and is hidden in broadcast mode.
-
-## Broadcast mode and the Studio (YouTube recordings)
-
-**The Studio** is `/studio.html`: not linked from the site and not indexed. It builds the broadcast address for you. Pick tapes from your shelf (it reads this browser's shelf) and/or paste tape links people sent you, choose 16:9 or 9:16 (Shorts), set the minutes per tape and the volume, and watch a preview. Then COPY ADDRESS into OBS, or OPEN IN A NEW WINDOW to record the screen.
-
-**What's on screen** (one tape, one equalizer, one cat; made to be left on for hours and glanced at):
-- the cassette, big and just above the middle, its reels turning and the tape winding from the left reel to the right over each turn; at the turn the next tape crossfades in, and each time a tape comes round again it plays its other side;
-- under it, as wide as the tape, a dot-matrix equalizer in the stripe's colours (brown at the bottom, up through red, orange and gold to a cream tip), lows on the left, with peaks that hang and drift down;
-- bottom-left, the Small Beats cat with SMALL BEATS and smallbeats.com: it nods on beats 1 and 3, blinks, and every minute or so closes its eyes for a bar;
-- top-left, now playing (name, sound, MIXED BY, REMIXED FROM); top-right, NEXT · NAME 30 seconds before a turn; under now playing, every third turn (every other one with a single tape), DROP YOUR TAPE LINK IN THE COMMENTS (`&ask=0` turns that off). In 9:16 the corner lines stack top-left and the cat sits above where Shorts and Reels put their captions;
-- behind it all: the warm brown with a soft vignette and faint grain, and the tape's texture in big pixels (rain falling, the glow and embers of a fire just out of shot, or a little hiss of grain);
-- over two hours the background warms and dims a little and comes back, and every four minutes everything shifts a few pixels so nothing burns into a screen.
-The engine reports every bar it schedules (`onHit` on the recipe), which is what the nods and the sticker hop follow.
-
-**The Studio also writes the YouTube chapters:** give it the video's length and it lists each turn with its time, tape and maker, then each tape's link, ready for the description (not with shuffle, since the order isn't known).
-
-**The address:** `/?broadcast=video&tape=…[&tape=…][&each=10][&shuffle=1][&vol=0.8][&ask=0]` shows only the cassette, very large, playing. Several tapes take turns, `each` minutes apiece (1 to 240, default 10), with a slow crossfade, round and round. Under the cassette: MIXED BY whoever made the tape (and REMIXED FROM, if any), then MAKE YOURS AT SMALLBEATS.COM. A tape without a maker just shows SMALLBEATS.COM. Without a tape it plays the visitor's current draft. The layout works in any shape; in portrait the credits sit higher, clear of the captions Shorts and Reels put at the bottom. In OBS: a Browser source at 1920 × 1080 (or 1080 × 1920) with "Control audio via OBS". Nothing is counted in analytics in broadcast mode.
-
-## Analytics
-
-GA4 with Consent Mode (ads storage always denied; analytics storage denied in the EEA, UK and Switzerland), not loaded with Do Not Track or Global Privacy Control. Events: `play`, `pause`, `genre_select`, `part_toggle`, `new_tune`, `sticker_select`, `tape_name`, `tape_save`, `tape_share`, `tape_open`, `tape_remix`, `tape_fav`, `play_all`, `shelf_link`, `shelf_restore`, `product_hunt` (the footer badge).
-
-## Deploy
-
-Upload the folder to any static host. `CNAME` is for GitHub Pages. The service worker is network-first, so a deploy shows up on the next visit; change `CACHE` in `sw.js` only if its caching logic changes. When `og.png` changes, bump its `?v=` in `index.html` so social sites refetch it.
-
-Contact: hello@smallbeats.com
+`/?broadcast=video&tape=…[&tape=…][&each=10][&shuffle=1][&vol=0.8][&ask=0]` shows the whole machine playing by itself, scaled to the frame: 16:9 for YouTube, 9:16 for Shorts. Tapes take turns, `each` minutes apiece, with a slow crossfade; each comes back on its other side. A credits strip shows NOW PLAYING, MIXED BY, NEXT, and now and then DROP YOUR TAPE LINK IN THE COMMENTS. For the long videos the band travels to a new place every eight minutes (city, hills, sea, mountains, skyline, stars), the sky has a forty-minute day, and Dino settles into his activities. Now and then a little pixel hand plays the machine, so viewers see it's an instrument they can play (`&demo=0` turns it off): on long videos a riff on the keys or five pokes for Dino every few minutes, the tape itself never changing; on Shorts a quick tour every minute (a riff, a new bass, rain, Dino, new keys). The LCD's status strip shows PLAY IT LIVE · SMALLBEATS.COM now and then, and on 16:9 a QR code in the credits opens the tape that's playing. As on the site, the bold diagonal stripe runs behind the machine, and the logo is stamped on the machine itself, lower right under the keys, with the QR code to its left. `/studio.html` builds these addresses and writes YouTube chapters; it has six showcase tapes by Small Beats, one in each style, ticked to start, plus your own shelf and any links you paste. In OBS: a Browser source at 1920 × 1080 (or 1080 × 1920) with "Control audio via OBS".
 
 ## Brand
 
-- **Logo:** the Small Beats cat (a grey tabby in headphones, sticker 250) next to the SMALL BEATS wordmark in Silkscreen. Site header. The cat alone is the favicon, app icon and YouTube avatar.
-- **Brand tape:** the Smoked cassette labelled SMALL BEATS with the cat on it and no "90" (`brand:1` on the tape object hides it). Link preview and YouTube banner.
-- **Colours:** deep brown `#2a1915` and the five-colour stripe. The cat is a warm grey (`#b0a79e`, light `#ded7ce`, shadow `#867c74`) with dark stripes (`#342c2c`).
-- Users' tapes can wear any sticker; the cat is just one of them.
+- **Logo:** Dino in lines (a little T-rex in sunglasses, cream `#efe6d2` with orange headphones `#f0883a`) next to SMALL / BEATS stacked in chunky hand-drawn letters, two pixels thick, on the same pixel grid, with one hard dark shadow. That stacked chunky version is the logo; a thinner stacked version (`brand/small-beats-logo-alt.png`) is the quieter alternate. Dino alone is the favicon, app icon and YouTube profile picture. On the LCD and on tape labels Dino is the one-colour screen drawing.
+- **Colours:** deep brown `#2a1915`, the five-colour stripe (cream, gold, orange, red, brown), the amber LCD `#f2d58e` with ink `#2d2414`, PLAY orange `#e8782e`, record red only for recording.
+- **The stripe:** chunky 4 px pixel bands under the header that bend up before the links in a round, pixel-stepped corner, and a bold diagonal band behind the machine.
+- **Link preview** (`og.png`, bump `?v=` when it changes) and the YouTube profile and banner use the same Dino and Mini Tapes.
+
+## Analytics
+
+GA4 with Consent Mode (ads storage always denied; analytics storage denied in the EEA, UK and Switzerland), not loaded with Do Not Track or Global Privacy Control, off in broadcast mode. Events: `play`, `pause`, `genre_select`, `part_toggle`, `new_tune`, `undo`, `buddy_select`, `loop_rec` (your notes joined a song), `sheet_open`, `tape_name`, `tape_save`, `tape_share`, `tape_open`, `tape_remix`, `tape_fav`, `play_all`, `shelf_link`, `shelf_restore`.
+
+## Deploy
+
+Upload the folder to any static host (`CNAME` is for GitHub Pages; the site runs on AWS Amplify). The service worker is network-first, so a deploy shows up on the next visit.
+
+## Launch checklist (Oct 27, 2026)
+
+- [x] Logo, favicon, app icons and link preview are the line Dino.
+- [x] YouTube profile picture and banner remade (in `smallbeats-youtube/`), banner text inside the 1546 × 423 safe area.
+- [x] About, features, Privacy, Terms and How it works match the current machine.
+- [x] Service worker caches every file the page needs, so it works offline.
+- [x] Every page loads with no errors and no broken links or images.
+- [ ] A long listen of a YouTube video end to end, for loudness and anything jarring.
+- [ ] A real-phone pass: sound, button sounds, Android buzz, the first ten seconds.
+
+Contact: hello@smallbeats.com

@@ -6,7 +6,7 @@
    A recipe (see README, "Tape format"):
      s  starting sound   0 lo-fi, 1 house, 2 ambient, 3 8-bit, 4 dub (sets the groove, tempo and drum kit)
      d  drums            0 off, 1 tight (straight), 2 swing
-     b  bass             0 off, 1 warm, 2 deep, 3 synth
+     b  bass             0 off, 1 warm, 2 deep, 3 synth, 4 synthwave
      k  keys             0 off, 1 Rhodes, 2 guitar, 3 pad, 4 8-bit
      w  texture          0 off, 1 rain, 2 hiss, 3 fire
      p  speed            0 slow, 1 steady, 2 fast
@@ -15,7 +15,7 @@
 "use strict";
 const SB=window.SBE={};
 const clampInt=(v,lo,hi,d)=>{v=Math.round(+v);return Number.isFinite(v)?Math.max(lo,Math.min(hi,v)):d;};
-function normT(t){t=t||{};return {d:clampInt(t.d,0,2,1),b:clampInt(t.b,0,3,0),k:clampInt(t.k,0,4,1),w:clampInt(t.w,0,3,0),p:clampInt(t.p,0,2,1),s:clampInt(t.s,0,4,0),r:clampInt(t.r,1,2147483647,1)};}
+function normT(t){t=t||{};return {d:clampInt(t.d,0,2,1),b:clampInt(t.b,0,4,0),k:clampInt(t.k,0,4,1),w:clampInt(t.w,0,3,0),p:clampInt(t.p,0,2,1),s:clampInt(t.s,0,4,0),r:clampInt(t.r,1,2147483647,1)};}
 function makeNoise(a,sec,kind){const n=Math.round(a.sampleRate*sec),b=a.createBuffer(2,n,a.sampleRate);
   for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);let last=0;for(let i=0;i<n;i++){const w=Math.random()*2-1;if(kind==='brown'){last=(last+.02*w)/1.02;d[i]=last*3.5;}else d[i]=w;}
     if(kind==='brown'){const s=d[0],e=d[n-1];for(let i=0;i<n;i++)d[i]-=s+(e-s)*i/(n-1);}} /* ends meet, so the loop never clicks */
@@ -89,10 +89,16 @@ function ksBuf(a,m,kind){const k=a.sampleRate+'|'+m+'|'+kind+'|'+Math.floor(Math
 function pulseWave(a,duty){a.__pw=a.__pw||{};if(a.__pw[duty])return a.__pw[duty];const n=40,re=new Float32Array(n),im=new Float32Array(n);
   for(let i=1;i<n;i++)re[i]=2/(i*Math.PI)*Math.sin(i*Math.PI*duty);return a.__pw[duty]=a.createPeriodicWave(re,im);}
 let SATC=null;
-function band(a,dest,tp0){const tp=normT(tp0);
+/* picking up mid-bar: a band can start on a bar that has already begun (startAt in the past) with every note before cutBefore
+   left out, so a change lands on the next beat without losing the groove. This wraps the audio context so any oscillator or
+   sample that would start before that moment never starts at all */
+function gateCtx(ctx,cut){const wrap=n=>{const st=n.start.bind(n),sp=n.stop.bind(n);let on=false;
+    n.start=(t,...r)=>{if(t!=null&&t<cut-.003)return;on=true;st(t,...r);};n.stop=(...r)=>{if(on)sp(...r);};return n;};
+  return new Proxy(ctx,{get(o,k){if(k==='createOscillator'||k==='createBufferSource')return ()=>wrap(o[k]());const v=o[k];return typeof v==='function'?v.bind(o):v;}});}
+function band(a0,dest,tp0){const cutB=tp0&&tp0.cutBefore>0?tp0.cutBefore:0,a=cutB?gateCtx(a0,cutB):a0,tp=normT(tp0);
   /* tp0.onHit(part, time), if given, hears every note as it's scheduled, for the visuals: 'bar' (a bar starts), 'k' kick, 's' snare, clap or rim,
-     'h' hats and shakers, 'b' bass, 'n' keys and the tune */
-  const hit=tp0&&typeof tp0.onHit==='function'?tp0.onHit:null,emit=hit?(p,t)=>{try{hit(p,t);}catch(e){}}:()=>{};
+     'h' hats and shakers, 'b' bass, 'n' keys and the tune (with its note), 'c' each note of a chord pad */
+  const hit=tp0&&typeof tp0.onHit==='function'?tp0.onHit:null,emit=hit?(p,t,m)=>{try{hit(p,t,m);}catch(e){}}:()=>{}; /* m: the note (MIDI), for the player piano */
   const D=tp.d?[2,3,1,2,4][tp.s]:0,FEEL=tp.d,BS=tp.b,KO=tp.k===0,K=tp.k-1,G=tp.p,chip=tp.s===3,DT=D===0?[2,3,0,2,4][tp.s]:D,ambient=DT===0; /* DT: the groove the start sound sets. Take the drums out and the tempo and feel stay */
   /* K: 0 Rhodes, 1 guitar, 2 pad, 3 8-bit. The starting sound alone sets the groove, the tempo and (for 8-bit) the chip
      drum kit. DT is that groove: take the drums out and the tempo and feel stay. */
@@ -101,7 +107,7 @@ function band(a,dest,tp0){const tp=normT(tp0);
   /* the name picks the key, the mood, the changes and the hook */
   const SEEDSTR='seed:'+tp.r,RN=seeded(SEEDSTR); /* the tape's seed */const kpc=Math.floor(RN()*12),hook=makeHook(RN),M=Math.floor(RN()*3),pa=Math.floor(RN()*1e6),pb=Math.floor(RN()*1e6);
   const [scName,progStr]=HARMONY[M],SC=SCALE[scName],progs=progStr.map(parseProg),progA=progs[pa%progs.length],progB=progs.length>1?progs[(pa%progs.length+1+pb%(progs.length-1))%progs.length]:progA;
-  const bpm=TEMPO[DT][G]*(chip&&D<3?1.22:1),beat=60/bpm,step=beat/4,barDur=16*step,swing=D?(FEEL===1?0:Math.max(SWING[DT][G]*(chip?.4:1),.14)):SWING[DT][G]*(chip?.4:1), /* D: the sound's own kit (1 soft, 2 lo-fi, 3 house, 4 dub). TIGHT plays dead straight; SWING leans on the offbeats */bpc=ambient&&G<2?2:1,bright=[1,.85,.72][M],low=0;
+  const V2=tp0&&typeof tp0.events==='function'?tp0:null, /* trance: the composer (composer.js) writes the notes */bpm=V2&&V2.bpm||TEMPO[DT][G]*(chip&&D<3?1.22:1),beat=60/bpm,step=beat/4,barDur=16*step,swing=V2&&V2.swing!=null?V2.swing:D?(FEEL===1?0:Math.max(SWING[DT][G]*(chip?.4:1),.14)):SWING[DT][G]*(chip?.4:1), /* D: the sound's own kit (1 soft, 2 lo-fi, 3 house, 4 dub). TIGHT plays dead straight; SWING leans on the offbeats */bpc=ambient&&G<2?2:1,bright=[1,.85,.72][M],low=0;
   const white=makeNoise(a,3,'white'),srcs=[];
   /* signal chain: parts -> (pump) -> drive -> recording filters -> out; room and echo are recorded with the parts */
   const bq=(type,f,q)=>{const b=a.createBiquadFilter();b.type=type;b.frequency.value=f;if(q!=null)b.Q.value=q;return b;};
@@ -117,27 +123,31 @@ function band(a,dest,tp0){const tp=normT(tp0);
   const wowO=a.createOscillator(),wowG=a.createGain(),flO=a.createOscillator(),flG=a.createGain();wowO.frequency.value=.48;flO.frequency.value=6.3;
   wowO.connect(wowG).connect(wowD.delayTime);flO.connect(flG).connect(wowD.delayTime);wowO.start();flO.start();srcs.push(wowO,flO);
   const cents2s=(c,f)=>c/1731/(2*Math.PI*f);
-  { const r=RECORDING[D===2&&!chip?1:0];drive.gain.value=r.dr;post.gain.value=1/Math.pow(r.dr,.85);hp.frequency.value=r.hp;lp1.frequency.value=r.l1;lp2.frequency.value=r.l2;shelf.gain.value=r.sh;hiss.gain.value=r.hi;wowG.gain.value=cents2s(r.wo,.48);flG.gain.value=cents2s(r.fl,6.3);
+  { const r=RECORDING[D===2&&!chip?1:0];drive.gain.value=r.dr;post.gain.value=1/Math.pow(r.dr,.85);hp.frequency.value=r.hp;lp1.frequency.value=r.l1;lp2.frequency.value=r.l2;shelf.gain.value=r.sh;hiss.gain.value=tp0&&tp0.quiet?0:r.hi;wowG.gain.value=cents2s(r.wo,.48);flG.gain.value=cents2s(r.fl,6.3);
     recOut.gain.value=Math.pow(10,((D===0?(DT===0?2.5:-1):0)+(BS===0?3.5:0)+(KO?3:0)-(ambient?3:0))/20);
     } /* fewer parts, a little make-up gain, so taking the drums out doesn't make it vanish */
   const trem=a.createOscillator();trem.frequency.value=2.3;const tremG=a.createGain();tremG.gain.value=.07;trem.connect(tremG);trem.start();srcs.push(trem);
   const epBus=a.createGain();epBus.gain.value=1;tremG.connect(epBus.gain);epBus.connect(inG); /* the electric piano's tremolo, once for all its notes */
   /* atmosphere happens in your room, not on the tape */
   const layers=[];const lay=(id,g)=>{const lg=a.createGain();lg.gain.value=g*.63/TAPE_LEVEL;lg.connect(dest);const l=SOUNDS[id](a,lg);srcs.push(...l.src);layers.push(l);};
-  if(tp.w===1)lay('rain',.5);if(tp.w===2)lay('hiss',.5);if(tp.w===3)lay('fire',.35);
+  if(tp.w===1)lay('rain',.3);if(tp.w===2)lay('hiss',.3);if(tp.w===3)lay('fire',.22); /* textures sit well under the music */
   /* helpers */
   const now0=()=>a.currentTime;const loose=(t,lo,hi)=>Math.max(now0(),t+rnd(lo,hi));
-  const out=(node,pan,rv,dl,to)=>{let n=node;if(a.createStereoPanner&&pan){const p=a.createStereoPanner();p.pan.value=pan;n.connect(p);n=p;}n.connect(to||inG);
-    if(rv){const s=a.createGain();s.gain.value=rv;n.connect(s).connect(send);}if(dl){const s=a.createGain();s.gain.value=dl;n.connect(s).connect(dsend);}};
+  /* composer songs (trance): each track gets its own gain in front of every bus it uses, so mute and volume act at once */
+  let curTr=null;const TB=new Map(),TG={};
+  const tb=dst=>{if(!V2||!curTr)return dst;let m=TB.get(curTr);if(!m){m=new Map();TB.set(curTr,m);}let g=m.get(dst);
+    if(!g){g=a.createGain();g.gain.value=TG[curTr]!=null?TG[curTr]:1;g.connect(dst);m.set(dst,g);}return g;};
+  const out=(node,pan,rv,dl,to)=>{let n=node;if(a.createStereoPanner&&pan){const p=a.createStereoPanner();p.pan.value=pan;n.connect(p);n=p;}n.connect(tb(to||inG));
+    if(rv){const s=a.createGain();s.gain.value=rv;n.connect(s).connect(tb(send));}if(dl){const s=a.createGain();s.gain.value=dl;n.connect(s).connect(tb(dsend));}};
   const osc=(type,f,t)=>{const o=a.createOscillator();o.type=type;o.frequency.setValueAtTime(f,t);return o;};
   const noise=(t,type,fq,q,att,dec,lvl,pan,rv,to)=>{const s=a.createBufferSource();s.buffer=white;const f=bq(type,fq,q);const g=a.createGain();
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(lvl,t+att);g.gain.exponentialRampToValueAtTime(.0004,t+att+dec);s.connect(f).connect(g);out(g,pan,rv,0,to);s.start(t,Math.random()*2,att+dec+.05);};
   /* ---- instruments ---- */
-  const ep=(t,m,dur,vel,pan,rv,dl)=>{emit('n',t);const f=mtof(m),c=osc('sine',f,t),md=osc('sine',f,t),mg=a.createGain(),g=a.createGain(),tg=a.createGain();
+  const ep=(t,m,dur,vel,pan,rv,dl)=>{emit('n',t,m);const f=mtof(m),c=osc('sine',f,t),md=osc('sine',f,t),mg=a.createGain(),g=a.createGain(),tg=a.createGain();
     mg.gain.setValueAtTime(f*1.05*vel*bright,t);mg.gain.exponentialRampToValueAtTime(f*.08,t+.9);md.connect(mg).connect(c.frequency);const c2=osc('sine',f,t);c2.detune.setValueAtTime(rnd(5,9),t);const g2=a.createGain();g2.gain.value=.35;c2.connect(g2);
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.09*vel,t+.006);g.gain.setTargetAtTime(.035*vel,t+.01,.5);g.gain.setTargetAtTime(0,t+dur,.35);
     c.connect(g).connect(tg);g2.connect(g);out(tg,pan!=null?pan:(m-62)/30,rv!=null?rv:.6,dl||0,epBus);const e=t+dur+2;c.start(t);md.start(t);c2.start(t);c.stop(e);md.stop(e);c2.stop(e);};
-  const pad=(t,ms,dur,lvl,att,wave)=>{emit('n',t);const g=a.createGain(),f=bq('lowpass',400*bright,.4);att=att||Math.min(2.5,dur*.4);
+  const pad=(t,ms,dur,lvl,att,wave)=>{emit('n',t);(ms||[]).forEach(m=>emit('c',t,m));const g=a.createGain(),f=bq('lowpass',400*bright,.4);att=att||Math.min(2.5,dur*.4);
     f.frequency.setValueAtTime(380*bright,t);f.frequency.linearRampToValueAtTime(1100*bright,t+dur*.5);f.frequency.linearRampToValueAtTime(600*bright,t+dur+att);
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.022*lvl,t+att);g.gain.setValueAtTime(.022*lvl,t+dur);g.gain.linearRampToValueAtTime(0,t+dur+att);f.connect(g);out(g,0,.9);
     for(const m of ms){for(const d of [-7,7]){const o=osc(wave||'sawtooth',mtof(m),t);o.detune.setValueAtTime(d,t);o.connect(f);o.start(t);o.stop(t+dur+att+.1);}}};
@@ -148,18 +158,48 @@ function band(a,dest,tp0){const tp=normT(tp0);
   const sbass=(t,m,dur,lvl)=>{const f=bq('lowpass',900,4),g=a.createGain(); /* a little analog synth bass: saw and square through a plucky filter */
     f.frequency.setValueAtTime(1400*bright,t);f.frequency.exponentialRampToValueAtTime(260,t+Math.min(.25,dur));g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.11*lvl,t+.005);g.gain.setTargetAtTime(.07*lvl,t+.02,.12);g.gain.setTargetAtTime(0,t+dur,.03);f.connect(g);out(g,0,.05);
     for(const [ty,dt] of [['sawtooth',-6],['square',6]]){const o=osc(ty,mtof(m),t);o.detune.setValueAtTime(dt,t);o.connect(f);o.start(t);o.stop(t+dur+.3);}};
+  /* synthwave bass: two detuned saws and a square an octave up through a snappy resonant filter, with a clean sine sub
+     underneath. It has its own bus, which ducks on every kick, so the bass pumps around the drums */
+  let waveBus=null;const duck=t=>{if(!waveBus)return;const g=waveBus.gain;g.setValueAtTime(.35,t);g.setTargetAtTime(1,t+.02,beat*.16);};
+  const wave=(t,m,dur,v)=>{if(!waveBus){waveBus=a.createGain();waveBus.connect(inG);}
+    const f=mtof(m+12),lp=bq('lowpass',300,6.5),g=a.createGain(),top=Math.min(4800,f*22*bright)*(.65+.35*v);
+    lp.frequency.setValueAtTime(top,t);lp.frequency.exponentialRampToValueAtTime(Math.max(140,f*1.6),t+Math.min(.2,dur+.06));
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12*v,t+.004);g.gain.setTargetAtTime(.075*v,t+.01,.09);g.gain.setTargetAtTime(0,t+dur,.03);lp.connect(g);out(g,0,.05,.03,waveBus);
+    for(const [ty,dt,lv] of [['sawtooth',-12,.6],['sawtooth',12,.6],['square',0,.45]]){const o=osc(ty,f,t),og=a.createGain();o.detune.setValueAtTime(dt,t);og.gain.value=lv;o.connect(og).connect(lp);o.start(t);o.stop(t+dur+.3);}
+    const so=osc('sine',mtof(m),t),sg=a.createGain();sg.gain.setValueAtTime(0,t);sg.gain.linearRampToValueAtTime(.17*v,t+.006);sg.gain.setTargetAtTime(.13*v,t+.03,.15);sg.gain.setTargetAtTime(0,t+dur,.03);
+    so.connect(sg);out(sg,0,0,0,waveBus);so.start(t);so.stop(t+dur+.3);};
+  /* supersaw: a stack of detuned saws per note, spread left and right through two filters. cut 0-1 opens the filter.
+     Held, chopped by a 16-step gate (o.gate), or plucked (o.pluck: a fast filter and level drop, for trance arps and stabs) */
+  const ssaw=(t,ns,dur,v,o)=>{emit('n',t);(ns||[]).forEach(m=>emit('c',t,m));o=o||{};const V=o.voices||5,sp=o.spread||20,cut=o.cut==null?1:o.cut,att=o.att||.008,rel=o.rel||.22,pl=!!o.pluck,
+      lvl=(o.lvl||.05)*v/Math.sqrt(ns.length*V),fc=Math.min(16000,(300+7500*cut*cut)*bright),end=t+dur;
+    const sides=[-1,1].map(sd=>{const lp=bq('lowpass',fc,pl?2:.9),g=a.createGain();lp.connect(g);out(g,sd*(o.width||.55),o.rv!=null?o.rv:.35,o.dl||0);
+      if(pl){lp.frequency.setValueAtTime(fc*1.4,t);lp.frequency.exponentialRampToValueAtTime(Math.max(250,fc*.18),t+.22);}
+      const G=g.gain;G.setValueAtTime(0,t);
+      if(pl){G.linearRampToValueAtTime(lvl,t+.004);G.setTargetAtTime(0,t+.01,Math.min(.18,dur*.6+.05));}
+      else if(o.gate){const n=Math.ceil(dur/step-.01);for(let k=0;k<n;k++){const on=o.gate[k%o.gate.length];G.setTargetAtTime(on?lvl:0,t+k*step,on?.004:.012);}G.setTargetAtTime(0,end,.03);}
+      else{G.linearRampToValueAtTime(lvl,t+att);G.setValueAtTime(lvl,end);G.linearRampToValueAtTime(0,end+rel);}
+      return lp;});
+    const stop=end+(pl?.7:rel+.3);
+    for(const m of ns){const f=mtof(m);for(let k=0;k<V;k++){const o2=osc('sawtooth',f,t);o2.detune.setValueAtTime(V>1?(k/(V-1)-.5)*2*sp:0,t);o2.connect(sides[k%2]);o2.start(t);o2.stop(stop);}}};
+  /* a white-noise riser for the build, and a crash for the drop */
+  const riser=(t,dur,v)=>{const s=a.createBufferSource();s.buffer=white;s.loop=true;const f=bq('bandpass',300,1.2),g=a.createGain();
+    f.frequency.setValueAtTime(300,t);f.frequency.exponentialRampToValueAtTime(9000,t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.05*v,t+dur);g.gain.setTargetAtTime(0,t+dur,.04);
+    s.connect(f).connect(g);out(g,0,.5,.2);s.start(t);s.stop(t+dur+.4);};
+  const crash=(t,v)=>{for(const [ty,fq,q,dec,l,p] of [['highpass',5200,.5,2.2,.07,.15],['bandpass',8500,.9,1.1,.035,-.15]]){const s=a.createBufferSource();s.buffer=white;s.loop=true;
+      const f=bq(ty,fq,q),g=a.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(l*v,t+.002);g.gain.exponentialRampToValueAtTime(.0004,t+dec);
+      s.connect(f).connect(g);out(g,p,.45,0,drumG);s.start(t,Math.random()*2);s.stop(t+dec+.05);}};
   const gtrBus=a.createGain(),gtrF=bq('lowpass',3600*bright,.5),gtrB=bq('peaking',220,1);gtrB.gain.value=3;gtrBus.connect(gtrB).connect(gtrF);out(gtrF,-.18,.35);
   const thumbBus=a.createGain(),thumbF=bq('lowpass',1100,.5);thumbBus.connect(thumbF);out(thumbF,0,.05);
-  const string=(t,m,v,dur,kind)=>{emit('n',t);const k=ksBuf(a,m,kind),s=a.createBufferSource();s.buffer=k.b;s.playbackRate.value=k.rate;const g=a.createGain();
-    g.gain.setValueAtTime(v,t);g.gain.setTargetAtTime(0,t+dur,kind==='thumb'?.06:.04);s.connect(g).connect(kind==='thumb'?thumbBus:gtrBus);s.start(t);s.stop(t+Math.min(dur+.5,k.b.duration));};
-  const mallet=(t,m,v,len,rv,dl)=>{emit('n',t);const f=mtof(m),c=osc('sine',f,t),md=osc('sine',f*2,t),mg=a.createGain(),g=a.createGain();len=len||1.4;
+  const string=(t,m,v,dur,kind)=>{emit('n',t,m);const k=ksBuf(a,m,kind),s=a.createBufferSource();s.buffer=k.b;s.playbackRate.value=k.rate;const g=a.createGain();
+    g.gain.setValueAtTime(v,t);g.gain.setTargetAtTime(0,t+dur,kind==='thumb'?.06:.04);s.connect(g).connect(tb(kind==='thumb'?thumbBus:gtrBus));s.start(t);s.stop(t+Math.min(dur+.5,k.b.duration));};
+  const mallet=(t,m,v,len,rv,dl)=>{emit('n',t,m);const f=mtof(m),c=osc('sine',f,t),md=osc('sine',f*2,t),mg=a.createGain(),g=a.createGain();len=len||1.4;
     mg.gain.setValueAtTime(f*1.3*v*bright,t);mg.gain.exponentialRampToValueAtTime(f*.05,t+.35);md.connect(mg).connect(c.frequency);
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05*v,t+.005);g.gain.exponentialRampToValueAtTime(.0004,t+len);c.connect(g);out(g,rnd(-.3,.3),rv!=null?rv:.5,dl!=null?dl:.35);c.start(t);md.start(t);c.stop(t+len+.1);md.stop(t+len+.1);};
-  const glass=(t,m,v)=>{emit('n',t);const f=mtof(m),c=osc('sine',f,t),c2=osc('sine',f*2.01,t),g=a.createGain(),g2=a.createGain();g2.gain.value=.15;
+  const glass=(t,m,v)=>{emit('n',t,m);const f=mtof(m),c=osc('sine',f,t),c2=osc('sine',f*2.01,t),g=a.createGain(),g2=a.createGain();g2.gain.value=.15;
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.045*v,t+.012);g.gain.exponentialRampToValueAtTime(.0004,t+5);c.connect(g);c2.connect(g2).connect(g);out(g,rnd(-.45,.45),1.1,.2);c.start(t);c2.start(t);c.stop(t+5.1);c2.stop(t+5.1);};
   const drone=(t,m,dur,lvl)=>{const g=a.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.03*lvl,t+dur*.4);g.gain.linearRampToValueAtTime(0,t+dur+1.5);out(g,0,.5);
     for(const [mm,k] of [[m,1],[m+7,.4],[m+12,.25]]){const o=osc('sine',mtof(mm),t),gg=a.createGain();gg.gain.value=k;o.connect(gg).connect(g);o.start(t);o.stop(t+dur+1.6);}};
-  const pulse=(t,m,dur,v,duty,vibr,pan)=>{emit('n',t);const o=osc('sine',mtof(m),t);o.setPeriodicWave(pulseWave(a,duty));const g=a.createGain();
+  const pulse=(t,m,dur,v,duty,vibr,pan)=>{emit('n',t,m);const o=osc('sine',mtof(m),t);o.setPeriodicWave(pulseWave(a,duty));const g=a.createGain();
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05*v,t+.003);g.gain.setValueAtTime(.05*v,t+Math.max(.004,dur*.3));g.gain.linearRampToValueAtTime(.038*v,t+dur);g.gain.linearRampToValueAtTime(0,t+dur+.015);
     if(vibr&&dur>.25){const lf=a.createOscillator(),lg=a.createGain();lf.frequency.value=6;lg.gain.setValueAtTime(0,t);lg.gain.setValueAtTime(0,t+.15);lg.gain.linearRampToValueAtTime(18,t+.3);lf.connect(lg).connect(o.detune);lf.start(t);lf.stop(t+dur+.05);}
     o.connect(g);out(g,pan||0,.05);o.start(t);o.stop(t+dur+.05);};
@@ -168,8 +208,8 @@ function band(a,dest,tp0){const tp=normT(tp0);
   const crunch=(()=>{const n=Math.round(a.sampleRate*.5),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);let h=0;for(let i=0;i<n;i++){if(i%6===0)h=Math.random()<.5?-1:1;d[i]=h;}return b;})(); /* stepped noise, like an old sound chip */
   const cnoise=(t,fq,dec,lvl)=>{const s=a.createBufferSource();s.buffer=crunch;const f=bq('highpass',fq,.5),g=a.createGain();g.gain.setValueAtTime(lvl,t);g.gain.exponentialRampToValueAtTime(.0004,t+dec);s.connect(f).connect(g);out(g,0,.03,0,drumG);s.start(t,Math.random()*.4,dec+.02);};
   const ckick=(t,v)=>{const o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.setValueAtTime(190,t);o.frequency.exponentialRampToValueAtTime(40,t+.07);g.gain.setValueAtTime(.3*v,t);g.gain.linearRampToValueAtTime(0,t+.11);o.connect(g);out(g,0,0,0,drumG);o.start(t);o.stop(t+.12);};
-  const kick=(t,v)=>{emit('k',t);if(chip)return ckick(t,v);t=loose(t,-.006,.008);v*=rnd(.88,1.04);const o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(42,t+.13);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.26*v,t+.006);g.gain.exponentialRampToValueAtTime(.001,t+.38);o.connect(g);out(g,0,0,0,drumG);o.start(t);o.stop(t+.45);};
-  const hkick=(t,v)=>{emit('k',t);if(pumpDepth){pump.gain.setValueAtTime(1,t);pump.gain.linearRampToValueAtTime(1-pumpDepth,t+.012);pump.gain.linearRampToValueAtTime(1,t+beat*.8);}if(chip)return ckick(t,v);
+  const kick=(t,v)=>{emit('k',t);duck(t);if(chip)return ckick(t,v);t=loose(t,-.006,.008);v*=rnd(.88,1.04);const o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(42,t+.13);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.26*v,t+.006);g.gain.exponentialRampToValueAtTime(.001,t+.38);o.connect(g);out(g,0,0,0,drumG);o.start(t);o.stop(t+.45);};
+  const hkick=(t,v)=>{emit('k',t);duck(t);if(pumpDepth){pump.gain.setValueAtTime(1,t);pump.gain.linearRampToValueAtTime(1-pumpDepth,t+.012);pump.gain.linearRampToValueAtTime(1,t+beat*.8);}if(chip)return ckick(t,v);
     const o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(48,t+.09);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.34*v,t+.003);g.gain.exponentialRampToValueAtTime(.12*v,t+.12);g.gain.exponentialRampToValueAtTime(.001,t+.42);o.connect(g);out(g,0,0,0,drumG);o.start(t);o.stop(t+.45);};
   const snare=(t,v)=>{emit('s',t);if(chip)return cnoise(t,1200,.11,.05*v);t=loose(t,.006,.022);v*=rnd(.82,1.04);noise(t,'bandpass',1400,.8,.005,.16,.05*v,.05,.25,drumG);const o=a.createOscillator(),g=a.createGain();o.frequency.value=190;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.04*v,t+.003);g.gain.exponentialRampToValueAtTime(.001,t+.09);o.connect(g);out(g,.05,.2,0,drumG);o.start(t);o.stop(t+.12);};
   const hat=(t,v,open)=>{emit('h',t);if(chip)return cnoise(t,7000,open?.09:.03,.02*v);noise(loose(t,-.008,.008),'highpass',open?7000:7600,.7,.003,open?.2:.035,(open?.02:.016)*v*rnd(.7,1.1),.22,open?.15:0,drumG);};
@@ -205,8 +245,18 @@ function band(a,dest,tp0){const tp=normT(tp0);
     const ns=hook.slice(s0,s0+k).map(h=>({p:((h.p%16)-(hook[s0].p%16)+choose([0,4,8])+sh+16)%16,d:h.d+tr,du:Math.min(h.du,4)})).filter(h=>h.p<15).sort((x,y)=>x.p-y.p);
     playNotes(b0,bi,ns,.8);};
   const improv=[.2,.35,.5][G]*(ambient?.35:1);let hookB=null,hookN=0;
-  const tStart=a.currentTime+.25;let bar=0,t=tStart,pumpDepth=D===3&&!chip?[.12,.18,.25][G]:0;
-  function barSlot(b0){emit('bar',b0);const bi=bar,p32=bi%32,ch=chordAt(bi),nx=chordAt(bi+1),bd=D>0&&bi>=24&&p32>=24&&p32<28,full=barDur;
+  const tStart=tp0&&(tp0.startAt>a.currentTime||(cutB&&tp0.startAt>0))?tp0.startAt:a.currentTime+.25;let bar=tp0&&tp0.startBar>0?tp0.startBar|0:0,t=tStart, /* startAt/startBar: carry on from a band that's already playing (see app.js start) */pumpDepth=D===3&&!chip?[.12,.18,.25][G]:0;
+  /* composer songs (trance): play one bar the composer wrote. Each event: {tr track, i instrument, s step (may run past 16), l length in steps, v, n note or ns notes, o offset in seconds} */
+  const INS={kick:(t,e)=>kick(t,e.v),hkick:(t,e)=>hkick(t,e.v),ssaw:(t,e,d)=>ssaw(t,e.ns,d,e.v,e),riser:(t,e,d)=>riser(t,d,e.v),crash:(t,e)=>crash(t,e.v),snare:(t,e)=>snare(t,e.v),rim:(t,e)=>rim(t,e.v),clap:(t,e)=>clap(t,e.v),hat:(t,e)=>hat(t,e.v,e.open),shaker:(t,e)=>shaker(t,e.v),brush:(t,e)=>brush(t,e.v,e.long),
+    warm:(t,e,d)=>{emit('b',t);bassLo(t,e.n,d,e.v);},wave:(t,e,d)=>{emit('b',t);wave(t,e.n,d,e.v);},deep:(t,e,d)=>{emit('b',t);sub(t,e.n,d,e.v);},synth:(t,e,d)=>{emit('b',t);sbass(t,e.n,d,e.v);},
+    ep:(t,e,d)=>e.lead?ep(t+.025,e.n,d,e.v*.62,.15,.6,.08):ep(t,e.n,d,e.v,null,e.rv,e.dl),tri:(t,e,d)=>{emit('b',t);tri(t,e.n,d*.9,e.v);},pulse:(t,e,d)=>pulse(t,e.n,d,e.v,e.duty||(e.lead?.25:.125),!!e.lead,e.pan||0),square:(t,e,d)=>pulse(t,e.n,d,e.v*.8,.5,!!e.lead,e.pan||0),drone:(t,e,d)=>drone(t,e.n,d,e.v),pad:(t,e,d)=>pad(t,e.ns,d,e.v,e.att,e.wave),
+    nyl:(t,e,d)=>string(t,e.n,e.v,d,'nyl'),glass:(t,e)=>glass(t,e.n,e.v),mallet:(t,e,d)=>mallet(t,e.n,e.v,Math.max(.6,d),.5,.35)};
+  const playBar=(b0,evs)=>{for(const e of evs||[]){const f=INS[e.i];if(!f)continue;const s=e.s,tt=Math.max(a.currentTime,b0+s*step+(Math.floor(s)%2&&!e.st?swing*beat/2:0)+(e.o||0));
+      curTr=e.tr;emit('@'+e.tr,tt);try{f(tt,e,(e.l||1)*step);}catch(err){}}curTr=null;};
+  const TX={},TXL={rain:.3,hiss:.3,fire:.22};
+  const texSet=(id0,g)=>{for(const id in TXL){const want=id===id0?g:0;if(!TX[id]){if(!want)continue;const lg=a.createGain();lg.gain.value=0;lg.connect(dest);const l=SOUNDS[id](a,lg);srcs.push(...l.src);layers.push(l);TX[id]=lg;}
+      TX[id].gain.setTargetAtTime(want*TXL[id]*.63/TAPE_LEVEL,a.currentTime,.15);}};
+  function barSlot(b0){emit('bar',b0);if(V2){playBar(b0,V2.events(bar));bar++;return;}const bi=bar,p32=bi%32,ch=chordAt(bi),nx=chordAt(bi+1),bd=D>0&&bi>=24&&p32>=24&&p32<28,full=barDur;
     const fill=D>0&&!bd&&(p32===15||p32===31||p32===23)&&Math.random()<.8; /* a little fill going into the next section */
     /* ---- DRUMS ---- */
     if(D>0&&!bd){
@@ -229,15 +279,17 @@ function band(a,dest,tp0){const tp=normT(tp0);
         if(fill)clap(st(b0,15),.4);}}
     else if(bd)for(let i=2;i<16;i+=4)hat(st(b0,i),.35,D===3);
     /* ---- BASS: follows the chords, in the drums' feel ---- */
-    if(BS>0&&!bd){const lo=BS===2?33:36,r=rootOf(ch,lo,lo+11),r5=r+7>lo+16?r-5:r+7,nr=rootOf(nx,lo,lo+11);
-      const play=(i,m,len,v)=>{const tt=st(b0,i),dur=len*step;emit('b',tt);if(BS===1)bassLo(tt,m,dur,v);else if(BS===2)sub(tt,m,dur,v);else if(chip)tri(tt,m+12,dur*.9,v*.9);else sbass(tt,m+12,dur,v);};
+    if(BS>0&&!bd){const lo=BS===2||BS===4?33:36,r=rootOf(ch,lo,lo+11),r5=r+7>lo+16?r-5:r+7,nr=rootOf(nx,lo,lo+11);
+      const play=(i,m,len,v)=>{const tt=BS===4?b0+i*step:st(b0,i),dur=len*step;emit('b',tt);if(BS===4)wave(tt,m,dur,v);else if(BS===1)bassLo(tt,m,dur,v);else if(BS===2)sub(tt,m,dur,v);else if(chip)tri(tt,m+12,dur*.9,v*.9);else sbass(tt,m+12,dur,v);};
       let pat;
       if(feel===0)pat=G===2?[[0,r,7],[8,r5,7]]:[[0,r,15*bpc]];
       else if(feel===2){pat=[[0,r,G===0?10:6]];if(G>=1&&Math.random()<.75)pat.push([10,choose([r,r5,r+12]),4]);if(G===2){if(Math.random()<.5)pat.push([7,r,2]);pat.push([14,nr+choose([-1,2,0]),2]);}}
       else if(feel===4)pat=[[[0,r,3.5],[6,r5,1.5],[8,r,3],[14,nr,1.5]],[[0,r,2.5],[3,r,1],[6,r5,1.5],[8,r,2.5],[11,r+12,1],[14,nr,1.5]],[[0,r,2],[3,r,1],[4,r5,1],[6,r5,1.5],[8,r,2],[11,r+12,1],[12,r5,1],[14,nr,1.5]]][G];
       else pat=[[[2,r,5],[10,r,5]],[[2,r,2.2],[6,r+12,1.5],[10,r,2.2],[13,r,1.5]],[[2,r,1],[3,r+12,.9],[6,r,1.5],[10,r,1],[11,r+12,.9],[14,choose([r+7,r+10]),1.5]]][G];
+      if(BS===4&&feel!==0){const roll=G===0?2:1;pat=[]; /* synthwave: straight rolling eighths or sixteenths, the octave on 7 and 15, into the next chord at the end */
+        for(let i=0;i<16;i+=roll){const m=i===16-roll&&nr!==r?nr:(i===6||i===14)?r+12:r;pat.push([i,m,roll*.82,i%4===0?1:.78]);}}
       if(feel===0&&bpc===2&&bi%2)pat=[];
-      for(const [i,m,len] of pat)play(i,m,len,1);}
+      for(const [i,m,len,v] of pat)play(i,m,len,v||1);}
     /* ---- KEYS: chords in the drums' feel (and the hook, below) ---- */
     if(KO){}
     else if(K===0){ /* Rhodes */
@@ -270,6 +322,44 @@ function band(a,dest,tp0){const tp=normT(tp0);
         else playNotes(b0,bi,cur.map(h=>Object.assign({},h,{d:h.d+2})),.9);}
       else if(bi%8!==3&&bi>=1&&Math.random()<improv)riff(b0,bi,cur);} /* the tune lives in the keys */
     bar++;}
-  return {src:srcs,ahead:2.2,bpm,beat,step,barDur,tStart,tick(until){for(const l of layers)l.tick&&l.tick(until);if(t<a.currentTime)t=a.currentTime+.05; /* after a stall, pick up from now rather than playing the missed bars at once */while(t<until){barSlot(t);t+=barDur;}}};}
+  /* the play-along keyboard: the song's key and scale, and one note now in the tape's keys sound (trance: a supersaw pluck) */
+  const liveKey=V2&&V2.key!=null?V2.key:kpc,liveScale=V2&&V2.minor!=null?(V2.minor?SCALE.aeo:SCALE.ion):SC;
+  /* the keyboard is a little synth, voiced for the style, and it plays into the track: through the band's own tempo echo and room,
+     gliding from the last note when you play quickly. lo-fi: warm and filtered; house: a bright stab; ambient: glassy and long;
+     8-bit: a square lead with vibrato; dub: dark, resonant and drowned in echo. Trance keeps its supersaw pluck */
+  const SYN=[{w:['sawtooth','triangle'],f0:2600,f1:700,q:3,dec:.55,rel:.5,dl:.3,rv:.35,lvl:.07,sus:.5},
+    {w:['sawtooth','sawtooth'],f0:6500,f1:900,q:7,dec:.22,rel:.25,dl:.35,rv:.25,lvl:.09,sus:.35},
+    {w:['triangle','sine'],o2:12,f0:5000,f1:2200,q:1,dec:1.4,rel:1.4,dl:.45,rv:.8,lvl:.1,sus:.7},
+    {w:['square','square'],f0:9000,f1:5000,q:0,dec:.6,rel:.2,dl:.25,rv:.15,lvl:.06,vib:18,sus:.6},
+    {w:['square','sawtooth'],f0:2400,f1:450,q:11,dec:.4,rel:.4,dl:.75,rv:.3,lvl:.07,sus:.4}][tp.s]||null;
+  let lastLive=-9,lastF=0;
+  /* a note: len (seconds) plays it for that long; no len holds it until off() is called (a finger on a key), at most 8 seconds */
+  const synth=(t,m,v,len)=>{emit('n',t,m);const P=SYN,f=mtof(m),g=a.createGain(),lp=bq('lowpass',P.f0*bright,P.q||.7),dec=P.dec;
+    const from=lastF,glide=t-lastLive<.22&&from&&from!==f;lastLive=t;lastF=f;
+    const o1=osc(P.w[0],glide?from:f,t),o2=osc(P.w[1],f*Math.pow(2,(P.o2||0)/12),t),sub=osc('sine',f/2,t),g2=a.createGain(),gs=a.createGain();
+    o2.detune.setValueAtTime(P.o2?0:9,t);g2.gain.value=.6;gs.gain.value=.35;
+    if(glide)o1.frequency.exponentialRampToValueAtTime(f,t+.05);
+    o1.connect(lp);o2.connect(g2).connect(lp);sub.connect(gs).connect(lp);lp.connect(g);
+    lp.frequency.setValueAtTime(P.f0*bright*1.2,t);lp.frequency.exponentialRampToValueAtTime(Math.max(200,P.f1*bright),t+dec*.7);
+    const lvl=P.lvl*v,G=g.gain;G.setValueAtTime(0,t);G.linearRampToValueAtTime(lvl,t+.006);G.setTargetAtTime(lvl*P.sus,t+.02,dec*.4);
+    const os=[o1,o2,sub];let done=false;
+    if(P.vib){const l=osc('sine',5.5,t),lg=a.createGain();lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(P.vib,t+.25);l.connect(lg);lg.connect(o1.detune);lg.connect(o2.detune);os.push(l);}
+    out(g,(m-64)/40,P.rv,P.dl);os.forEach(o=>o.start(t));
+    const off=at=>{if(done)return;done=true;at=Math.max(at||a.currentTime,t+.1); /* a quick tap still sounds like a pluck */
+      G.cancelScheduledValues(at);G.setTargetAtTime(0,at,P.rel*.4);os.forEach(o=>{try{o.stop(at+P.rel*2+.1);}catch(e){}});};
+    if(len!=null)off(t+len);else os.forEach(o=>{try{o.stop(t+8+P.rel*2);}catch(e){}});
+    return {off};};
+  /* live(note, velocity, {t, len}): now, or at time t (a loop); len in seconds, or none to hold it until the returned off() */
+  const NOOFF={off(){}};
+  const live=(m,v,o)=>{o=o||{};const t=o.t!=null?Math.max(o.t,a.currentTime):a.currentTime+.005;v=v==null?.8:v;
+    if(V2&&V2.liveSound==='saw'){ssaw(t,[m],o.len?Math.max(.2,o.len):.32,v*.5,{pluck:true});return NOOFF;}
+    if(SYN)return synth(t,m,v,o.len);
+    ep(t,m,o.len||1.1,v*1.5,0,.3,.08);return NOOFF;};
+  return {src:srcs,ahead:2.2,bpm,beat,step,barDur,tStart,key:liveKey,scale:liveScale,live,
+    /* composer songs (trance): set each track's level (mute is level 0); the texture track picks the room sound */
+    mix(tracks){for(const x of tracks||[]){const g=x.mute?0:x.vol*1.25;if(x.id==='texture')texSet(x.sound,x.mute?0:x.vol*2);TG[x.id]=g;const m=TB.get(x.id);
+      if(m)for(const n of m.values()){n.gain.cancelScheduledValues(a.currentTime);n.gain.setTargetAtTime(g,a.currentTime,.03);}}},
+    tick(until){for(const l of layers)l.tick&&l.tick(until);if(t<a.currentTime&&!(cutB&&t+barDur>a.currentTime))t=a.currentTime+.05; /* after a stall, pick up from now rather than playing the missed bars at once */while(t<until){barSlot(t);t+=barDur;}}};}
 SB.band=band;
+SB.theory={CH,SCALE,HARMONY,TEMPO,SWING,seeded,makeHook,parseProg}; /* for the composer (composer.js) */
 })();

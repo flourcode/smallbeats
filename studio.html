@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <title>Small Beats Studio</title>
 <link rel="icon" href="favicon.ico" sizes="any">
+<meta name="theme-color" content="#2a1915">
 <link rel="stylesheet" href="app.css">
 <style>
   /* Small Beats Studio: builds broadcast addresses for OBS and recordings. Not linked from the site, not indexed. */
@@ -29,7 +30,7 @@
   .mine{display:grid;gap:4px;max-height:280px;overflow:auto;padding:4px}
   .mine label{display:flex;align-items:center;gap:10px;padding:4px 6px;background:var(--panel2);cursor:pointer;color:var(--cream);font:900 15px/1 Doto,monospace}
   .mine label small{font:400 12px Plex,system-ui;color:var(--muted);margin-left:auto}
-  .mine .stk{width:32px;height:32px}
+  .mine canvas{flex:0 0 auto;image-rendering:pixelated}
   .hint{margin:0}
   input[type=range]{width:100%;accent-color:var(--amber)}
   .out{display:grid;gap:14px;position:sticky;top:16px}
@@ -44,16 +45,21 @@
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="/" aria-label="Small Beats home"><img class="brand-logo" src="icons/mark-3.png" srcset="icons/mark-3.png 1x, icons/mark-6.png 2x" alt="" width="96" height="96"><span class="brand-word">SMALL BEATS</span></a>
+  <a class="brand" href="/" aria-label="Small Beats home"><picture><source media="(max-width:620px)" srcset="icons/logo-2.png 1x, icons/logo-4.png 2x"><img class="brand-logo" src="icons/logo-3.png" srcset="icons/logo-3.png 1x, icons/logo-6.png 2x" alt="Small Beats" width="177" height="60"></picture></a>
 </header>
 <main class="studio">
   <h1>STUDIO</h1>
-  <p class="lede">Build a broadcast address for OBS or a screen recording: just the cassette, very big, playing, with MIXED BY credits. Pick tapes from your shelf or paste links people sent you.</p>
+  <p class="lede">Build a broadcast address for OBS or a screen recording: the whole machine playing by itself, Dino and the band on the screen, NOW PLAYING and MIXED BY credits, a QR code to play the tape yourself (16:9), and now and then a little hand playing along, so viewers see it's an instrument they can play. Pick tapes from your shelf or paste links people sent you.</p>
 
   <form class="panel" id="f" autocomplete="off" onsubmit="return false">
     <fieldset>
       <legend>FRAME</legend>
       <div class="seg" id="frame"><button class="pb" type="button" data-v="wide" aria-pressed="true">16:9 YOUTUBE</button><button class="pb" type="button" data-v="vertical" aria-pressed="false">9:16 SHORTS</button></div>
+    </fieldset>
+    <fieldset>
+      <legend>SHOWCASE TAPES</legend>
+      <div class="mine" id="showcase"></div>
+      <p class="hint">Six tapes by Small Beats, one in each style. Tick the ones to play.</p>
     </fieldset>
     <fieldset>
       <legend>FROM YOUR SHELF</legend>
@@ -72,6 +78,7 @@
     </fieldset>
     <fieldset>
       <legend>ON SCREEN</legend>
+      <label class="chk"><input type="checkbox" id="demo" checked>Now and then, a little hand plays the machine (Shorts: a quick tour every minute)</label>
       <label class="chk"><input type="checkbox" id="ask" checked>Now and then, ask viewers to drop their tape links in the comments</label>
     </fieldset>
     <fieldset id="chapBox">
@@ -111,26 +118,39 @@
     </div>
   </section>
 </main>
-<script src="stickers.js"></script>
+<script src="buddies.js"></script>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
-const ST=window.STICKERS;
-/* a tape link, exactly as the site writes it: base64url of [1, name, shell, drums, bass, keys, texture, speed, sound, seed, sticker, by?, from?] */
+const BUD=window.BUDDIES;
+/* a tape link, exactly as the site writes it: base64url of [1, name, shell, drums, bass, keys, texture, speed, sound, seed, buddy, by?, from?, loop?] */
 const b64e=j=>btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-function encodeTape(t){const a=[1,t.n,t.c,t.d,t.b,t.k,t.w,t.p,t.s,t.r,t.t];if(t.by||t.from)a.push(t.by||'');if(t.from)a.push(t.from);return b64e(JSON.stringify(a));}
+function encodeTape(t){const a=[1,t.n,t.c,t.d,t.b,t.k,t.w,t.p,t.s,t.r,t.t];if(t.by||t.from||t.m)a.push(t.by||'');if(t.from||t.m)a.push(t.from||'');if(t.m)a.push(t.m);return b64e(JSON.stringify(a));}
 const codeFrom=line=>{const m=String(line).match(/[?&]tape=([A-Za-z0-9_-]+)/);if(m)return m[1];const v=String(line).trim();return /^[A-Za-z0-9_-]{20,}$/.test(v)?v:null;};
 const nameOf=code=>{try{const a=JSON.parse(decodeURIComponent(escape(atob(code.replace(/-/g,'+').replace(/_/g,'/')))));return Array.isArray(a)&&a[0]===1?{n:a[1],by:a[11]}:null;}catch(e){return null;}};
+
+const budCanvas=id=>{const b=BUD.list[BUD.norm(id)],c=document.createElement('canvas'),px=2;c.width=b.w*px;c.height=b.h*px;const x=c.getContext('2d');x.fillStyle='#f2d58e';BUD.draw(x,b,0,0,px);return c;};
+/* the showcase: six tapes by Small Beats, one in each style (buddy numbers from buddies.js: 49 is Dino) */
+const bud=n=>{const i=BUD.list.findIndex(b=>b.name===n);return i<0?BUD.count-1:i;};
+const SHOWCASE=[
+  {n:'GROCERY RUN',c:0,d:1,b:1,k:3,w:0,p:1,s:1,r:1422687053,t:bud('DINO'),by:'SMALL BEATS'},
+  {n:'SIDE QUEST',c:1,d:1,b:1,k:4,w:0,p:1,s:3,r:1469865583,t:bud('OINK'),by:'SMALL BEATS',m:'0a24c26b28a4gd2kc2mb2oa6'},
+  {n:'SADURDAY BEATS',c:2,d:2,b:1,k:1,w:1,p:1,s:0,r:1186502331,t:bud('SHROOM'),by:'SMALL BEATS'},
+  {n:'NIGHT BUS',c:0,d:2,b:2,k:1,w:1,p:1,s:4,r:2093847561,t:bud('BOO'),by:'SMALL BEATS'},
+  {n:'SLOW SUNDAY',c:2,d:0,b:0,k:3,w:2,p:0,s:2,r:1675309421,t:bud('HOOT'),by:'SMALL BEATS'},
+  {n:'TINY WIN',c:3,d:1,b:2,k:1,w:0,p:2,s:5,r:918273645,t:bud('STARRY'),by:'SMALL BEATS',m:'0a34c26b28a4gd3kc2oa8'}];
+const pickShow=new Set(SHOWCASE.map((t,i)=>i));
+SHOWCASE.forEach((t,i)=>{const l=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.addEventListener('change',()=>{cb.checked?pickShow.add(i):pickShow.delete(i);build();});
+  l.appendChild(cb);l.appendChild(budCanvas(t.t));l.appendChild(document.createTextNode(t.n));const sm=document.createElement('small');sm.textContent=['LO-FI','HOUSE','AMBIENT','8-BIT','DUB','TRANCE'][t.s];l.appendChild(sm);$('showcase').appendChild(l);});
 
 /* your shelf, read from this browser */
 let S={};try{S=JSON.parse(localStorage.getItem('smallBeats')||'{}')||{};}catch(e){}
 const tapes=Array.isArray(S.tapes)?S.tapes:[];
 const pick=new Set();
-const stk=id=>{const el=document.createElement('i');el.className='stk';const r=Math.floor(id/25),c=id%25;el.style.backgroundSize='800px 352px';el.style.backgroundPosition=(-c*32)+'px '+(-r*32)+'px';return el;};
 tapes.forEach((t,i)=>{const l=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.addEventListener('change',()=>{cb.checked?pick.add(i):pick.delete(i);build();});
-  l.appendChild(cb);l.appendChild(stk(t.t||0));l.appendChild(document.createTextNode(t.n));const sm=document.createElement('small');sm.textContent=t.gift?'from '+(t.by||'a friend'):(t.by?'by '+t.by:'');l.appendChild(sm);$('mine').appendChild(l);
-  if(i===0){cb.checked=true;pick.add(0);}});
-$('mineHint').textContent=tapes.length?'Tick the tapes to play. Your tapes are credited with the "mixed by" name they were saved with.':'No tapes on this browser yet. Save some on the main page, or paste links below.';
+  l.appendChild(cb);l.appendChild(budCanvas(t.t==null?BUD.count-1:t.t));l.appendChild(document.createTextNode(t.n));const sm=document.createElement('small');sm.textContent=t.gift?'from '+(t.by||'a friend'):(t.by?'by '+t.by:'');l.appendChild(sm);$('mine').appendChild(l);
+});
+$('mineHint').textContent=tapes.length?'Tick any of your own tapes to add them. They\'re credited with the "mixed by" name they were saved with.':'No tapes on this browser yet. Save some on the main page, or paste links below.';
 
 let frame='wide';
 document.querySelectorAll('#frame .pb').forEach(b=>b.addEventListener('click',()=>{frame=b.dataset.v;document.querySelectorAll('#frame .pb').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));build();}));
@@ -138,13 +158,13 @@ $('base').value=/^https?:$/.test(location.protocol)?location.origin+location.pat
 
 let lastPv='';
 function build(){
-  const codes=[...pick].sort((a,b)=>a-b).map(i=>encodeTape(tapes[i]));
+  const codes=[...[...pickShow].sort((a,b)=>a-b).map(i=>encodeTape(SHOWCASE[i])),...[...pick].sort((a,b)=>a-b).map(i=>encodeTape(tapes[i]))];
   const lines=$('links').value.split(/\n+/).map(l=>l.trim()).filter(Boolean),bad=[];
   for(const l of lines){const c=codeFrom(l);if(c&&nameOf(c)){if(!codes.includes(c))codes.push(c);}else bad.push(l);} /* the same tape twice plays once */
   $('linksHint').textContent=bad.length?bad.length+(bad.length===1?' line isn\'t':' lines aren\'t')+' a tape link, so '+(bad.length===1?'it\'s':'they\'re')+' left out.':'Links people sent you, or comments under a video. Each one is credited MIXED BY whoever made it.';
   $('turns').hidden=codes.length<2;
   const vol=+$('vol').value;$('volOut').textContent=Math.round(vol*100)+'%';
-  const q=['broadcast=video'];for(const c of codes)q.push('tape='+c);if(!$('ask').checked)q.push('ask=0');
+  const q=['broadcast=video'];for(const c of codes)q.push('tape='+c);if(!$('ask').checked)q.push('ask=0');if(!$('demo').checked)q.push('demo=0');
   if(codes.length>1){q.push('each='+Math.max(1,Math.min(240,Math.round(+$('each').value||10))));if($('shuffle').checked)q.push('shuffle=1');}
   if(vol!==0.8)q.push('vol='+vol);
   let base=$('base').value.trim()||'https://smallbeats.com/';if(!/\/$/.test(base))base+='/';
@@ -162,7 +182,7 @@ function build(){
   const pv='?'+q.filter(x=>!/^vol=/.test(x)).join('&')+'&vol='+($('pvSound').checked?vol:0); /* the preview plays this site, quietly unless you ask */
   if(pv!==lastPv){lastPv=pv;$('pv').src=base+pv;}
   return url;}
-['links','each','shuffle','vol','base','pvSound','ask','len'].forEach(id=>$(id).addEventListener('input',build));
+['links','each','shuffle','vol','base','pvSound','ask','demo','len'].forEach(id=>$(id).addEventListener('input',build));
 $('copyChap').addEventListener('click',async()=>{let ok=false;try{await navigator.clipboard.writeText($('chapters').value);ok=true;}catch(e){$('chapters').select();}const b=$('copyChap');b.textContent=ok?'COPIED':'SELECT AND COPY';setTimeout(()=>b.textContent='COPY CHAPTERS',1800);});
 $('copy').addEventListener('click',async()=>{const url=build();let ok=false;try{await navigator.clipboard.writeText(url);ok=true;}catch(e){}
   const b=$('copy');b.textContent=ok?'COPIED':'SELECT AND COPY IT';setTimeout(()=>b.textContent='COPY ADDRESS',1800);

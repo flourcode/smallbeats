@@ -4,27 +4,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Small Beats · Make your own mixtape</title>
-<meta name="description" content="A tiny music machine in your browser. Pick a sound, mix a few parts, put a sticker on it and send the tape to somebody.">
+<meta name="description" content="A tiny music machine in your browser. Pick a sound, tap in a few parts, play along on the keys and send the tape to somebody.">
 <link rel="canonical" href="https://smallbeats.com/">
 <meta name="theme-color" content="#2a1915">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Small Beats">
 <meta property="og:url" content="https://smallbeats.com/">
 <meta property="og:title" content="Small Beats · Make your own mixtape">
-<meta property="og:description" content="Pick a sound. Mix a few parts. Put a sticker on it. Send it to somebody.">
-<meta property="og:image" content="https://smallbeats.com/og.png?v=11">
+<meta property="og:description" content="Pick a sound. Tap in a few parts. Play along. Send it to somebody.">
+<meta property="og:image" content="https://smallbeats.com/og.png?v=17">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A smoked pixel cassette with cyan, pink and yellow stripes, labelled SMALL BEATS with a wizard sticker, in front of two more tapes, next to the words Make your own mixtape.">
+<meta property="og:image:alt" content="A graphite pixel microcassette labelled SMALL BEATS with Dino stamped on it, and the Small Beats logo: Dino drawn in yellow lines with orange headphones and sunglasses, next to the words Make your own mixtape.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Small Beats · Make your own mixtape">
-<meta name="twitter:description" content="Pick a sound. Mix a few parts. Put a sticker on it. Send it to somebody.">
-<meta name="twitter:image" content="https://smallbeats.com/og.png?v=11">
+<meta name="twitter:description" content="Pick a sound. Tap in a few parts. Play along. Send it to somebody.">
+<meta name="twitter:image" content="https://smallbeats.com/og.png?v=17">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="stickers.png?v=6" as="image">
 <link rel="stylesheet" href="app.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Small Beats","url":"https://smallbeats.com/","applicationCategory":"MusicApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"A tiny music machine for making mixtapes in your browser.","sameAs":["https://www.youtube.com/@smallbeatsfm"]}</script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Can I use the music in my videos?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The music is royalty-free: use it in videos, streams, podcasts, games or anything else, even commercially, with no fee and no need to ask. Credit is appreciated, not required. Because anyone can make the same tape, please don't register it with Content ID or resell it as a sample library. The details are in the terms."}}, {"@type": "Question", "name": "Can I download a tape as a file?", "acceptedAnswer": {"@type": "Answer", "text": "Not as a file. The music is made live, so to keep it, record it: your phone or computer's screen recorder works, and so does OBS for longer recordings."}}, {"@type": "Question", "name": "Is any of it AI?", "acceptedAnswer": {"@type": "Answer", "text": "No. Not one note is AI-generated. Everything is synthesized by code in your browser, from the tape's settings and a number for the tune."}}, {"@type": "Question", "name": "Do I need an account?", "acceptedAnswer": {"@type": "Answer", "text": "No. There's nothing to sign up for and nothing to install. It's free, with no ads."}}, {"@type": "Question", "name": "Where are my tapes kept?", "acceptedAnswer": {"@type": "Answer", "text": "In this browser, on this device. Your shelf link (under YOUR TAPES) holds every tape in one link: open it in any other browser or phone to bring them along. Private browsing windows forget everything when they close."}}, {"@type": "Question", "name": "Does it work offline?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, once the page has loaded. Add it to your home screen and it opens like an app. On iPhone it plays even with the ring switch on silent."}}, {"@type": "Question", "name": "Which browsers does it work in?", "acceptedAnswer": {"@type": "Answer", "text": "Current Chrome, Edge, Safari and Firefox, on computers, phones and tablets."}}]}</script>
@@ -34,7 +33,7 @@
 <a class="skip" href="#make">Skip to the machine</a>
 
 <header class="top">
-  <a class="brand" href="/" aria-label="Small Beats home"><picture><source media="(max-width:620px)" srcset="icons/mark-2.png 1x, icons/mark-4.png 2x"><img class="brand-logo" src="icons/mark-3.png" srcset="icons/mark-3.png 1x, icons/mark-6.png 2x" alt="" width="96" height="96"></picture><span class="brand-word">SMALL BEATS</span></a>
+  <a class="brand" href="/" aria-label="Small Beats home"><picture><source media="(max-width:620px)" srcset="icons/logo-2.png 1x, icons/logo-4.png 2x"><img class="brand-logo" src="icons/logo-3.png" srcset="icons/logo-3.png 1x, icons/logo-6.png 2x" alt="Small Beats" width="177" height="60"></picture></a>
   <nav class="nav" aria-label="Main"><a href="#make">MAKE</a><a href="#tapes" id="navTapes" hidden>TAPES<b class="nav-n" id="navCount"></b></a><a href="#about">ABOUT</a><a href="https://www.youtube.com/@smallbeatsfm" target="_blank" rel="noopener">YOUTUBE</a></nav>
 </header>
 
@@ -61,64 +60,49 @@
   </section>
 
   <section class="hero" id="hero">
-    <h1>Make your own mixtape.</h1>
-    <p class="lede">Pick a sound. Mix a few parts. Make it yours.</p>
+    <h1>Make a mixtape. <span>Send it to somebody.</span></h1>
   </section>
 
   <section class="deck" id="make" aria-label="The machine">
-    <div class="machine">
+    <div class="sb1" id="sb1"><i class="sb1-bg" aria-hidden="true"></i>
       <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
-      <div class="readout">
-        <button class="play" type="button" id="play" aria-pressed="false"><span class="play-i" aria-hidden="true"></span><span class="play-t" id="playT">PLAY</span></button>
-        <div class="vfd" aria-live="polite">
-          <div class="vfd-top"><span id="vfdSide">SIDE A</span><span class="vfd-count" id="vfdCount">000</span></div>
-          <div class="vfd-name" id="vfdName">LO-FI</div>
-          <canvas class="vu" id="vu" width="160" height="18" aria-hidden="true"></canvas>
+
+      <div class="m-screen vfd" id="screen">
+        <div class="vfd-top"><span id="vfdSide"></span><span id="vfdStyle"></span></div>
+        <div class="vfd-name" id="vfdName" aria-live="polite"></div>
+        <canvas class="stage" id="stage" aria-hidden="true"></canvas>
+        <div class="lcd-strip"><span id="lcdTime">■ A 00:00</span><span id="lcdMood"></span></div>
+      </div>
+
+      <div class="m-door" id="door"><i class="grille" aria-hidden="true"></i><div class="door-win" id="cassWrap"></div><i class="grille" aria-hidden="true"></i></div>
+      <div class="m-recsend">
+        <button class="mk mk-rec" type="button" id="recBtn" aria-pressed="false"><i class="rec" aria-hidden="true"></i><span id="recT">SAVE TAPE</span></button>
+        <button class="mk mk-send" type="button" id="sendBtn" aria-expanded="false" aria-controls="sheet" aria-label="Eject: label it and send it"><svg width="14" height="14" viewBox="0 0 7 7" aria-hidden="true"><path fill="currentColor" d="M3 0h1v1h1v1h1v1h1v1H0V3h1V2h1V1h1zM0 5h7v2H0z"/></svg>EJECT</button>
+      </div>
+
+      <button class="mk mk-play" type="button" id="play" aria-pressed="false"><span class="play-i" aria-hidden="true"></span><span id="playT">PLAY</span></button>
+      <div class="m-keys" id="mkeys" role="group" aria-label="Sound">
+        <button class="mk mk-dice" type="button" id="newTune" aria-label="New tune" title="New tune"><svg width="22" height="22" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M0 0h10v10H0z"/><path fill="#f0c94a" d="M2 2h2v2H2zM6 6h2v2H6zM4 4h2v2H4zM6 2h2v2H6zM2 6h2v2H2z"/></svg><span class="mk-sub">NEW</span></button>
+        <button class="mk mk-undo" type="button" id="undoTune" aria-label="Undo" title="Undo"><svg width="22" height="18" viewBox="0 0 10 8" aria-hidden="true"><path fill="currentColor" d="M3 0h1v2h4v1h1v1h1v3H9V5H8V4H4v2H3V5H2V4H1V3h1V2h1z"/></svg><span class="mk-sub">UNDO</span></button>
+      </div>
+
+      <div class="m-dials" id="dials" role="group" aria-label="Parts: tap to change"></div>
+
+      <div class="m-kb">
+        <div class="rail">
+          <div class="kb-tabs" role="group" aria-label="Show"><button class="pp kb-tab" type="button" id="tabKeys" aria-pressed="true">KEYBOARD</button><button class="pp kb-tab" type="button" id="tabParts" aria-pressed="false">PARTS</button></div>
+          <div class="beat" id="beat" aria-hidden="true"></div>
+          <button class="pp loop" type="button" id="loopBtn" data-state="off"><span class="loop-led" aria-hidden="true"></span><span id="loopT">PLAY ALONG</span></button>
         </div>
+        <div class="kb" id="kb" role="group" aria-label="Play along keyboard: every key fits the song"></div>
       </div>
 
-      <div class="step">
-        <p class="step-h"><b>1</b> START HERE</p>
-        <div class="starts" role="group" aria-label="Pick a sound" id="starts"></div>
+      <picture class="m-stamp" aria-hidden="true"><source media="(max-width:760px)" srcset="icons/stamp-1.png 1x, icons/stamp-2.png 2x"><img src="icons/stamp-2.png" srcset="icons/stamp-2.png 1x, icons/stamp-4.png 2x" alt="" width="118" height="40"></picture>
+      <div class="m-credits" id="credits" hidden>
+        <div class="cr-now"><span>NOW PLAYING</span><b id="crName"></b></div>
+        <div class="cr-by"><span>MIXED BY</span><b id="crBy"></b></div>
+        <div class="cr-more"><span id="crNext"></span><b id="crAsk">DROP YOUR TAPE LINK IN THE COMMENTS</b></div>
       </div>
-
-      <div class="step">
-        <p class="step-h"><b>2</b> MIX IT</p>
-        <div class="layers" id="layers"></div>
-      </div>
-
-      <div class="step step-tune">
-        <button class="pb pb-tune" type="button" id="newTune" style="--c:var(--yellow)">NEW TUNE <span aria-hidden="true">↻</span></button>
-        <p class="hint">Same parts, a different song.</p>
-      </div>
-      <p class="deck-print" aria-hidden="true"><span>SMALL BEATS · SB-1</span><span>TINY MUSIC MACHINE</span></p>
-    </div>
-
-    <div class="tapeside bench" aria-label="Your tape">
-      <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
-      <p class="step-h bench-h"><b>3</b> MAKE IT YOURS</p>
-      <div class="cass-wrap" id="cassWrap"></div>
-      <div class="namebar">
-        <div class="namebox"><input type="text" id="tapeName" maxlength="24" autocomplete="off" spellcheck="false" aria-label="Tape name"><button class="pb pb-sm" type="button" id="rollName" style="--c:var(--paper)" aria-label="Another name" title="Another name">↻</button></div>
-        <div class="namebox from"><input type="text" id="fromName" maxlength="24" autocomplete="off" spellcheck="false" placeholder="mixed by (optional)" aria-label="Mixed by, optional"></div>
-      </div>
-      <div class="savebar">
-        <div class="row-btns" id="saveRow">
-          <button class="pb pb-big" type="button" id="saveBtn" style="--c:var(--red)"><i class="rec" aria-hidden="true"></i>SAVE TAPE</button>
-        </div>
-        <div class="row-btns" id="shareRow" hidden>
-          <button class="pb pb-big" type="button" id="copyLink" style="--c:var(--blue)">COPY LINK</button>
-          <button class="pb pb-big" type="button" id="shareBtn" style="--c:var(--amber)" hidden>SHARE TAPE</button>
-          <button class="linkish" type="button" id="savePic" hidden>SAVE A PICTURE</button>
-        </div>
-        <input type="text" class="linkbox" id="sentLink" readonly aria-label="Your tape's link" hidden>
-        <p class="note" id="sentNote" aria-live="polite"></p>
-      </div>
-      <div class="stickers">
-        <p class="step-h">STICKER</p>
-        <div class="quick" id="quick" role="group" aria-label="Pick a sticker"></div>
-      </div>
-      <div class="shells"><p class="step-h">CASSETTE <span class="shell-name" id="shellName"></span></p><div class="shell-row" id="shellRow" role="group" aria-label="Pick a cassette"></div></div>
     </div>
   </section>
 
@@ -142,12 +126,17 @@
       <div class="qr-wrap"><canvas id="qr" width="232" height="232" aria-label="QR code of your shelf link" role="img"></canvas><p class="hint" id="qrHint">Point your phone's camera here to take your tapes with you.</p></div>
     </div>
     <div class="shelf-row" id="shelf"></div>
+    <details class="more-tapes" id="moreTapes"><summary class="pb pb-sm" style="--c:#cbbd9f">ALL YOUR TAPES ▾</summary>
     <p class="rack-h">THE RACK</p>
     <div class="rack" id="rack"></div>
     <p class="hint rack-empty" id="rackEmpty">Save more tapes and they stack up here. Star the ones you love to keep them up front.</p>
     <p class="rack-h">FROM FRIENDS</p>
     <div class="rack" id="friends"></div>
     <p class="hint rack-empty" id="friendsEmpty">Tapes people send you land here, with their name on them.</p>
+    </details>
+    <p class="rack-h">BUDDIES MET <span class="met-count" id="metCount"></span></p>
+    <div class="met" id="met" aria-label="Buddies you've seen on the screen"></div>
+    <p class="met-seen" id="metSeen"></p>
     <div class="undo" id="undo" hidden><span id="undoT"></span><button class="linkish" type="button" id="undoBtn">UNDO</button></div>
   </section>
 
@@ -156,20 +145,20 @@
     <div class="about-cols">
       <div>
         <h3>What is this?</h3>
-        <p>A tiny music machine. Pick a starting sound, turn parts on and off, and when it sounds right, put a sticker on the tape, name it and send it to somebody. They open the link and hear your tape. Then they can remix it and send it back.</p>
-        <p>No account, nothing to install, nothing to learn. If you don't like the tune, hit <b>NEW TUNE</b> and it writes another one with the same parts.</p>
+        <p>A tiny music machine. Pick a style, tap the parts to change them, play along on the keys, and when it sounds right hit <b>SAVE TAPE</b>. <b>EJECT</b> lets you name it, pick a buddy for the label and send the link. They open it and hear your tape. Then they can remix it and send it back.</p>
+        <p>No account, nothing to install, nothing to learn. If you don't like the tune, hit <b>NEW</b> and it writes another one with the same parts. <b>UNDO</b> takes it back.</p>
       </div>
       <div>
         <h3>How it works</h3>
         <ul class="how">
           <li><b>Nothing is a recording.</b> Drums, bass, keys, rain and fire are synthesized in your browser while you listen, a bar at a time.</li>
           <li><b>Everything fits.</b> Every part follows the same chord changes, so whatever you switch on plays in key.</li>
-          <li><b>A tune is a number.</b> A tape link holds the parts, the sticker and a number for the tune, so everyone who opens it hears the same song.</li>
-          <li><b>Real instruments, in code.</b> Rhodes is FM synthesis, the guitar is a plucked-string model, 8-bit is pulse waves, and the drums are noise and oscillators: soft, lo-fi, house and dub kits, played TIGHT or with SWING.</li>
+          <li><b>A tune is a number.</b> A tape link holds the parts, the buddy and a number for the tune, so everyone who opens it hears the same song.</li>
+          <li><b>Real instruments, in code.</b> Rhodes is FM synthesis, the guitar is a plucked-string model, 8-bit is pulse waves, and the drums are noise and oscillators: soft, lo-fi, house and dub kits, played TIGHT or with SWING. The keyboard is a little synth voiced for each style.</li>
           <li><b>The cassette chain.</b> Lo-fi tapes run through tape saturation, wow and flutter, a gentle roll-off and a little hiss.</li>
           <li><b>No AI.</b> Not one note is AI-generated.</li>
         </ul>
-        <p class="specs">Any modern browser · works offline · installable · no account · about 160 KB</p>
+        <p class="specs">Any modern browser · works offline · installable · no account · about 200 KB</p>
         <p><a href="how-it-works/">Read how every note is made →</a></p>
       </div>
       <div>
@@ -184,14 +173,17 @@
         <details><summary>Can I use the music in my videos?</summary><p>Yes. The music is royalty-free: use it in videos, streams, podcasts, games or anything else, even commercially, with no fee and no need to ask. Credit is appreciated, not required. Because anyone can make the same tape, please don't register it with Content ID or resell it as a sample library. The details are in the <a href="terms.html">terms</a>.</p></details><details><summary>Can I download a tape as a file?</summary><p>Not as a file. The music is made live, so to keep it, record it: your phone or computer's screen recorder works, and so does OBS for longer recordings.</p></details><details><summary>Is any of it AI?</summary><p>No. Not one note is AI-generated. Everything is synthesized by code in your browser, from the tape's settings and a number for the tune.</p></details><details><summary>Do I need an account?</summary><p>No. There's nothing to sign up for and nothing to install. It's free, with no ads.</p></details><details><summary>Where are my tapes kept?</summary><p>In this browser, on this device. Your shelf link (under YOUR TAPES) holds every tape in one link: open it in any other browser or phone to bring them along. Private browsing windows forget everything when they close.</p></details><details><summary>Does it work offline?</summary><p>Yes, once the page has loaded. Add it to your home screen and it opens like an app. On iPhone it plays even with the ring switch on silent.</p></details><details><summary>Which browsers does it work in?</summary><p>Current Chrome, Edge, Safari and Firefox, on computers, phones and tablets.</p></details>
       </div>
       <div class="new" id="new">
-        <h3>What's new</h3>
-        <dl>
-          <dt>Oct 26, 2026</dt><dd>A write-up of <a href="how-it-works/">how every note is made</a>, from the seed to the cassette wobble.</dd>
-          <dt>Oct 26, 2026</dt><dd>The music is royalty-free, even for commercial use. Questions answered here.</dd>
-          <dt>Oct 25, 2026</dt><dd>A real shelf: your newest tapes up front, the rest in a rack, a FROM FRIENDS section, stars, PLAY THE SHELF, and a shelf link (with a QR code) to move your tapes to any browser.</dd>
-          <dt>Oct 25, 2026</dt><dd>A CATS sticker tab: tabby, orange, black, calico and siamese, and they blink. Stickers hop on the beat.</dd>
-          <dt>Oct 25, 2026</dt><dd>New mixer: TIGHT or SWING drums, HISS, RAIN or FIRE texture, and a STEADY speed.</dd>
-        </dl>
+        <h3>What it does</h3>
+        <ul class="feat">
+          <li><b>Six styles.</b> Lo-fi, House, Ambient, 8-Bit, Dub and Trance, each written fresh from a seed.</li>
+          <li><b>Six parts.</b> Drums, bass, keys, texture, speed and volume. Tap one to change it, and it changes on the beat.</li>
+          <li><b>NEW.</b> A new tune in the same style, landing on beat 1. Hold it to spin the name.</li>
+          <li><b>The keyboard.</b> Every key fits the song. Hold for long notes. Play along while the music plays and what you play joins the song.</li>
+          <li><b>The band.</b> Fifty pixel buddies live on the screen, react to what you press, and sing when you poke them. Dino hosts.</li>
+          <li><b>Mini Tapes.</b> SAVE TAPE puts it on your shelf. EJECT to name it, pick a buddy and a shell, and send the link.</li>
+          <li><b>Something to watch.</b> A scene for every style, weather from the texture key, a sky that follows your clock, and the odd visitor.</li>
+          <li><b>Royalty-free.</b> Every note is made in your browser, so the music is yours to use, even commercially. <a href="how-it-works/">How it works</a>.</li>
+        </ul>
       </div>
     </div>
   </section>
@@ -199,22 +191,43 @@
 
 <footer class="foot">
   <p>© 2026 Small Beats</p>
-  <a class="ph-badge" href="https://www.producthunt.com/products/small-beats?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-small-beats" target="_blank" rel="noopener noreferrer"><img alt="Small Beats - A tiny music machine in your browser | Product Hunt" width="250" height="54" loading="lazy" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1292855&amp;theme=dark&amp;t=1792988413982"></a>
-  <nav aria-label="Footer"><a href="how-it-works/">How it works</a><a href="#new">What's new</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="https://www.youtube.com/@smallbeatsfm" target="_blank" rel="noopener">YouTube</a><a href="mailto:hello@smallbeats.com">hello@smallbeats.com</a></nav>
+  <nav aria-label="Footer"><a href="how-it-works/">How it works</a><a href="#new">Features</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="https://www.youtube.com/@smallbeatsfm" target="_blank" rel="noopener">YouTube</a><a href="mailto:hello@smallbeats.com">hello@smallbeats.com</a></nav>
 </footer>
 
-<div class="drawer" id="drawer" hidden>
-  <div class="drawer-scrim" id="drawerScrim"></div>
-  <div class="drawer-panel" role="dialog" aria-modal="false" aria-label="All stickers">
-    <div class="drawer-head"><p class="step-h">ALL STICKERS</p><button class="pb pb-sm" type="button" id="drawerDone" style="--c:var(--paper)">DONE</button></div>
-    <div class="sticker-tabs" id="stickerTabs" role="tablist"></div>
-    <div class="grid" id="grid"></div>
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-scrim" id="sheetScrim"></div>
+  <div class="sheet-panel" role="region" aria-label="Eject: label your tape and send it">
+    <div class="sheet-head"><p class="step-h">▲ EJECT <span class="step-sub">the music keeps playing</span></p><button class="pb pb-sm" type="button" id="sheetDone" style="--c:var(--paper)">DONE ▼</button></div>
+    <div class="sheet-body">
+      <div class="sheet-tape"><div id="sheetCass"></div>
+        <button class="pb pb-big send-tape" type="button" id="sendTape" style="--c:#6fa9de">SEND TAPE ▸</button>
+        <div class="sheet-acts">
+          <button class="pb pb-sm" type="button" id="copyLink" style="--c:var(--paper)">COPY LINK</button>
+          <button class="pb pb-sm" type="button" id="qrBtn" style="--c:var(--paper)" aria-expanded="false">QR</button>
+          <button class="pb pb-sm" type="button" id="savePic" style="--c:var(--paper)">SAVE CARD</button>
+        </div>
+        <input type="text" class="linkbox" id="sentLink" readonly aria-label="Your tape's link" hidden>
+        <p class="note" id="sentNote" aria-live="polite"></p>
+        <div class="tape-qr" id="tapeQrWrap" hidden><canvas id="tapeQr" width="200" height="200" role="img" aria-label="QR code of your tape's link"></canvas><p class="hint">Point a phone's camera here and the tape opens on it.</p></div>
+      </div>
+      <div class="sheet-form">
+        <p class="grp-h">THE LABEL</p>
+        <div class="namebar">
+          <label class="fld"><span>NAME</span><span class="namebox"><input type="text" id="tapeName" maxlength="24" autocomplete="off" spellcheck="false"><button class="pb pb-sm" type="button" id="rollName" style="--c:var(--paper)" aria-label="Another name" title="Another name">↻</button></span></label>
+          <label class="fld"><span>MIXED BY</span><span class="namebox from"><input type="text" id="fromName" maxlength="24" autocomplete="off" spellcheck="false" placeholder="your name (optional)"></span></label>
+        </div>
+        <p class="grp-h">THE LOOK <span class="step-sub">buddy <b id="budName"></b> · shell <b class="shell-name" id="shellName"></b></span></p>
+        <div class="buddies" id="buddyGrid" role="group" aria-label="Pick a buddy"></div>
+        <div class="shell-row" id="shellRow" role="group" aria-label="Pick a shell"></div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script src="analytics.js" defer></script>
-<script src="stickers.js" defer></script>
+<script src="buddies.js" defer></script>
 <script src="engine.js" defer></script>
+<script src="composer.js" defer></script>
 <script src="app.js" defer></script>
 </body>
 </html>

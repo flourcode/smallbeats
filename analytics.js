@@ -8,13 +8,13 @@
  * What it does:
  *   - Loads Google's gtag.js and counts page views.
  *   - app.js sends product events through window.gtag, never in broadcast mode: play, pause, genre_select, part_toggle,
- *     new_tune, sticker_select, tape_name, tape_save, tape_share, tape_open, tape_remix, tape_fav, play_all, shelf_link,
- *     shelf_restore, product_hunt.
+ *     new_tune, undo, buddy_select, sheet_open, tape_name, tape_save, tape_share, tape_open, tape_remix, tape_fav, play_all, shelf_link,
+ *     shelf_restore, loop_rec.
  *   - Uses Google Consent Mode: advertising storage is always denied, and in the EEA, the UK and Switzerland
  *     analytics storage is denied too (Google then sends cookieless pings), because there's no consent banner.
  *     If you later add a certified consent banner (needed anyway for AdSense in those regions), let it update consent.
  *   - IP addresses aren't stored by GA4; Google Signals and ad personalisation stay off.
- *   - Not loaded when the browser sends Do Not Track or Global Privacy Control, or on localhost.
+ *   - Not loaded when the browser sends Do Not Track or Global Privacy Control, on localhost, or in broadcast mode.
  */
 (function () {
   var GA_MEASUREMENT_ID = 'G-SBX0G743FR'; // empty this to switch analytics off
@@ -22,6 +22,7 @@
   if (!GA_MEASUREMENT_ID) return;
   if (navigator.doNotTrack === '1' || window.doNotTrack === '1' || navigator.globalPrivacyControl) return; // honour browser privacy signals
   if (/^(localhost|127\.|192\.168\.)/.test(location.hostname)) return; // don't count your own testing
+  if (/[?&]broadcast=/.test(location.search)) return; // a broadcast (a recording or a stream) isn't a visit
 
   window.dataLayer = window.dataLayer || [];
   function gtag() { dataLayer.push(arguments); }
