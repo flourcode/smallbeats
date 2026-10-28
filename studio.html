@@ -7,7 +7,7 @@
 <title>Small Beats Studio</title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <meta name="theme-color" content="#2a1915">
-<link rel="stylesheet" href="app.css?v=54">
+<link rel="stylesheet" href="app.css?v=67">
 <style>
   /* Small Beats Studio: builds broadcast addresses for OBS and recordings. Not linked from the site, not indexed. */
   .studio{max-width:1240px;margin:0 auto;padding:10px var(--gut) 48px;display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:28px;align-items:start}
@@ -49,7 +49,7 @@
 </header>
 <main class="studio">
   <h1>STUDIO</h1>
-  <p class="lede">Build a broadcast address for OBS or a screen recording: the whole machine playing by itself, Dino and the band on the screen, NOW PLAYING and MIXED BY credits, a QR code to play the tape yourself (16:9), and now and then a little hand playing along, so viewers see it's an instrument they can play. Pick tapes from your shelf or paste links people sent you.</p>
+  <p class="lede">Build a broadcast address for OBS or a screen recording: the whole machine playing the night by itself (the missed train, six stops, the last train home), Dino and the crew on the screen, NOW PLAYING and MIXED BY credits, a QR code to play the tape yourself (16:9), and now and then a little hand playing along, so viewers see it's an instrument they can play. Pick tapes from your shelf or paste links people sent you.</p>
 
   <form class="panel" id="f" autocomplete="off" onsubmit="return false">
     <fieldset>
@@ -57,15 +57,16 @@
       <div class="seg" id="frame"><button class="pb" type="button" data-v="wide" aria-pressed="true">16:9 YOUTUBE</button><button class="pb" type="button" data-v="vertical" aria-pressed="false">9:16 SHORTS</button></div>
     </fieldset>
     <fieldset>
-      <legend>EPISODE</legend>
-      <div class="row">NIGHT <input type="number" id="night" min="1" max="99999" step="1"> <span id="nightToday"></span></div>
-      <label class="chk"><input type="checkbox" id="nightCard" checked>Open on the NIGHT card: the night, the district and tonight's request</label>
+      <legend>THE NIGHT</legend>
+      <div class="row">ROUTE <input type="number" id="night" min="1" max="99999" step="1"> <span id="nightToday"></span></div>
+      <label class="chk"><input type="checkbox" id="nightCard" checked>Play the whole night: the platform and the missed train, a stop per tape with rides between, the last train home</label>
+      <p class="hint">One long night, a new route every day. The route number is only for you: it never appears on screen, in titles or in descriptions. The whole night plays when the playlist is exactly the route's six tapes, in order.</p>
       <p class="hint" id="nightHint"></p>
     </fieldset>
     <fieldset>
-      <legend id="ntLegend">TONIGHT'S TAPES</legend>
+      <legend id="ntLegend">THE ROUTE'S SIX TAPES</legend>
       <div class="mine" id="nightTapes"></div>
-      <p class="hint">Six new tapes for this night, made by the machine from the night's number: one in each district, in the order the crew walks, minor keys, mostly slow, rain and hiss. The first one answers tonight's request. Every night has its own six, the same for anyone who builds this night.</p>
+      <p class="hint">Made by the machine from the route: one tape per stop, in order, each one answering what its stop needs. Minor keys, mostly slow. The same six for anyone who builds this route.</p>
     </fieldset>
     <fieldset>
       <legend>SHOWCASE TAPES</legend>
@@ -82,10 +83,10 @@
       <textarea id="links" rows="4" placeholder="Paste tape links, one per line" spellcheck="false"></textarea>
       <p class="hint" id="linksHint">Links people sent you, or comments under a video. Each one is credited MIXED BY whoever made it.</p>
     </fieldset>
-    <fieldset>
+    <fieldset id="moodBox">
       <legend>WHERE DINO IS</legend>
       <div class="seg" id="mood"><button class="pb" type="button" data-v="night" aria-pressed="true">FOLLOW THE TAPES</button><button class="pb" type="button" data-v="journey" aria-pressed="false">CITY TOUR</button></div>
-      <p class="hint" id="moodHint">The crew walks the city at night, into each tape's own district (Old Town, Midtown, Central Park, Arcade Row, the Harbor, the Bridge); the moon crosses, rain drifts in and out.</p>
+      <p class="hint" id="moodHint">For a plain mix (no route): the crew walks into each tape's own district; the moon crosses, rain drifts in and out.</p>
     </fieldset>
     <fieldset id="turns">
       <legend>TAKING TURNS</legend>
@@ -101,6 +102,12 @@
       <legend>TITLE IDEAS</legend>
       <textarea id="titles" rows="4" readonly spellcheck="false"></textarea>
       <p class="hint">A feeling and a place before a note is heard: pick one, or use them as a starting point.</p>
+    </fieldset>
+    <fieldset>
+      <legend>THUMBNAIL</legend>
+      <canvas id="thumb" width="1280" height="720" style="display:block;width:100%;height:auto;box-shadow:0 0 0 4px var(--line);margin:4px"></canvas>
+      <div class="row-btns"><button class="pb pb-sm" type="button" id="saveThumb" style="--c:var(--blue)">SAVE THUMBNAIL</button></div>
+      <p class="hint">Tonight's route as a fold-out pocket guide: the first tape's name, the six stops on one line, Dino in the corner. 1280 x 720, ready for YouTube.</p>
     </fieldset>
     <fieldset id="chapBox">
       <legend>YOUTUBE CHAPTERS</legend>
@@ -139,9 +146,9 @@
     </div>
   </section>
 </main>
-<script src="buddies.js?v=54"></script>
-<script src="engine.js?v=54"></script>
-<script src="night.js?v=54"></script>
+<script src="buddies.js?v=67"></script>
+<script src="engine.js?v=67"></script>
+<script src="night.js?v=67"></script>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
@@ -162,19 +169,19 @@ const SHOWCASE=[ /* the launch lane: melancholic, nostalgic, nighttime. Minor ke
   {n:'ARCADE CARPET',c:1,d:1,b:1,k:4,w:2,p:0,s:3,r:184488330,t:bud('BLIP'),by:'SMALL BEATS',m:'0a24c26b28a4gd2kc2mb2oa6'},
   {n:'NIGHT BUS',c:2,d:2,b:2,k:1,w:1,p:0,s:4,r:184493278,t:bud('SHROOM'),by:'SMALL BEATS'},
   {n:'LAST TRAIN',c:3,d:1,b:2,k:3,w:0,p:0,s:5,r:184500700,t:bud('STARRY'),by:'SMALL BEATS',m:'0a34c26b28a4gd3kc2oa8'}];
-const LINES={'OFF THE CLOCK':'melancholic synths after everyone leaves','LATE SHIFT':'dreamy house for the empty office','PHONE CORD':"music for missing people you don't call anymore",'ARCADE CARPET':'music from a place that closed in 1999','NIGHT BUS':'music for going home too late','LAST TRAIN':'slow dream-trance for the last ride home'};
+const LINES={'RAIN AGAIN':'rainy lo-fi for the walk home','SIDE QUEST':'lonely 8-bit for avoiding the main story','BACK SEAT':'hazy dub from the back of the night bus','PAPER PLANES':'ambient for an empty park at 3am','MIDNIGHT WALK':'late-night house under the lit towers','LAST SLOW DANCE':'slow dream-trance across the bridge','FIELD TRIP':'late-night house for a city that never sleeps','PIZZA NIGHT':'8-bit for the arcade after closing','LOOSE CHANGE':'ambient for a park bench at 3am','TREEHOUSE':'hazy dub down by the water','STAY UP LATE':'lo-fi for the last lit window','BLANK TAPE':'slow dream-trance for the last bridge home','OFF THE CLOCK':'melancholic synths after everyone leaves','LATE SHIFT':'dreamy house for the empty office','PHONE CORD':"music for missing people you don't call anymore",'ARCADE CARPET':'music from a place that closed in 1999','NIGHT BUS':'music for going home too late','LAST TRAIN':'slow dream-trance for the last ride home'};
 const STYLE_LINE=['rainy beats for the walk home','late-night house for empty streets','sleeping-computer music','lonely old-console music','hazy after-midnight dub','slow dream-trance'];
 const pickShow=new Set();
 SHOWCASE.forEach((t,i)=>{const l=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.addEventListener('change',()=>{cb.checked?pickShow.add(i):pickShow.delete(i);build();});
   cb.checked=false;l.appendChild(cb);l.appendChild(budCanvas(t.t));l.appendChild(document.createTextNode(t.n));const sm=document.createElement('small');sm.textContent=['LO-FI','HOUSE','AMBIENT','8-BIT','DUB','TRANCE'][t.s];l.appendChild(sm);$('showcase').appendChild(l);});
-/* the episode: one night, the same night number as the site. Its own six tapes come from night.js */
+/* the night: one long night, the same route as the site today (or any other day's). Its six tapes come from night.js */
 const N=window.SBN,STYLE=['LO-FI','HOUSE','AMBIENT','8-BIT','DUB','TRANCE'];let night=N.night(),NT=[];const pickNight=new Set();
 function paintNight(){NT=N.tapes(night,{minor:window.SBE.minorSeed,crew:BUD.list.map((b,i)=>i)});pickNight.clear();NT.forEach((t,i)=>pickNight.add(i));
-  $('ntLegend').textContent='NIGHT '+night+' TAPES';$('nightTapes').textContent='';
+  $('ntLegend').textContent='THE ROUTE\'S SIX TAPES';$('nightTapes').textContent='';
   NT.forEach((t,i)=>{const l=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.addEventListener('change',()=>{cb.checked?pickNight.add(i):pickNight.delete(i);build();});
     l.appendChild(cb);l.appendChild(budCanvas(t.t));l.appendChild(document.createTextNode(t.n));const sm=document.createElement('small');sm.textContent=STYLE[t.s]+' · '+N.DISTRICTS[t.s];l.appendChild(sm);$('nightTapes').appendChild(l);});
-  const r=N.request(night);$('nightHint').textContent='Tonight the crew asks for '+r.line+'. The site asks every visitor the same thing tonight, so put it in the pinned comment.';
-  $('nightToday').textContent=night===N.night()?'(tonight)':night<N.night()?'('+(N.night()-night)+(N.night()-night===1?' night ago)':' nights ago)'):'('+(night-N.night())+(night-N.night()===1?' night ahead)':' nights ahead)');}
+  const R=N.route(night),tc=s=>s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()).replace(/^The /,'the ');$('nightHint').textContent='The route: '+R.map(st=>tc(st.district)+' ('+st.stop+')').join(' → ')+' → home. Each tape is one stop and answers what that stop needs; between tapes the crew rides the subway. The site walks every visitor through the same route tonight.';
+  $('nightToday').textContent=night===N.night()?'(today\'s route)':night<N.night()?'('+(N.night()-night)+(N.night()-night===1?' day ago)':' days ago)'):'('+(night-N.night()===1?'tomorrow\'s route)':night-N.night()+' days ahead)');}
 $('night').value=night;$('night').addEventListener('input',()=>{const v=Math.round(+$('night').value);if(v>=1){night=v;paintNight();build();}});
 paintNight();
 
@@ -188,19 +195,19 @@ tapes.forEach((t,i)=>{const l=document.createElement('label');const cb=document.
 $('mineHint').textContent=tapes.length?'Tick any of your own tapes to add them. They\'re credited with the "mixed by" name they were saved with.':'No tapes on this browser yet. Save some on the main page, or paste links below.';
 
 let frame='wide',mood='night';
-document.querySelectorAll('#mood .pb').forEach(b=>b.addEventListener('click',()=>{mood=b.dataset.v;document.querySelectorAll('#mood .pb').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('moodHint').textContent=mood==='night'?'The crew walks the city at night, into each tape\'s own district (Old Town, Midtown, Central Park, Arcade Row, the Harbor, the Bridge); the moon crosses, rain drifts in and out.':'A new district every eight minutes, whatever is playing.';build();}));
+document.querySelectorAll('#mood .pb').forEach(b=>b.addEventListener('click',()=>{mood=b.dataset.v;document.querySelectorAll('#mood .pb').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('moodHint').textContent=mood==='night'?'For a plain mix (no route): the crew walks into each tape\'s own district; the moon crosses, rain drifts in and out.':'A new district every eight minutes, whatever is playing.';build();}));
 document.querySelectorAll('#frame .pb').forEach(b=>b.addEventListener('click',()=>{frame=b.dataset.v;document.querySelectorAll('#frame .pb').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));build();}));
 $('base').value=/^https?:$/.test(location.protocol)?location.origin+location.pathname.replace(/[^/]*$/,''):'https://smallbeats.com/';
 
 let lastPv='';
-function build(){
+function build(){$('moodBox').hidden=$('nightCard').checked&&pickNight.size>0;if(document.fonts)document.fonts.load('40px Silk').then(drawThumb);else drawThumb();
   const codes=[...[...pickNight].sort((a,b)=>a-b).map(i=>encodeTape(NT[i])),...[...pickShow].sort((a,b)=>a-b).map(i=>encodeTape(SHOWCASE[i])),...[...pick].sort((a,b)=>a-b).map(i=>encodeTape(tapes[i]))];
   const lines=$('links').value.split(/\n+/).map(l=>l.trim()).filter(Boolean),bad=[];
   for(const l of lines){const c=codeFrom(l);if(c&&nameOf(c)){if(!codes.includes(c))codes.push(c);}else bad.push(l);} /* the same tape twice plays once */
   $('linksHint').textContent=bad.length?bad.length+(bad.length===1?' line isn\'t':' lines aren\'t')+' a tape link, so '+(bad.length===1?'it\'s':'they\'re')+' left out.':'Links people sent you, or comments under a video. Each one is credited MIXED BY whoever made it.';
   $('turns').hidden=codes.length<2;
   const vol=+$('vol').value;$('volOut').textContent=Math.round(vol*100)+'%';
-  const q=['broadcast=video'];if($('nightCard').checked)q.push('night='+night);if(mood==='journey')q.push('mood=journey');for(const c of codes)q.push('tape='+c);if(!$('ask').checked)q.push('ask=0');if(!$('demo').checked)q.push('demo=0');
+  const q=['broadcast=video'];if($('nightCard').checked)q.push('night='+night);if(mood==='journey'&&!$('nightCard').checked)q.push('mood=journey');for(const c of codes)q.push('tape='+c);if(!$('ask').checked)q.push('ask=0');if(!$('demo').checked)q.push('demo=0');
   if(codes.length>1){q.push('each='+Math.max(1,Math.min(240,Math.round(+$('each').value||10))));if($('shuffle').checked)q.push('shuffle=1');}
   if(vol!==0.8)q.push('vol='+vol);
   let base=$('base').value.trim()||'https://smallbeats.com/';if(!/\/$/.test(base))base+='/';
@@ -212,15 +219,39 @@ function build(){
     else{const tm=m=>{const h=Math.floor(m/60),mm=m%60;return (h?h+':'+String(mm).padStart(2,'0'):String(mm).padStart(2,'0'))+':00';};const info=codes.map(nameOf),lines=[];
       for(let m=0,k=0;m<len;m+=each,k++){const t=info[k%codes.length];lines.push(tm(m)+' '+t.n+(t.by?' (mixed by '+t.by+')':''));}
       const links=codes.map((c,k)=>info[k].n+(info[k].by?' by '+info[k].by:'')+': '+base+'?tape='+c);
-      const req=N.request(night);$('chapters').value='Night '+night+'. Dino and the crew walk the city, and tonight they asked for '+req.line+'. Late-night tapes for empty streets, rain on the window and going home too late.\n\n'+'Every song in this mix was made on Small Beats, a tiny music machine in your browser. Make one: https://smallbeats.com\n\n'+lines.join('\n')+'\n\nThe tapes (play them, remix them, make your own):\n'+links.join('\n')+'\n\nSMALL MAIL IS OPEN: tonight the crew asked for '+req.line+'. Make a tape at https://smallbeats.com and drop the link in the comments. Dino may play it next.';
+      const R=N.route(night),tc=s=>s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()).replace(/^The /,'the '),nx=R[0];$('chapters').value='The show ran late. The last train didn\'t. Dino and the crew have six stops between them and home: '+R.map(st=>tc(st.district)).join(', ')+'. Every stop needs a tape.\n\nOne night. Six stops. Six tapes. Get the crew home.\n\n'+'Every song in this mix was made on Small Beats, a tiny music machine in your browser. Make one: https://smallbeats.com\n\n'+lines.join('\n')+'\n\nThe tapes (play them, remix them, make your own):\n'+links.join('\n')+'\n\nSMALL MAIL IS OPEN: the crew needs a tape for '+tc(nx.district)+': '+nx.line+'. Make one at https://smallbeats.com and drop the link in the comments. Dino may play it next.';
       $('chapHint').textContent='Paste into the video\'s description. Each tape becomes a chapter, and every maker gets a link.';}}
   {const ts=[...[...pickNight].sort((a,b)=>a-b).map(i=>NT[i]),...[...pickShow].sort((a,b)=>a-b).map(i=>SHOWCASE[i]),...[...pick].sort((a,b)=>a-b).map(i=>tapes[i])],hrs=Math.max(1,Math.round((+$('len').value||60)/60));
-    $('titles').value=ts.length?ts.map(t=>(frame==='vertical'?t.n.toLowerCase()+' · dino plays along · make yours at smallbeats.com':'NIGHT '+night+' // '+t.n+' · '+(LINES[t.n]||STYLE_LINE[t.s]||'late-night tapes')+' · small beats fm ('+hrs+(hrs===1?' hour)':' hours)'))).join('\n'):'';}
+    const tc=s=>s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()).replace(/^The /,'the '),route=ts.length>1?' // one night from '+tc(N.DISTRICTS[ts[0].s])+' to '+tc(N.DISTRICTS[ts[ts.length-1].s])+' · small beats fm ('+hrs+(hrs===1?' hour)':' hours)'):'';
+    $('titles').value=ts.length?(frame==='vertical'||!route?'':ts[0].n+route+'\n')+ts.map(t=>(frame==='vertical'?t.n.toLowerCase()+' · dino plays along · make yours at smallbeats.com':t.n+' // '+(LINES[t.n]||STYLE_LINE[t.s]||'late-night tapes')+' · small beats fm ('+hrs+(hrs===1?' hour)':' hours)'))).join('\n'):'';}
   const W=frame==='vertical'?1080:1920,H=frame==='vertical'?1920:1080;$('obsW').textContent=W;$('obsH').textContent=H;$('pvBox').classList.toggle('vertical',frame==='vertical');
   const pv='?'+q.filter(x=>!/^vol=/.test(x)).join('&')+'&vol='+($('pvSound').checked?vol:0); /* the preview plays this site, quietly unless you ask */
   if(pv!==lastPv){lastPv=pv;$('pv').src=base+pv;}
   return url;}
 ['links','each','shuffle','vol','base','pvSound','ask','demo','len','nightCard'].forEach(id=>$(id).addEventListener('input',build));
+/* the thumbnail: a pocket subway guide for tonight's route. Cream card, the first tape's name big, the six stops on one bent line, Dino stamped in the corner */
+function drawThumb(){const c=$('thumb'),x=c.getContext('2d'),W=1280,H=720,R=N.route(night),C=N.COLORS,first=(NT[0]||{n:'SMALL BEATS'}).n;
+  x.fillStyle='#f3ead6';x.fillRect(0,0,W,H);
+  x.fillStyle='rgba(42,25,21,.06)';for(let i=0;i<W;i+=4)x.fillRect(i,0,1,H); /* paper */
+  x.fillStyle='#d8ccb2';x.fillRect(W*.62,0,3,H);x.fillRect(0,H*.5,W*.62,3); /* the folds */
+  x.fillStyle='#2a1915';x.font='400 38px Silk';x.textBaseline='alphabetic';x.fillText('SMALL BEATS FM',56,84);
+  x.font='400 22px Silk';x.fillStyle='#7a5e4c';x.fillText('ONE NIGHT · SIX STOPS · SIX TAPES',56,122);
+  /* the tape name: as big as it fits */
+  let fs=104;x.font='400 '+fs+'px Silk';while(x.measureText(first).width>W*.56&&fs>40){fs-=4;x.font='400 '+fs+'px Silk';}x.fillStyle='#2a1915';x.fillText(first,52,230+fs*.3);
+  /* the route: a thick line in each stop's colour, stepping down to the right, a ring at each stop, names alternating above and below, then HOME */
+  const pts=[];for(let i=0;i<7;i++){const t=i/6;pts.push([96+t*(W-96*2-40),400+Math.round(t*170)]);}
+  for(let i=0;i<6;i++){x.strokeStyle=C[R[i].s];x.lineWidth=28;x.lineCap='round';x.beginPath();x.moveTo(...pts[i]);x.lineTo(...pts[i+1]);x.stroke();}
+  pts.forEach((p,i)=>{x.fillStyle='#f3ead6';x.beginPath();x.arc(p[0],p[1],22,0,7);x.fill();x.lineWidth=9;x.strokeStyle='#2a1915';x.stroke();
+    if(i<6){x.fillStyle=C[R[i].s];x.beginPath();x.arc(p[0],p[1],10,0,7);x.fill();}
+    const nm=i<6?R[i].district:'HOME',st=i<6?R[i].stop:'BY MORNING',up=i%2===1,y=up?p[1]-62:p[1]+54;x.textAlign='center';
+    x.fillStyle='#2a1915';x.font='400 21px Silk';x.fillText(nm,Math.min(W-90,Math.max(90,p[0])),y);x.fillStyle='#7a5e4c';x.font='400 16px Silk';x.fillText(st,Math.min(W-90,Math.max(90,p[0])),y+26);});
+  x.textAlign='left';
+  /* Dino, stamped: the line drawing in ink, his headphones the only orange */
+  const D=BUD.list[BUD.count-1],px=10,dx=W-D.w*px-70,dy=56;x.fillStyle='#2a1915';BUD.draw(x,D,dx,dy,px);
+  x.fillStyle='#e8782e';const HP=[[11,1],[10,2],[10,3],[10,4],[9,5],[10,5],[11,5],[9,6],[10,6],[11,6],[9,7],[10,7],[11,7]];for(let i=12;i<=19;i++)HP.push([i,0]);for(const [i,j] of HP)if(D.rows[j]&&D.rows[j][i])x.fillRect(dx+i*px,dy+j*px,px,px);
+  x.fillStyle='#2a1915';x.font='400 20px Silk';x.textAlign='left';x.fillText('SMALLBEATS.COM',56,H-36);}
+$('saveThumb').addEventListener('click',()=>{drawThumb();const a=document.createElement('a');a.download=((NT[0]||{n:'small beats'}).n.toLowerCase().replace(/[^a-z0-9]+/g,'-'))+'-thumbnail.png';a.href=$('thumb').toDataURL('image/png');a.click();});
+
 $('copyChap').addEventListener('click',async()=>{let ok=false;try{await navigator.clipboard.writeText($('chapters').value);ok=true;}catch(e){$('chapters').select();}const b=$('copyChap');b.textContent=ok?'COPIED':'SELECT AND COPY';setTimeout(()=>b.textContent='COPY CHAPTERS',1800);});
 $('copy').addEventListener('click',async()=>{const url=build();let ok=false;try{await navigator.clipboard.writeText(url);ok=true;}catch(e){}
   const b=$('copy');b.textContent=ok?'COPIED':'SELECT AND COPY IT';setTimeout(()=>b.textContent='COPY ADDRESS',1800);

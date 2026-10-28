@@ -2,8 +2,8 @@
    on the device, so the whole machine works offline. Requests to other sites (only Google Analytics) go straight to the network.
    Updates need no version bump: every request goes to the network first (revalidating, not trusting the HTTP cache), so
    anyone online gets exactly what's deployed, and the offline copy refreshes as they go. The cache is only used offline. */
-const CACHE = 'smallbeats-v54';
-const SHELL = ['./', './index.html', './privacy.html', './terms.html', './404.html', './app.css?v=54', './night.js?v=54', './app.js?v=54', './engine.js?v=54', './composer.js?v=54', './buddies.js?v=54', './qr.js', './analytics.js?v=54',
+const CACHE = 'smallbeats-v67';
+const SHELL = ['./', './index.html', './privacy.html', './terms.html', './404.html', './app.css?v=67', './night.js?v=67', './app.js?v=67', './engine.js?v=67', './composer.js?v=67', './buddies.js?v=67', './qr.js', './analytics.js?v=67',
   './fonts/silkscreen-400.woff2', './fonts/barlow-condensed-600.woff2', './fonts/barlow-condensed-700.woff2', './fonts/doto-900.woff2', './fonts/plex-400.woff2', './fonts/plex-600.woff2', './manifest.webmanifest', './favicon.ico',
   './icons/logo-2.png', './icons/logo-3.png', './icons/logo-4.png', './icons/logo-6.png', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/favicon-32.png', './icons/apple-touch-icon.png', './icons/mark-3.png', './icons/mark-6.png', './icons/stamp-1.png', './icons/stamp-2.png', './icons/stamp-4.png', './how-it-works/'];
 self.addEventListener('install', (e) => {

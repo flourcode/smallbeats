@@ -7,7 +7,7 @@
 @font-face{font-family:Plex;src:url(fonts/plex-400.woff2) format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:Plex;src:url(fonts/plex-600.woff2) format('woff2');font-weight:600;font-display:swap}
 
-:root{--lcd:#f2d58e;--acc:#e9b44c;
+:root{--lcd:#d9e2a3;--acc:#e9b44c;
   color-scheme:dark;
   --bg:#2a1915;--panel:#3a251e;--panel2:#452e26;--key:#55403a;--line:#140b08;
   --cream:#efe6d2;--muted:#c9b7a3;--ink:#17140f;
@@ -67,7 +67,7 @@ a{color:var(--amber)}
    chunky transport keys, the sound keys, six part keys, the keyboard. Case labels are smooth (Barlow); only the LCD is pixel type.
    No line of text gets a row of its own: every word sits inside a key or on the screen. ==== */
 .deck{max-width:1180px;margin:0 auto;padding:0 var(--gut) 28px}
-.sb1{--ink2:#2d2414;position:relative;isolation:isolate;display:grid;grid-template-columns:128px minmax(0,1fr) 340px;
+.sb1{--ink2:#28301e;position:relative;isolation:isolate;display:grid;grid-template-columns:128px minmax(0,1fr) 340px;
   grid-template-areas:"scr scr door" "scr scr rs" "play keys keys" "dials dials dials" "kb kb kb";gap:18px 20px;padding:38px 30px 30px}
 .sb1-bg{position:absolute;inset:0;z-index:-1;filter:drop-shadow(4px 0 0 var(--line)) drop-shadow(-4px 0 0 var(--line)) drop-shadow(0 4px 0 var(--line)) drop-shadow(0 -4px 0 var(--line))}
 .sb1-bg::before{content:"";position:absolute;inset:0;clip-path:polygon(0 18px,6px 18px,6px 12px,12px 12px,12px 6px,18px 6px,18px 0px,calc(100% - 18px) 0,calc(100% - 18px) 6px,calc(100% - 12px) 6px,calc(100% - 12px) 12px,calc(100% - 6px) 12px,calc(100% - 6px) 18px,calc(100% - 0px) 18px,100% calc(100% - 18px),calc(100% - 6px) calc(100% - 18px),calc(100% - 6px) calc(100% - 12px),calc(100% - 12px) calc(100% - 12px),calc(100% - 12px) calc(100% - 6px),calc(100% - 18px) calc(100% - 6px),calc(100% - 18px) calc(100% - 0px),18px 100%,18px calc(100% - 6px),12px calc(100% - 6px),12px calc(100% - 12px),6px calc(100% - 12px),6px calc(100% - 18px),0px calc(100% - 18px));
@@ -75,13 +75,12 @@ a{color:var(--amber)}
 .screw{position:absolute;width:8px;height:8px;background:#6b5348;box-shadow:inset 2px 2px 0 rgba(255,255,255,.18),inset -2px -2px 0 rgba(0,0,0,.4)}
 .s1{left:10px;top:30px}.s2{right:10px;top:30px}.s3{left:10px;bottom:30px}.s4{right:10px;bottom:30px}
 
-/* the LCD: always amber, dark ink, the cells just visible. A dark status strip along its foot */
+/* the LCD: Game Boy olive, four shades (the screen is the only green thing on the site), the cells just visible. A dark status strip along its foot */
 .m-screen{grid-area:scr;position:relative;min-width:0;display:flex;flex-direction:column;padding:12px 16px 0;margin:8px;overflow:hidden;
-  background:linear-gradient(rgba(45,36,20,.06) 1px,transparent 1px) 0 0/3px 3px,linear-gradient(90deg,rgba(45,36,20,.06) 1px,transparent 1px) 0 0/3px 3px,
-    radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.28),transparent 70%),var(--lcd);
-  box-shadow:0 0 0 4px #120a07,0 0 0 8px #4a3027,12px 0 0 0 var(--line),-12px 0 0 0 var(--line),0 12px 0 0 var(--line),0 -12px 0 0 var(--line),inset 0 5px 0 rgba(45,36,20,.18),inset 4px 0 0 rgba(45,36,20,.1);
+  background:#a7b56d; /* the night sky: light-mid. The lightest shade is saved for light */
+  box-shadow:0 0 0 4px #120a07,0 0 0 8px #4a3027,12px 0 0 0 var(--line),-12px 0 0 0 var(--line),0 12px 0 0 var(--line),0 -12px 0 0 var(--line),inset 0 5px 0 rgba(40,48,30,.18),inset 4px 0 0 rgba(40,48,30,.1);
   font:400 13px/1.1 Silk,monospace;color:var(--ink2)}
-.vfd-top{display:flex;justify-content:space-between;gap:10px;white-space:nowrap;letter-spacing:1px;opacity:.8}
+.vfd-top{display:flex;justify-content:space-between;gap:10px;white-space:nowrap;letter-spacing:1px;color:var(--ink2)}
 .vfd-top span{overflow:hidden;text-overflow:ellipsis}
 .vfd-name{font-size:clamp(22px,3vw,34px);margin:8px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:2px;text-transform:uppercase}
 .vfd-name.flash{animation:lcdBlink .42s steps(2,end) 1}
@@ -219,7 +218,7 @@ a{color:var(--amber)}
 .grp-h .step-sub{font:600 13px/1 'Barlow Condensed',system-ui,sans-serif;letter-spacing:1px;color:#a8927f}.grp-h b{color:var(--cream)}
 .send-tape{display:flex;width:calc(100% - 8px);font-size:18px;color:#13213a;margin-bottom:12px}
 .buddies{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:9px;max-height:256px;overflow-y:auto;padding:5px}
-.bud{height:70px;border:0;padding:6px 2px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:space-between;background:var(--lcd,#efe2a6);color:#2d2414;font:400 8px/1 Silk;letter-spacing:.5px;box-shadow:0 0 0 3px var(--line);-webkit-tap-highlight-color:transparent;overflow:hidden}
+.bud{height:70px;border:0;padding:6px 2px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:space-between;background:#f2e7cf;color:#2d2414;font:400 8px/1 Silk;letter-spacing:.5px;box-shadow:0 0 0 3px var(--line);-webkit-tap-highlight-color:transparent;overflow:hidden}
 .bud canvas{flex:1;object-fit:contain;min-height:0}
 .bud canvas{display:block;image-rendering:pixelated}
 .bud:hover{filter:brightness(1.06)}
@@ -350,9 +349,9 @@ a{color:var(--amber)}
 .broadcast .stage{min-height:200px}
 .broadcast .m-door{display:flex;flex-direction:column;gap:14px;align-items:stretch}
 .broadcast .door-win .cass{max-width:300px}
-.bc-prog{display:flex;flex-direction:column;gap:7px;background:var(--lcd);padding:8px 10px;box-shadow:0 0 0 3px var(--line)}
+.bc-prog{display:flex;flex-direction:column;gap:7px;background:var(--amber);padding:8px 10px;box-shadow:0 0 0 3px var(--line)}
 .bc-prog-t{display:flex;justify-content:space-between;font:400 12px/1 Silk,monospace;color:#2d2414;letter-spacing:1px}
-.bc-prog-bar{display:block;height:6px;background:rgba(45,36,20,.15)}.bc-prog-bar i{display:block;height:100%;width:0;background:#2d2414}
+.bc-prog-bar{display:block;height:6px;background:rgba(45,36,20,.18)}.bc-prog-bar i{display:block;height:100%;width:0;background:#2d2414}
 .m-credits{grid-area:cred;display:flex;align-items:stretch;gap:22px;min-height:62px}
 .cr-now{display:flex;flex-direction:column;justify-content:center;gap:7px;padding:8px 18px;background:var(--amber);color:var(--ink);box-shadow:0 0 0 4px var(--line);margin:4px}
 .cr-now span,.cr-by span,.cr-more span{font:400 10px/1 Silk;letter-spacing:2px}
@@ -476,7 +475,7 @@ a{color:var(--amber)}
 /* buddies met */
 .met-count{color:var(--muted);margin-left:8px}
 .met{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:6px;max-width:760px}
-.met-b{display:grid;place-items:center;height:42px;background:var(--lcd);box-shadow:0 0 0 2px var(--line);opacity:.28}
+.met-b{display:grid;place-items:center;height:42px;background:#f2e7cf;box-shadow:0 0 0 2px var(--line);opacity:.28}
 .met-b.seen{opacity:1}
 .met-b canvas{max-width:34px;max-height:34px;image-rendering:pixelated}
 .met-seen{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 0;font:400 11px/1.4 Silk;letter-spacing:1px;color:#8c7766}
@@ -530,7 +529,7 @@ a{color:var(--amber)}
   html:not(.broadcast) .sb1{padding:10px 10px 27px;gap:7px 8px;grid-template-areas:"scr scr scr" "play door rs" "keys keys keys" "kb kb kb" "dials dials dials"}
   html:not(.broadcast) .s1,html:not(.broadcast) .s2{top:6px}html:not(.broadcast) .s3,html:not(.broadcast) .s4{bottom:4px}
   html:not(.broadcast) .vfd-name{font-size:18px;margin:4px 0 0}
-  html:not(.broadcast) .stage{flex:none;min-height:0;height:clamp(112px,calc(100svh - 568px),220px)} /* a set height: a canvas left to size itself keeps whatever height it last had */
+  html:not(.broadcast) .stage{flex:none;min-height:0;height:clamp(106px,calc(100svh - 590px),210px)} /* a set height: a canvas left to size itself keeps whatever height it last had */
   html:not(.broadcast) .sb1{grid-template-rows:auto 74px}
   html:not(.broadcast) .door-win .cass{max-width:104px}
   html:not(.broadcast) .m-door,html:not(.broadcast) .mk-play,html:not(.broadcast) .m-recsend{min-height:0;height:74px;margin-top:0;margin-bottom:0}
@@ -607,3 +606,29 @@ a{color:var(--amber)}
 .broadcast:not(.bc-tall) .kb{height:126px}
 .broadcast:not(.bc-tall) .kk-b{height:56%}
 .broadcast:not(.bc-tall) .kk-w{box-shadow:inset 0 -12px 0 color-mix(in srgb,var(--glow) calc(var(--lv)*70%),#cdbfa2),inset 0 4px 0 #fffaf0;clip-path:polygon(0 0,100% 0,100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px))}
+
+/* the screen's top line: STOP 2/6 and the route as six little marks (made, here, still to come) */
+.vfd-top .rt{display:inline-flex;gap:3px;margin-left:6px;vertical-align:1px}.vfd-top .rt b{width:7px;height:7px;box-shadow:inset 0 0 0 2px var(--ink2)}.vfd-top .rt b.d{background:var(--ink2)}.vfd-top .rt b.c{background:var(--ink2);animation:lcdBlink 1s steps(2,end) infinite}
+/* tonight's route, like a fold-out pocket subway guide: one line, a stop marker per district in its own colour, the station under the name */
+.route{list-style:none;margin:6px 4px 4px;padding:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;position:relative}
+.route li{position:relative;padding:28px 6px 0 0;min-width:0}
+.route li::before{content:'';position:absolute;left:0;right:0;top:9px;height:6px;background:var(--c,#6b5a4c)}
+.route li.home::before{background:linear-gradient(90deg,#6b5a4c 50%,transparent 50%) 0 0/12px 6px}
+.route li i{position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:#2a1915;box-shadow:inset 0 0 0 5px var(--c,#efe6d2)}
+.route li.done i{background:var(--c)}.route li.done i::after{content:'✓';position:absolute;inset:0;display:grid;place-items:center;color:#2a1915;font:400 12px/1 Silk}
+.route li.now i{background:#efe6d2;animation:stopPulse 1.2s ease-in-out infinite}
+@keyframes stopPulse{50%{transform:scale(1.18)}}
+.route li.home i{box-shadow:inset 0 0 0 5px #efe6d2}.route li.home.done i{background:#efe6d2}
+.route b{display:block;font:400 11px/1.2 Silk;letter-spacing:1px;color:var(--cream)}
+.route span{display:block;font:400 10px/1.3 Silk;letter-spacing:1px;color:var(--muted);margin-top:3px}
+.route small{display:block;font:400 12px/1.35 system-ui,sans-serif;color:var(--cream);margin-top:6px;padding-right:6px}
+.route li.now b{color:var(--c)}
+@media (max-width:760px){.route{grid-template-columns:1fr;gap:0}.route li{padding:2px 0 14px 36px}.route li::before{left:9px;right:auto;top:0;bottom:0;width:6px;height:auto}.route li.home::before{display:none}.route li i{top:0}}
+
+/* tonight's route, built into the foot of the screen like a station sign: a black panel with a white rule along the top,
+   the stop in big white letters, and the line: a coloured pixel marker per stop with its district's little icon */
+.lcd-sign{margin:6px -16px 0;background:#141216;box-shadow:inset 0 3px 0 #efe6d2;padding:7px 12px 6px}
+.lcd-sign canvas{display:block;width:100%;height:30px;image-rendering:pixelated}
+@media (max-width:760px){.lcd-sign{margin:4px -10px 0;padding:5px 8px 4px}.lcd-sign canvas{height:22px}}
+.lcd-strip{display:none} /* the sign is the screen's foot: one station sign, no second strip */
+.bc-tall .lcd-sign{margin:4px -10px 0}

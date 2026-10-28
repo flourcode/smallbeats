@@ -12,12 +12,12 @@ const Q=new URLSearchParams(location.search);
 const BC=/^(video|live)$/.test(Q.get('broadcast')||'');
 
 /* ---------- what you can pick ---------- */
-const STARTS=[ /* s is the engine's start-sound number; rec is where it starts */
-  {name:'LO-FI',s:0,c:'#76a9de',rec:{d:2,b:1,k:1,w:0,p:1}},
+const STARTS=[ /* s is the engine's start-sound number; rec is where it starts; c is its district's colour (the lit key, the route sign, thumbnails: one colour per district everywhere) */
+  {name:'LO-FI',s:0,c:'#d8805e',rec:{d:2,b:1,k:1,w:0,p:1}},
   {name:'HOUSE',s:1,c:'#d1ac5a',rec:{d:1,b:3,k:3,w:0,p:1}},
-  {name:'AMBIENT',s:2,c:'#74b8c0',rec:{d:0,b:0,k:3,w:0,p:0}},
-  {name:'8-BIT',s:3,c:'#9eae56',rec:{d:1,b:1,k:4,w:0,p:1}},
-  {name:'DUB',s:4,c:'#d87a6b',rec:{d:2,b:2,k:1,w:0,p:1}},
+  {name:'AMBIENT',s:2,c:'#8fb36a',rec:{d:0,b:0,k:3,w:0,p:0}},
+  {name:'8-BIT',s:3,c:'#d97aa6',rec:{d:1,b:1,k:4,w:0,p:1}},
+  {name:'DUB',s:4,c:'#5fa8c9',rec:{d:2,b:2,k:1,w:0,p:1}},
   {name:'TRANCE',s:5,c:'#a88fd6',rec:{d:1,b:1,k:1,w:0,p:1}}]; /* trance is written by the newer composer (composer.js): see tranceBand */
 const TRANCE_LABELS={d:{2:'HARD'},b:{1:'OFFBEAT',2:'ROLLING',3:'SYNTH'},k:{1:'SAWS',2:'PLUCK',3:'PAD',4:'ARP'}}; /* the same settings, named for what they play in trance */
 const startOf=s=>STARTS.find(x=>x.s===s)||STARTS[0];
@@ -35,7 +35,9 @@ const SHELLS=[{name:'GRAPHITE',sh:'#3b383f',hi:'#58545d',sd:'#26242a',lab:'#f3ea
 /* the label's three stripes: on brand, two sets, rainbow and sunset, taking turns by style */
 const RAINBOW=['#ffb347','#e0457b','#3ec6e0'],SUNSET=['#e9b44c','#e2734a','#c23b4b'],STRIPES=[SUNSET,RAINBOW,SUNSET,RAINBOW,SUNSET,RAINBOW];
 /* the LCD: one warm amber backlight for every style, so it's always the same machine. The style shows in small things: its key, the lights, the tape's stripes, the keys as they light */
-const LCD='#f2d58e',INKC='#2d2414'; /* the screen: always amber, dark ink */
+/* the screen: Game Boy olive, four shades and nothing in between. 0 the backlight (lit windows, lamps, headlights), 1 the far city
+   and the lawn, 2 the near blocks, 3 the ink: the crew, landmarks, edges and words. The rest of the site stays warm: only the screen is green */
+const GB=['#d9e2a3','#a7b56d','#66733d','#28301e'],LCD=GB[0],INKC=GB[3];
 const tapeNo=t=>String(((t.r>>>0)%997)+1).padStart(3,'0'); /* a tape's number: from its tune, so it's the same for everyone */
 const NAMES=window.SBN.NAMES; /* night.js: the tape names, shared with the Studio */
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -180,7 +182,7 @@ function cassPix(t,phase){const cells=new Array(CW*CH2);const P=(x,y,v)=>{if(x>=
   return {cells,sh};}
 /* what's printed on the label, shared by the cassette on screen and the picture card */
 const labelText=t=>{const sh=SHELLS[t.c]||SHELLS[0],nm=t.n.toUpperCase();return [
-  [5.2,6.1,1.25,'NO. '+tapeNo(t),'#8a7a6c'],[5.2,9.4,titleSize(nm),nm,sh.ink],
+  [5.2,6.1,1.25,'NO. '+tapeNo(t)+' · '+((window.SBN&&window.SBN.STOPS[t.s])||''),'#8a7a6c'] /* the stop it was made at: a ticket stub from the night */,[5.2,9.4,titleSize(nm),nm,sh.ink],
   [5.4,21.9,1.3,startOf(t.s).name+' · '+bpmOf(t),sh.lab],[32,21.9,1.3,'SB MC-'+bpmOf(t),sh.lab]];};
 /* the buddy stamp: on the label's right, a little crooked; the tilt comes from the tape's number, never dead straight */
 const STAMP={x:36.5,y:7.2,size:5.8};
@@ -246,6 +248,7 @@ const SFX={
   save:()=>{blip(110,.14,{type:'sine',v:.12,lp:800});blip(1800,.02,{type:'triangle',at:.02});blip(1568,.12,{at:.16});},
   eject:()=>{blip(1200,.03,{type:'triangle'});blip(784,.08,{at:.05});blip(523,.12,{at:.12});},
   loop:()=>blip(988,.07),
+  ding:()=>{blip(659,.32,{type:'sine',v:.08});blip(523,.5,{type:'sine',v:.08,at:.34});}, /* the doors are closing */
   boot:()=>{blip(784,.07,{v:.06});blip(1568,.6,{v:.06,at:.08});},
   smack:()=>smack()};
 /* smack: a sticker slapped on the label. A short burst of filtered noise (the slap) over a low thump (the hand on the case) */
@@ -301,7 +304,7 @@ function paint(){
   if(document.activeElement!==$('tapeName'))$('tapeName').value=cur.n;
   if(document.activeElement!==$('fromName'))$('fromName').value=S.by||'';
   if(!$('vfdName').classList.contains('flash'))$('vfdName').textContent=cur.n;
-  $('vfdSide').textContent='TAPE '+tapeNo(cur)+(PL?' · '+(PL.i+1)+'/'+PL.ids.length:'');$('vfdStyle').textContent=startOf(cur.s).name+' · '+bpmOf(cur)+' BPM';paintVfd(cur.s);
+  $('vfdSide').textContent=window.SBN.DISTRICTS[cur.s]+(PL?' · '+(PL.i+1)+'/'+PL.ids.length:'');paintRouteHud();paintVfd(cur.s);
   const onShelf=cur===draft?!!savedId:S.tapes.some(t=>t.id===cur.id);
   $('recBtn').setAttribute('aria-pressed',String(onShelf));$('recT').textContent=onShelf?'SAVED':'SAVE TAPE';
   $('recBtn').setAttribute('aria-label',onShelf?'Saved on your shelf':'Save this tape to your shelf');
@@ -318,12 +321,71 @@ function paintPlay(){const on=isPlaying();$('play').setAttribute('aria-pressed',
 /* ---------- play, new tune, undo ---------- */
 let booted=false,bootAt=-9;
 /* NIGHT n: every day you come back is another night on the road with the crew */
-/* NIGHT n is the same for everyone (night.js counts from launch day); a broadcast can name its night with &night= */
+/* the night's number is the same for everyone (night.js counts from launch day) but never shown: it only picks tonight's request and tapes, so every night (and every video) stands on its own. A broadcast names its night with &night= */
 const BC_NIGHT=BC?Math.max(0,Math.round(+Q.get('night')||0)):0;
 function nightNo(){return BC_NIGHT||window.SBN.night();}
-const tonight=()=>window.SBN.request(nightNo());
-/* your own nights with the crew: one more each day you come back. Nothing is lost by missing one */
-function myNights(){if(BC)return 0;const d=new Date(),k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();S.night=S.night||{d:'',n:0};if(S.night.d!==k){S.night={d:k,n:(S.night.n||0)+1};save();}return S.night.n;}
+/* ---------- TONIGHT'S ROUTE: the show ran late, the last train didn't. Six stops between the crew and home ----------
+   Each stop is a district with its own station and its own little situation; the way through is a tape that answers it.
+   Save that tape and the crew rides on: the subway, a service change, the next stop. The route is the same for everyone
+   tonight (night.js), and your progress through it is kept on this browser for the night */
+var RT={n:0,stops:[],k:0};
+function routeLoad(){const n=nightNo();RT.n=n;RT.stops=window.SBN.route(n);if(BC){RT.k=0;return;}const r=S.route&&S.route.n===n?S.route:{n,k:0};S.route=r;RT.k=Math.min(6,r.k|0);}
+function routeStop(){if(BC)return BC_NIGHT&&window.SB_BQ&&window.SB_BQ.tapes.length===6?RT.stops[window.SB_BQ.i]:null;return RT.k<6?RT.stops[RT.k]:null;}
+function friendJoined(){if(BC)return !!(BC_NIGHT&&window.SB_BQ&&window.SB_BQ.tapes.length===6&&window.SB_BQ.i>=window.SBN.JOIN);return storyOn&&RT.k>=window.SBN.JOIN;}
+function routeStep(){return BC?(window.SB_BQ?window.SB_BQ.i:0):RT.k;}
+/* STOP 2/6 and six little route marks in the screen's top line (style and tempo when there's no route, as in plain broadcasts) */
+/* the route sign: pixel art, no letters in the markers (each district has its own little icon) */
+const SIGN_ICONS=[['.###.','#####','#####','.#.#.','#...#'],['..#..','.###.','.###.','#####','#####'],['.###.','#####','#####','..#..','..#..'],
+  ['.##..','.##..','..#..','#####','#####'],['..#..','#####','..#..','#.#.#','.###.'],['#####','##.##','#...#','#...#','#...#']],SIGN_HOME=['..#..','.###.','#####','.#.#.','.###.'];
+let signT=0;
+function paintSign(){const c=$('routeSign');if(!c||!c.offsetWidth)return;if(!RT.stops.length)routeLoad();const d=devicePixelRatio||1,W=Math.round(c.offsetWidth*d),H=Math.round(c.offsetHeight*d);
+  if(c.width!==W||c.height!==H){c.width=W;c.height=H;}const x=c.getContext('2d'),C=window.SBN.COLORS,p=Math.max(1,Math.floor(H/11)); /* one sign pixel */
+  x.clearRect(0,0,W,H);x.imageSmoothingEnabled=false;
+  const ep=BC&&BC_NIGHT&&window.SB_BQ&&window.SB_BQ.tapes.length===6,route=!BC||ep,k=routeStep(),done=!BC&&RT.k>=6,st=route?(done?null:RT.stops[Math.min(5,k)]):null;
+  /* the line: right-aligned; marker = a 9 x 9 pixel circle */
+  const R=11,gap=3,nM=route?7:0,lineW=nM?nM*R*p+(nM-1)*gap*p:0,x0=W-lineW,y0=Math.round((H-R*p)/2);
+  const circ=(cx,cy,fill,ring,icon,ic)=>{for(let j=0;j<R;j++)for(let i=0;i<R;i++){const dx=i-5,dy=j-5,dd=dx*dx+dy*dy;if(dd>30)continue;x.fillStyle=dd>18?ring:fill;x.fillRect(cx+i*p,cy+j*p,p,p);}
+    if(icon){x.fillStyle=ic;icon.forEach((r,j)=>[...r].forEach((v,i)=>{if(v==='#')x.fillRect(cx+(3+i)*p,cy+(3+j)*p,p,p);}));}};
+  if(route){const blink=Math.floor(pnow()*2)%2===0;
+    for(let i=0;i<6;i++){x.fillStyle=C[RT.stops[i].s];x.globalAlpha=i<k||done?1:.35;x.fillRect(x0+i*(R+gap)*p+R*p-p,y0+4*p,(gap+2)*p,p*3);}x.globalAlpha=1;
+    RT.stops.forEach((s2,i)=>{const cx=x0+i*(R+gap)*p,col=C[s2.s],past=i<k||done,now=i===k&&!done;
+      if(past)circ(cx,y0,col,col,SIGN_ICONS[s2.s],'#141216');else if(now)circ(cx,y0,blink?'#efe6d2':col,'#efe6d2',SIGN_ICONS[s2.s],blink?col:'#141216');else{x.globalAlpha=.45;circ(cx,y0,'#141216',col,SIGN_ICONS[s2.s],col);x.globalAlpha=1;}});
+    circ(x0+6*(R+gap)*p,y0,done?'#efe6d2':'#141216','#efe6d2',SIGN_HOME,done?'#141216':'#efe6d2');}
+  /* the words: the stop number small, the station big */
+  const big=Math.round(H*.6),small=Math.round(H*.34),tx=0,maxw=x0-p*8;x.textBaseline='alphabetic';x.fillStyle='#efe6d2';
+  const here=st&&(BC||cur.s===st.s),label=done?'HOME BY MORNING':st?(here?'':'NEXT: ')+st.stop:window.SBN.STOPS[cur.s],sub=done?'NEW ROUTE TOMORROW':st?(here?'STOP '+(k+1)+' OF 6 · '+st.district:'STOP '+(k+1)+' · MAKE IT '+st.style):window.SBN.DISTRICTS[cur.s];
+  let fs=big;x.font='400 '+fs+'px Silk';while(x.measureText(label).width>maxw&&fs>small){fs--;x.font='400 '+fs+'px Silk';}
+  const sw=(x.font='400 '+small+'px Silk',x.measureText(sub).width);
+  if(W>520*d||!route){x.font='400 '+fs+'px Silk';x.fillText(label,tx,Math.round(H*.78));const lw=x.measureText(label).width;if(lw+sw+p*14<maxw){x.font='400 '+small+'px Silk';x.fillStyle='#a39a8b';x.fillText(sub,tx+lw+p*7,Math.round(H*.74));}}
+  else{x.font='400 '+fs+'px Silk';x.fillText(label,tx,Math.round(H*.8));}}
+function paintRouteHud(){const el=$('vfdStyle');if(!el)return;if(!RT.stops.length)routeLoad();
+  if(BC&&!(BC_NIGHT&&window.SB_BQ&&window.SB_BQ.tapes.length===6)){el.textContent=startOf(cur.s).name+' · '+bpmOf(cur)+' BPM';return;}
+  el.textContent=startOf(cur.s).name+' · '+bpmOf(cur)+' BPM';paintSign();}
+/* the stop's card: where, the station, the situation, the ask (and which style takes you there) */
+function stopLines(st,i){return ['STOP '+(i+1)+' · '+st.district,st.set,'NEEDS: '+st.ask+(BC?'':' · '+st.style)];}
+/* a queue of message cards on the screen, one after another */
+var CQ=[];function card(lines,dur){CQ.push({lines:lines.filter(l=>l!==''),dur:dur||3.6,t0:0});}
+/* the scenes between the stops: the platform, a ride, the last train home. While one runs it's drawn instead of the city */
+var SCN={mode:null};function scene(mode,dur,then){SCN={mode,t0:pnow(),dur,then,ding:false};}
+/* the night begins: the platform, the doors close, the train leaves without them; then the first stop */
+var storyOn=false;
+function startStory(){if(storyOn)return;storyOn=true;routeLoad();paintRouteHud();
+  if(BC){if(!BC_NIGHT)return;scene('platform',6,()=>{card(['LAST TRAIN: MISSED','THE SHOW RAN LATE','SIX STOPS. SIX TAPES. GET THE CREW HOME.'],3.8);const st=routeStop();if(st)card(stopLines(st,0),5.5);});return;}
+  if(RT.k>=6){card(['HOME BY MORNING','NEW ROUTE TOMORROW'],3.6);return;}
+  if(RT.k===0){scene('platform',6,()=>{card(['LAST TRAIN: MISSED','THE SHOW RAN LATE','SIX STOPS. SIX TAPES. GET THE CREW HOME.'],3.8);card(stopLines(routeStop(),0),6);});}
+  else card(stopLines(routeStop(),RT.k),6);}
+/* a saved tape that answers the stop: the crew cheers, rides on, the city reroutes them, the next stop */
+function routeSaved(t){if(BC||!storyOn)return;const st=routeStop();if(!st)return;
+  if(!st.ok(t)){setTimeout(()=>say(t.s!==st.s?'NEXT STOP: '+st.district+' · MAKE IT '+st.style:'THE CREW NEEDS: '+st.ask,6000),2600);return;}
+  RT.k++;S.route={n:RT.n,k:RT.k};save();paintRouteHud();paintTonight();jumpAll(10,false,true);track('stop_made',{stop:RT.k,district:st.district});
+  if(RT.k>=6){card(['STOP 6 · DONE','THE LAST TRAIN IS COMING'],3);setTimeout(()=>scene('outro',9,()=>{card(['HOME BY MORNING','SIX STOPS. SIX TAPES.','NEW ROUTE TOMORROW'],7);jumpAll(10,false,true);S.homes=(S.homes||0)+1;save();paintTonight();track('got_home',{homes:S.homes});}),3000);return;}
+  const nx=RT.stops[RT.k];card(['STOP '+RT.k+' · DONE','THE CREW MOVES ON'],2.6);if(RT.k===window.SBN.JOIN)card(['SOMEBODY NEW',window.SBN.friend(RT.n)+' TAGS ALONG'],3.4);
+  setTimeout(()=>{scene('ride',7,()=>card(stopLines(nx,RT.k),6));card([st.change[0],st.change[1]],4.2);},2600);}
+/* in an episode, each new tape is the next stop: a ride, the city's reroute, the stop */
+function routeNextTape(i){if(!BC||!BC_NIGHT||!storyOn)return;const prev=RT.stops[(i+5)%6],st=RT.stops[i];if(!st)return;paintRouteHud();
+  if(i===0){scene('outro',9,()=>{card(['HOME BY MORNING','SIX STOPS. SIX TAPES.','NEW ROUTE TOMORROW'],6);setTimeout(()=>scene('platform',6,()=>{card(['LAST TRAIN: MISSED','THE SHOW RAN LATE','SIX STOPS. SIX TAPES. GET THE CREW HOME.'],3.8);card(stopLines(st,0),5.5);}),6500);});return;} /* round again: home by morning, then the whole night from the top on a new run */
+  scene('ride',7,()=>{if(i===window.SBN.JOIN)card(['SOMEBODY NEW',window.SBN.friend(RT.n)+' TAGS ALONG'],3.4);card(stopLines(st,i),5.5);});card([prev.change[0],prev.change[1]],4.2);}
+/* how many times you've got the crew home: the only number that ever shows. Nothing is lost by missing a day */
 /* short phones: pressing PLAY brings the whole machine, keyboard and all, onto the screen (once, and only if you haven't scrolled yourself) */
 let fitDone=false;function fitMachine(){if(fitDone||BC||innerWidth>760||scrollY>40)return;fitDone=true;const r=KB.getBoundingClientRect();if(r.bottom>innerHeight-4)scrollTo({top:Math.min(scrollY+r.bottom-innerHeight+12,scrollY+$('make').getBoundingClientRect().top),behavior:'smooth'});}
 $('play').addEventListener('click',()=>{fitMachine();if(isPlaying()){SFX.tick();pause();return;}if(isPaused()&&gen.tape===cur){SFX.tick();resume();return;}
@@ -344,7 +406,7 @@ function saveTape(){
   S.tapes.unshift(t);S.tapes=S.tapes.slice(0,MAX_TAPES);savedId=t.id;S.named=false;save();keepStorage();paint();pulse();track('tape_save',{sound:startOf(t.s).name},true);return t;}
 /* ask the browser not to clear this site's storage when space runs low (quietly: Firefox would ask the visitor, so not there) */
 function keepStorage(){try{if(navigator.storage&&navigator.storage.persist&&!/Firefox/.test(navigator.userAgent))navigator.storage.persisted().then(p=>{if(!p)navigator.storage.persist();});}catch(e){}}
-$('recBtn').addEventListener('click',()=>{const was=$('recBtn').getAttribute('aria-pressed')==='true';const t=saveTape();SFX.save();cheer();if(was)say('TAPE '+tapeNo(t)+' ON YOUR SHELF');else ceremony(['RECORDING...','PRINTING LABEL...','TAPE '+tapeNo(t)+' SAVED']);});
+$('recBtn').addEventListener('click',()=>{const was=$('recBtn').getAttribute('aria-pressed')==='true';const t=saveTape();SFX.save();cheer();routeSaved(t);if(was)say('TAPE '+tapeNo(t)+' ON YOUR SHELF');else ceremony(['RECORDING...','PRINTING LABEL...','TAPE '+tapeNo(t)+' SAVED']);});
 async function copyText(v){try{await navigator.clipboard.writeText(v);return true;}catch(e){}try{const ta=document.createElement('textarea');ta.value=v;ta.style.cssText='position:fixed;opacity:0;top:0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok;}catch(e){return false;}}
 async function copyLinkFor(t,btn){const url=tapeURL(t);const ok=await copyText(url);track('tape_share',{how:'copy'},true);
   if(btn){const was=btn.textContent;btn.textContent=ok?'COPIED':'COPY FAILED';setTimeout(()=>btn.textContent=was,1800);}return {ok,url};}
@@ -521,15 +583,23 @@ const GLYPH={book:['##.##','#####','#####','#####'],fire0:['..#..','.##..','.###
 function friendsOf(t){const r=(t.r>>>0),a=BUD.norm(t.t),n=BUD.count,out=[];for(let k=0;k<3;k++){let f=((r>>>(k*7))+k*17)%n;while(f===a||out.includes(f))f=(f+1)%n;out.push(f);}return out;}
 /* the host's mood, from what the music is doing */
 function moodOf(live,now){if(pnow()<joyUntil)return 'BOUNCING';if(attract())return 'VIBING';if(!live)return 'SLEEPY';if(now-tuneAt<2.5)return 'SURPRISED';if(energy>.62)return 'BOUNCING';if(cur.w===1||cur.w===3)return 'COZY';if(now-playFrom>90)return 'LOCKED IN';return 'VIBING';}
+/* a sprite's inside: every empty pixel the outside can't reach (a flood fill from the border), so the crew can be filled solid with the backlight */
+const INSIDE=new WeakMap();
+function insideOf(rows){let m=INSIDE.get(rows);if(m)return m;const h=rows.length,w=rows[0].length,ink=(i,j)=>{if(i<0||j<0||i>=w||j>=h)return false;const r=rows[j];return typeof r==='string'?r[i]==='#':!!r[i];};
+  /* flood the outside in from the border; wall = the ink, or (for line drawings with open gaps, like Dino's mouth) the ink grown by a pixel */
+  const fill=grow=>{const wall=(i,j)=>{if(ink(i,j))return true;if(!grow)return false;for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++)if(ink(i+a,j+b))return true;return false;};
+    const at=(i,j)=>(j+1)*(w+2)+(i+1),out=new Uint8Array((w+2)*(h+2)),st=[[-1,-1]];out[at(-1,-1)]=1;
+    while(st.length){const [i,j]=st.pop();for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const I=i+a,J=j+b;if(I<-1||J<-1||I>w||J>h)continue;const k=at(I,J);if(out[k])continue;if(I>=0&&J>=0&&I<w&&J<h&&wall(I,J))continue;out[k]=1;st.push([I,J]);}}
+    let n=0;const r=rows.map((_,j)=>{const row=[];for(let i=0;i<w;i++){const v=!ink(i,j)&&!out[at(i,j)]?1:0;n+=v;row.push(v);}return row;});return {r,n};};
+  let f=fill(false);if(f.n<w*h*.12)f=fill(true);INSIDE.set(rows,f.r);return f.r;}
 function drawSprite(x,rows,X,Y,px,flip){const w=rows[0].length;for(let j=0;j<rows.length;j++){const r=rows[j];for(let i=0;i<w;i++){const c=typeof r==='string'?r[flip?w-1-i:i]==='#':r[flip?w-1-i:i];if(c)x.fillRect(Math.round(X+i*px),Math.round(Y+j*px),Math.ceil(px),Math.ceil(px));}}}
 /* ---------- the scene: a place behind the band, drawn in "ghost ink" (like an LCD's unlit segments), so it never competes with them.
    Each style has its own: lo-fi a city at night, house a skyline blinking on the beat, ambient mountains and drifting clouds,
    8-bit rolling hills and blocky clouds, dub the sea, trance a starfield over a running grid. It scrolls slowly with the tempo
    and stops when you pause. The sky keeps time: a sun crosses it, then a moon. The texture key is the weather: rain, hiss (static), fire (embers) */
 let sceneX=0,sceneT=0,rainT=0,lastScene=-1,travelUntil=0,districtAt=-9;
-/* TONIGHT'S REQUEST: once you've touched the machine, the moment what's playing answers it, the crew cheers. Once a night */
-let msgAt=-9,msg=['',''],touched=false,reqTick=0;
-function checkRequest(){const n=nightNo();if(S.req===n||!tonight().ok(cur))return;S.req=n;save();msg=['REQUEST MET','THE CREW LOVES IT'];msgAt=pnow();jumpAll(10,false,true);paintTonight();track('request_met',{night:n,req:tonight().id});}
+let touched=false;
+
 /* the districts of the city: each style is a different part of town. Dino and the crew walk through it all night */
 const DISTRICTS=window.SBN.DISTRICTS; /* night.js */
 /* &mood=journey: every eight minutes the crew walks on to the next district, whatever is playing */
@@ -557,106 +627,162 @@ const LMD={
   brg:{h:.86,al:.46,a:[                                                                       /* a Brooklyn Bridge tower, two pointed arches */
     '..#######..','.#########.','.#########.','.##.###.##.','.#...#...#.','.#...#...#.','.#...#...#.','.#...#...#.',
     '.#...#...#.','.#########.','.#########.','.#########.','.#########.','.#########.']}};
-const LMK={};
+const LMK={};const LM_SH={esb:3,chry:3,rock:3,ots:3,lib:3,brg:3};
 let LMTOP=0;
 function lmSprite(n,G,f){const key=n+':'+G+':'+LMTOP+':'+(f||1);if(LMK[key])return LMK[key];const d=LMD[n],src=d.a,sh=src.length,sw=src[0].length,th=Math.max(8,Math.min(G-LMTOP,Math.round(G*d.h*1.25*(f||1)))),k=th/sh,tw=Math.max(1,Math.round(sw*k)),cols=[];
-  for(let i=0;i<tw;i++){let col='';for(let r=0;r<th;r++)col+=src[Math.min(sh-1,Math.floor(r/k))][Math.min(sw-1,Math.floor(i/k))];cols.push(col);}return LMK[key]={w:tw,h:th,cols,al:d.al||.22};}
+  for(let i=0;i<tw;i++){let col='';for(let r=0;r<th;r++)col+=src[Math.min(sh-1,Math.floor(r/k))][Math.min(sw-1,Math.floor(i/k))];cols.push(col);}return LMK[key]={w:tw,h:th,cols,sh:LM_SH[n]==null?3:LM_SH[n]};}
 /* which landmarks stand in each district, repeating every P columns: [sprite, column] */
 const LMS={1:{P:160,l:[['esb',10],['chry',62],['rock',112]]},3:{P:120,l:[['ots',40]]},4:{P:150,l:[['lib',50]]},5:{P:90,l:[['brg',0]]}};
 function lmAt(st,wc,G){const L=LMS[st];if(!L)return null;const m=((wc%L.P)+L.P)%L.P;for(const [n,o] of L.l){const S=lmSprite(n,G);if(m>=o&&m<o+S.w)return {S,i:m-o,n};}return null;}
+/* the screen, bottom up: a thin equalizer strip, the road, the curb and sidewalk; the crew walks on the sidewalk (row G), the city stands behind */
+function streetOf(H){const Q=Math.max(3,SBPX),rows=Math.ceil(H/Q),eq=Math.max(5,Math.round(rows*.1)),road=Math.max(4,Math.round(rows*.07));return {Q,rows,eq,road,G:rows-eq-road-4};}
 function drawScene(x,W,H,live,now,dt){
-  const Q=Math.max(3,SBPX),cols=Math.ceil(W/Q)+2,rows=Math.ceil(H/Q),G=Math.max(8,rows-Math.floor(SROWS*SP/Q)+2) /* the street: just under the top of the EQ, where the crew walks */,TOP=Math.ceil(rows*.21) /* nothing taller than the title line */,cap=v=>Math.max(2,Math.floor((G-TOP)*Math.tanh(1.5*v/Math.max(1,G-TOP)))) /* soft: tall stays taller than short, nothing above the title */,GB=rows+1 /* the buildings carry on down behind the EQ to the bottom of the screen */,st=sceneStyle(),b=gen&&gen.b,bpm=b?b.bpm:100;
+  const L0=streetOf(H),Q=L0.Q,cols=Math.ceil(W/Q)+2,rows=L0.rows,G=L0.G /* the sidewalk, where the crew walks */,TOP=Math.ceil(rows*.21) /* nothing taller than the title line */,cap=v=>Math.max(2,Math.floor((G-TOP)*Math.tanh(1.5*v/Math.max(1,G-TOP)))) /* soft: tall stays taller than short, nothing above the title */,GB2=G /* the buildings stand on the street */,st=sceneStyle(),b=gen&&gen.b,bpm=b?b.bpm:100;
   if(st!==lastScene){if(lastScene>=0&&live){travelUntil=pnow()+3;districtAt=pnow();}lastScene=st;}
   if(live&&!calm)rainT+=dt*([.45,1,1.8][cur.p]||1);
   if(live&&!calm){sceneX+=dt*(bpm/120)*[1.2,1.6,.5,1.4,.8,3][st]*(pnow()<travelUntil?6:1);sceneT+=dt;}
   LMTOP=TOP;const sx=Math.floor(sceneX),fx=(sceneX-sx)*Q,thump=cur.b&&lastHit.b!=null&&now-lastHit.b<.09&&!calm?Q:0; /* BASS: the ground thumps */
-  const cell=(c,r,a,par)=>{x.globalAlpha=Math.min(1,a*1.15);x.fillRect(Math.round(c*Q-(par!=null?par:fx)),r*Q+(r>G*.35?thump:0),Q-1,Q-1);};
-  x.fillStyle=INKC;
-  /* the sky keeps time: a sun by day, a moon at night, by your own clock (a forty-minute day on a broadcast) */
+  /* one cell of the scene in one of the four shades (solid, no see-through: later layers simply cover earlier ones) */
+  const cell=(c,r,sh,par)=>{x.fillStyle=GB[sh];x.fillRect(Math.round(c*Q-(par!=null?par:fx)),r*Q+(r>G*.35&&r<G?thump:0),Q,Q);}; /* solid pixels, no gaps: a handheld screen */
+  x.globalAlpha=1;
+  /* a story scene, instead of the city: the platform, a ride, the last train home */
+  if(SCN.mode){const t=pnow()-SCN.t0;if(t<SCN.dur){subway(SCN.mode,t);x.fillStyle=INKC;return;}const th=SCN.then;SCN={mode:null};if(th)th();}
+  function subway(mode,t){const fl=G+4+L0.road; /* the floor runs down to the equalizer strip */
+    if(mode==='platform'){
+      /* the station wall: tiles, a name band, the platform with its dotted edge */
+      for(let r=0;r<G;r++)for(let c=0;c<cols;c++){if(r%4===3||((c+(Math.floor(r/4)%2)*4)%8===0))cell(c,r,2,0);}
+      const nb=Math.max(2,TOP-2);for(let r=nb;r<nb+4;r++)for(let c=0;c<cols;c++)cell(c,r,3,0);
+      x.fillStyle=LCD;x.font='400 '+Math.round(Q*2.6)+'px Silk';x.textAlign='center';x.textBaseline='middle';x.fillText('SHOWTIME ST.',W/2,(nb+2)*Q);x.textAlign='start';x.textBaseline='alphabetic';
+      /* the train: in with doors open, the doors close (ding-dong), and it pulls away without them */
+      const th=Math.max(10,G-nb-6),ty=G-th,leave=t>2.4?Math.pow((t-2.4)/2.6,2)*(cols+40):0,tx=Math.round(-4+leave),tw=cols+8,shut=t>1.6;
+      if(t>1.2&&!SCN.ding){SCN.ding=true;SFX.ding();}
+      for(let i=0;i<tw;i++){const c=tx+i;if(c<0||c>=cols)continue;for(let j=0;j<th;j++){const r=ty+j,edge=j===0||j===th-1,win=j>=Math.round(th*.25)&&j<Math.round(th*.55),car=(i%44),door=car>=8&&car<16||car>=28&&car<36,seam=car===0;
+        let v=0;if(edge||seam)v=3;else if(door)v=shut?(car===12||car===32?3:1):(j>2?3:1);else if(win)v=(car%6===0)?3:2;else if(j===th-3)v=3;else v=0;cell(c,r,v,0);}}
+      /* the platform */
+      for(let c=0;c<cols;c++){cell(c,G,3,0);for(let r=G+1;r<fl;r++)cell(c,r,r===G+1?((c%2)?0:1):((c+r)%2?2:1),0);}
+      return;}
+    /* inside a car: the windows (the tunnel, its lights streaking by, now and then a station), poles, the bench */
+    const wt=TOP+(mode==='outro'?8:2),wb=Math.max(wt+6,G-9),sp=t*(mode==='outro'?9:30);
+    for(let r=0;r<G;r++)for(let c=0;c<cols;c++)cell(c,r,r<TOP?(c%10<6?0:1):1,0); /* the ceiling lights, the car wall */
+    for(let c=0;c<cols;c++){const pane=(c%26)>1&&(c%26)<24;for(let r=wt;r<wb;r++){if(!pane){cell(c,r,2,0);continue;}
+      if(mode==='outro'){ /* the last train comes up out of the tunnel: the city going by in the dark */
+        const wc=Math.floor(c+sp),id=Math.floor(wc/6),hh=Math.round((wb-wt)*(.3+.6*hsh(id,77)));const inB=r>=wb-hh;cell(c,r,inB?((wc%3===1&&r%3===1&&hsh(wc,r)>.6)?0:2):1,0);}
+      else{const stn=(t%5)>3.2&&(t%5)<3.9; /* a station flashing by */cell(c,r,stn?((c+Math.floor(sp))%7<2?3:1):3,0);
+        if(!stn&&(r===wt+2||r===wb-3)&&((c+Math.floor(sp*(r===wt+2?1:1.6)))%17)<3)cell(c,r,r===wt+2?0:1,0);}}}
+    /* the frames around the windows, the ads above them, the poles */
+    for(let c=0;c<cols;c++){cell(c,wt-1,3,0);cell(c,wb,3,0);if((c%26)===0||(c%26)===25)for(let r=wt-1;r<=wb;r++)cell(c,r,3,0);}
+    for(let c=0;c<cols;c++)if((c%26)>3&&(c%26)<22)for(let r=TOP-1;r<wt-2;r++)cell(c,r,(c%26)===4||(c%26)===21||r===TOP-1||r===wt-3?3:0,0);
+    if(mode==='outro'){ /* the night's six tapes, on the ad strip: the souvenirs */
+      for(let r=TOP;r<wt-1;r++)for(let c=0;c<cols;c++)cell(c,r,r===TOP||r===wt-2?3:0,0);for(let k=0;k<6;k++){const cx=Math.round(cols*.5+(k-3)*11+2),cy=TOP+1;for(let i=0;i<7;i++)for(let j=0;j<4;j++){const e=i===0||i===6||j===0||j===3;cell(cx+i,cy+j,e?3:(j===1&&(i===2||i===4))?3:0,0);}}}
+    for(let c=0;c<cols;c++)if((c%38)===19)for(let r=0;r<fl;r++)cell(c,r,3,0);
+    for(let c=0;c<cols;c++){for(let r=G-7;r<G-2;r++)cell(c,r,r===G-7?3:2,0);for(let r=G-2;r<G;r++)cell(c,r,(c%9===0)?3:1,0);} /* the bench */
+    for(let c=0;c<cols;c++){cell(c,G,3,0);for(let r=G+1;r<fl;r++)cell(c,r,(c+r)%3?2:1,0);}}
+  /* the moon keeps time, by your own clock (a forty-minute night on a broadcast) */
   {const {day,sp}=skyPhase(),cx=Math.round((W*(.08+.84*sp))/Q),cy=Math.round((H*.42-Math.sin(Math.PI*sp)*H*.3)/Q),r=Math.max(2,Math.round(14/Q));
-    for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++){const d=i*i+j*j;if(d>r*r+r)continue;if(!day&&(i+1.3)*(i+1.3)+(j-.6)*(j-.6)<r*r*.8)continue;cell(cx+i,cy+j,.26,0);}}
+    for(let j=-r-2;j<=r+2;j++)for(let i=-r-2;i<=r+2;i++){const d=i*i+j*j;if(d>r*r+r){if(d<(r+2)*(r+2)&&(i+j)%2===0)cell(cx+i,cy+j,0,0);continue;}if(!day&&(i+1.3)*(i+1.3)+(j-.6)*(j-.6)<r*r*.8)continue;cell(cx+i,cy+j,0,0);}}
   const beat=b?Math.floor((now-b.tStart)/b.beat):0;
   /* THE CITY AT NIGHT. Dino and the crew are always walking through it; each style is a different district, with its own buildings,
      heights and goings-on: lo-fi OLD TOWN, house MIDTOWN, ambient CENTRAL PARK, 8-bit ARCADE ROW, dub THE HARBOR, trance THE BRIDGE */
   {const tw=Math.floor(sceneT*2); /* stars, slowly drifting, a few twinkling */
-    for(let i=0;i<46;i++){const c=Math.floor(((hsh(i,11)*cols*3-sceneX*.08)%cols+cols)%cols),r=1+Math.floor(hsh(i,12)*G*.45);if(hsh(i,tw%7)>.86)continue;cell(c,r,.1+hsh(i,13)*.14,0);}}
-  /* the far skyline, faint, moving slower (every district has the city behind it) */
-  {const fx2=sceneX*.35,fs=Math.floor(fx2),ff=(fx2-fs)*Q;const E=lmSprite('esb',G,.85);for(let c=0;c<cols;c++){const wc=fs+c,m=((wc%150)+150)%150;if(st!==1&&m<E.w){const col=E.cols[m];for(let r=0;r<E.h;r++)if(col[r]!=='.')cell(c,G-E.h+r,.06,ff);if(col[E.h-1]!=='.')for(let r=G;r<GB;r++)cell(c,r,.06,ff);continue;}const id=Math.floor(wc/5),h=cap(G*1.3*(.18+hsh(id,21)*.3));for(let r=G-h;r<GB;r++)cell(c,r,.05,ff);}}
-  const blk=(wc,wmin,wmax,seed)=>{let s0=0,k=0;const base=Math.floor(wc/40)*40;let p=base;while(true){const w=wmin+Math.floor(hsh(Math.floor(p),seed+k)*(wmax-wmin+1));if(wc<p+w)return {id:Math.floor(p)*7+seed,o:wc-p,w};p+=w;k++;if(k>40)return {id:p,o:0,w:1};}};
-  const lmCol=(c,L,beat)=>{const {S,i}=L,col=S.cols[i];if(col[S.h-1]!=='.')for(let r=G;r<GB;r++)cell(c,r,S.al);for(let r=0;r<S.h;r++){const ch=col[r];if(ch==='.')continue;const y=G-S.h+r;
-      if(ch==='*')cell(c,y,(beat%2?.55:.32));
-      else if(ch==='c')cell(c,y,(i+r)%3===0?.46:.16);
-      else if(ch==='s')cell(c,y,((Math.floor(r/3)+beat+i%2)%3)?.4:.12);
-      else{const win=i%2===1&&r%2===1&&r>2&&col[r-1]!=='.'&&S.cols[i-1]&&S.cols[i-1][r]!=='.'&&S.cols[i+1]&&S.cols[i+1][r]!=='.';cell(c,y,win&&hsh(i*13+r,S.h)>.72?.62:S.al);}}};
+    for(let i=0;i<46;i++){const c=Math.floor(((hsh(i,11)*cols*3-sceneX*.08)%cols+cols)%cols),r=1+Math.floor(hsh(i,12)*G*.45);if(hsh(i,tw%7)>.86)continue;cell(c,r,hsh(i,13)>.5?0:2,0);}}
+  /* the sky is the light-mid shade (the screen's background); low down, the city's glow, dotted in the backlight */
+  {const gh=Math.max(4,Math.round(G*.35));for(let r=G-gh;r<G;r++){const t=(r-(G-gh))/gh,lv=t<.34?1:t<.67?2:3;for(let c=0;c<cols;c++){const k=((c+sx)&1)*2+(r&1);if([0,2,3,1][k]<lv)cell(c,r,0);}}}
+  /* the far skyline: a dotted dark-mid, moving slower (every district has the city behind it) */
+  {const fx2=sceneX*.35,fs=Math.floor(fx2),ff=(fx2-fs)*Q;const E=lmSprite('esb',G,.85);for(let c=0;c<cols;c++){const wc=fs+c,m=((wc%150)+150)%150;if(st!==1&&m<E.w){const col=E.cols[m];for(let r=0;r<E.h;r++)if(col[r]!=='.')cell(c,G-E.h+r,(wc+r)&1?2:1,ff);continue;}const id=Math.floor(wc/5),h=cap(G*1.3*(.18+hsh(id,21)*.3));for(let r=G-h;r<GB2;r++)cell(c,r,(wc+r)&1?2:1,ff);}}
+  const blk=(wc,wmin,wmax,seed)=>{let k=0;const base=Math.floor(wc/40)*40;let p=base;while(true){const w=wmin+Math.floor(hsh(Math.floor(p),seed+k)*(wmax-wmin+1));if(wc<p+w)return {id:Math.floor(p)*7+seed,o:wc-p,w};p+=w;k++;if(k>40)return {id:p,o:0,w:1};}};
+  /* landmarks in ink, lit windows in the backlight; the crown and the spire light blink on the beat */
+  const lmCol=(c,L,beat)=>{const {S,i}=L,col=S.cols[i];if(col[S.h-1]!=='.')for(let r=G;r<GB2;r++)cell(c,r,S.sh);for(let r=0;r<S.h;r++){const ch=col[r];if(ch==='.')continue;const y=G-S.h+r;
+      if(ch==='*')cell(c,y,beat%2?0:3);
+      else if(ch==='c')cell(c,y,(i+r)%3===0?0:3);
+      else if(ch==='s')cell(c,y,((Math.floor(r/3)+beat+i%2)%3)?0:3);
+      else{const win=i%2===1&&r%2===1&&r>2&&col[r-1]!=='.'&&S.cols[i-1]&&S.cols[i-1][r]!=='.'&&S.cols[i+1]&&S.cols[i+1][r]!=='.';cell(c,y,win&&hsh(i*13+r,S.h)>.72?0:S.sh);}}};
   for(let c=0;c<cols;c++){const wc=sx+c;
-    const L=lmAt(st,wc,G);if(L){lmCol(c,L,beat);if(st===5){const ry=Math.floor(G*.72);cell(c,ry,.26);cell(c,ry+1,.26);}continue;}
-    if(st===0){ /* OLD TOWN: low brick rows, warm windows, chimneys, a street lamp now and then */
+    const L=lmAt(st,wc,G);if(L){lmCol(c,L,beat);if(st===5){const ry=Math.floor(G*.72);cell(c,ry,3);cell(c,ry+1,3);}continue;}
+    if(st===0){ /* OLD TOWN: low brick rows, warm windows, chimneys, water towers, a street lamp now and then */
       const B=blk(wc,5,9,1);if(B.o===B.w-1)continue;const h=cap(G*1.3*(.22+hsh(B.id,2)*.26));
-      for(let r=G-h;r<GB;r++){const win=B.o%2===1&&(r-(G-h))%3===2;cell(c,r,win?(hsh(B.id*5+B.o,r)>.62?.42:.07):.19);}
-      if(B.o===1&&hsh(B.id,3)>.5){cell(c,G-h-1,.19);cell(c,G-h-2,.19);}
-      if(B.w>=7&&hsh(B.id,40)>.45&&B.o>=2&&B.o<=4){const t=G-h; /* a wooden water tower on the roof */ if(B.o!==3)cell(c,t-1,.17);for(let r=t-5;r<t-1;r++)cell(c,r,.24);if(B.o===3)cell(c,t-6,.24);}
-      if(((wc%23)+23)%23===0){for(let r=G-6;r<G;r++)cell(c,r,.2);cell(c+1,G-6,.3);}}
+      for(let r=G-h;r<GB2;r++){const win=B.o%2===1&&(r-(G-h))%3===2;cell(c,r,win&&hsh(B.id*5+B.o,r)>.62?0:r===G-h?3:2);}
+      if(B.o===1&&hsh(B.id,3)>.5){cell(c,G-h-1,3);cell(c,G-h-2,3);}
+      if(B.w>=7&&hsh(B.id,40)>.45&&B.o>=2&&B.o<=4){const t=G-h; /* a wooden water tower on the roof */ if(B.o!==3)cell(c,t-1,3);for(let r=t-5;r<t-1;r++)cell(c,r,3);if(B.o===3)cell(c,t-6,3);}
+      if(((wc%23)+23)%23===0){for(let r=G-6;r<G;r++)cell(c,r,3);cell(c+1,G-6,0);cell(c+1,G-7,3);}}
     else if(st===1){ /* MIDTOWN: tall towers, windows blinking to the beat */
       const B=blk(wc,6,10,4);if(B.o===B.w-1)continue;const h=cap(G*1.3*(.26+hsh(B.id,5)*.26));
-      for(let r=G-h;r<GB;r++){const win=B.o%2===1&&r%2===1&&r>G-h+1;cell(c,r,win?(hsh(B.id*9+B.o,r+beat*7)>.6?.4:.08):.2);}
-      if(B.o===Math.floor(B.w/2)&&hsh(B.id,6)>.6)for(let r=G-h-4;r<G-h;r++)cell(c,r,.2);}
-    else if(st===2){ /* CENTRAL PARK at 3am: a dark line of round treetops, the wall of towers along the far side of the park rising behind, lamps along the path, now and then a little stone bridge */
+      for(let r=G-h;r<GB2;r++){const win=B.o%2===1&&r%2===1&&r>G-h+1;cell(c,r,win&&hsh(B.id*9+B.o,r+beat*7)>.6?0:r===G-h?3:2);}
+      if(B.o===Math.floor(B.w/2)&&hsh(B.id,6)>.6)for(let r=G-h-4;r<G-h;r++)cell(c,r,3);}
+    else if(st===2){ /* CENTRAL PARK at 3am: a dark line of round treetops, the wall of towers along the far side rising behind, lamps along the path, now and then a little stone bridge */
       const T=blk(wc,4,7,30),d=Math.abs(T.o-(T.w-1)/2),top=G-cap(G*1.3*(.1+hsh(T.id,31)*.07))+Math.floor(d*d*.45);
-      const B=blk(wc,4,7,7);if(B.o<B.w-1){const h=cap(G*1.3*(.3+hsh(B.id,8)*.45));for(let r=G-h;r<top;r++){const win=B.o%2===1&&r%2===0&&hsh(B.id*3+B.o,r)>.78;cell(c,r,win?.42:.13);}}
-      {const band=Math.max(3,Math.round((G-top)*.55)),trunk=T.o===Math.floor((T.w-1)/2);for(let r=top;r<GB;r++)cell(c,r,r<top+band?(r===top?.3:hsh(wc*7+r,33)>.85?.22:.42):(trunk&&r<G?.32:.1));} /* leafy crowns on trunks, the lawn below */
-      if(((wc%19)+19)%19===0){for(let r=G-5;r<G;r++)cell(c,r,.38);cell(c,G-6,.5);}
-      {const m=((wc%97)+97)%97;if(m>=40&&m<52){const k=m-40,ay=G-1-Math.round(3*Math.sin(Math.PI*k/11));for(let r=G-5;r<=ay;r++)cell(c,r,.36);}}}
+      const B=blk(wc,4,7,7);if(B.o<B.w-1){const h=cap(G*1.3*(.3+hsh(B.id,8)*.45));for(let r=G-h;r<top;r++){const win=B.o%2===1&&r%2===0&&hsh(B.id*3+B.o,r)>.78;cell(c,r,win?0:2);}}
+      {const band=Math.max(3,Math.round((G-top)*.55)),trunk=T.o===Math.floor((T.w-1)/2);for(let r=top;r<GB2;r++)cell(c,r,r<top+band?(hsh(wc*7+r,33)>.85?2:3):(trunk&&r<G?3:(wc+r)&1?2:1));} /* leafy crowns on trunks, the lawn below */
+      if(((wc%19)+19)%19===0){for(let r=G-5;r<G;r++)cell(c,r,3);cell(c,G-6,0);cell(c,G-7,3);}
+      {const m=((wc%97)+97)%97;if(m>=40&&m<52){const k=m-40,ay=G-1-Math.round(3*Math.sin(Math.PI*k/11));for(let r=G-5;r<=ay;r++)cell(c,r,3);}}}
     else if(st===3){ /* ARCADE ROW: mid-height blocks, each with a sign that flickers on the beat */
       const B=blk(wc,6,9,10);if(B.o===B.w-1)continue;const h=cap(G*1.3*(.28+hsh(B.id,11)*.22));
-      for(let r=G-h;r<GB;r++)cell(c,r,.19);
-      if(B.o>0&&B.o<B.w-2){const sy=G-h+2,on=(beat+Math.floor(hsh(B.id,12)*4))%4!==0;cell(c,sy,on?.46:.2);cell(c,sy+1,on?.46:.2);}
-      if(B.o===1||B.o===B.w-3)cell(c,G-2,.3);}
+      for(let r=G-h;r<GB2;r++)cell(c,r,r===G-h?3:2);
+      if(B.o>0&&B.o<B.w-2){const sy=G-h+2,on=(beat+Math.floor(hsh(B.id,12)*4))%4!==0;cell(c,sy,on?0:3);cell(c,sy+1,on?0:3);}
+      if(B.o===1||B.o===B.w-3)cell(c,G-2,0);}
     else if(st===4){ /* THE HARBOR: long warehouses, cranes over the water, a light on the end of each pier */
       const B=blk(wc,12,16,13);const h=cap(G*1.3*(.16+hsh(B.id,14)*.08));
-      if(B.o<B.w-2)for(let r=G-h-(B.o>2&&B.o<B.w-5?1:0);r<GB;r++)cell(c,r,.19);
-      if(((wc%37)+37)%37===0){const ch=cap(G*.9);for(let r=G-ch;r<GB;r++)cell(c,r,.22);for(let k=-3;k<9;k++)cell(c+k,G-ch,.22);cell(c+7,G-ch+1,.22);cell(c+7,G-ch+2,.22);}}
+      if(B.o<B.w-2)for(let r=G-h-(B.o>2&&B.o<B.w-5?1:0);r<GB2;r++)cell(c,r,r<G-h+1?3:2);
+      if(((wc%37)+37)%37===0){const ch=cap(G*.9);for(let r=G-ch;r<GB2;r++)cell(c,r,3);for(let k=-3;k<9;k++)cell(c+k,G-ch,3);cell(c+7,G-ch+1,3);cell(c+7,G-ch+2,3);cell(c,G-ch-1,beat%2?0:3);}}
     else{ /* THE BRIDGE: towers behind, an elevated road across the front with headlights streaming past */
-      const B=blk(wc,5,8,16);if(B.o<B.w-1){const h=cap(G*1.3*(.24+hsh(B.id,17)*.28));for(let r=G-h;r<GB;r++)cell(c,r,(B.o%2&&r%3===0&&hsh(B.id+B.o,r)>.7)?.28:.11);}
-      const ry=Math.floor(G*.72);cell(c,ry,.26);cell(c,ry+1,.26);
+      const B=blk(wc,5,8,16);if(B.o<B.w-1){const h=cap(G*1.3*(.24+hsh(B.id,17)*.28));for(let r=G-h;r<GB2;r++)cell(c,r,(B.o%2&&r%3===0&&hsh(B.id+B.o,r)>.7)?0:(wc+r)&1?2:1);}
+      const ry=Math.floor(G*.72);cell(c,ry,3);cell(c,ry+1,3);
       {const S=lmSprite('brg',G),P=90,m=((wc%P)+P)%P,u=(m-S.w/2)/P,yt=G-S.h+1,cy=Math.round(yt+(ry-2-yt)*(1-Math.pow(2*u-1,2))); /* the cables, sagging tower to tower */
-        cell(c,cy,.22);if(m%3===0)for(let r=cy+1;r<ry;r++)cell(c,r,.08);}}}
-  if(st===5){const ry=Math.floor(G*.72);for(let i=0;i<9;i++){const cxp=((hsh(i,31)*cols*Q+sceneT*(40+hsh(i,32)*60)*Q)%(cols*Q));x.globalAlpha=.36;x.fillRect(Math.round(cxp),(ry-1)*Q,Q*2-1,Q-1);}x.globalAlpha=1;}
+        cell(c,cy,3);if(m%3===0)for(let r=cy+1;r<ry;r++)cell(c,r,2);}}}
+  if(st===5){const ry=Math.floor(G*.72);x.fillStyle=GB[0];for(let i=0;i<9;i++){const cxp=((hsh(i,31)*cols*Q+sceneT*(40+hsh(i,32)*60)*Q)%(cols*Q));x.fillRect(Math.round(cxp),ry*Q,Q*2-1,Q-1);}} /* headlights */
+  /* the street: an ink curb, a pale sidewalk, the road with lane dashes (water at the Harbor), down to the equalizer strip */
+  {const ro=G+4,re=G+4+L0.road;for(let c=0;c<cols;c++){const wc=sx+c;cell(c,G,3);cell(c,G+1,1);cell(c,G+2,(c+wc)%2?1:0);cell(c,G+3,3);
+      for(let r=ro;r<re;r++)cell(c,r,st===4?(((wc+r*3)%11<2)?1:((wc+r)%2&&r>ro+1?3:2)):2);
+      if(st!==4&&(((wc%10)+10)%10)<5)cell(c,ro+Math.floor(L0.road/2),1);}
+    /* street lamps every few blocks: an ink post, a lit head, a dithered pool of light on the sidewalk */
+    for(let c=0;c<cols;c++){const wc=sx+c;if(((wc%31)+31)%31!==0||st===0||st===2)continue;for(let r=G-12;r<G;r++)cell(c,r,3);cell(c+1,G-12,3);cell(c+2,G-12,3);cell(c+2,G-11,0);
+      for(let r=G-10;r<G;r++){const sp=Math.floor((r-(G-10))*.35);for(let k=-sp;k<=sp;k++)if((c+k+r)%2===0&&k!==-2)cell(c+2+k,r,1);}}
+    /* now and then the night bus goes by, windows lit, headlight on */
+    if(st!==4){const period=46,ph=(sceneT%period)/period;if(ph<.4){const bw=22,bxp=Math.round(cols-(ph/.4)*(cols+bw+20)),by=ro-2;
+      for(let i=0;i<bw;i++)for(let j=0;j<7;j++){const edge=i===0||i===bw-1||j===0||j===6,win=j>=1&&j<=2&&i>1&&i<bw-2&&i%3!==0;cell(bxp+i,by+j,edge?3:win?0:j>=5?3:1,0);}
+      cell(bxp-1,by+4,0,0);for(let i=1;i<6;i++)if(i%2)cell(bxp-1-i,by+4,0,0);}}}
   /* the weather, from the texture key */
   const w=cur.w||(NIGHT&&Math.floor(counterMs()/300000)%3===1?1:0); /* night city: a passing shower every quarter hour, seen not heard */
   if(w===1){ /* the rain falls at the tape's SPEED (rainT runs faster or slower) */
-    for(let i=0;i<46;i++){const xx=Math.floor(hsh(i,5)*cols),yy=Math.floor((hsh(i,6)*rows+rainT*rows*.9*(1+hsh(i,7)))%rows);cell(xx-Math.floor(yy/4),yy,.36,0);cell(xx-Math.floor(yy/4),yy+1,.24,0);}}
-  else if(w===2){if(live||calm)for(let i=0;i<14;i++)cell(Math.floor(Math.random()*cols),Math.floor(Math.random()*rows),.26,0);}
-  else if(w===3){for(let i=0;i<22;i++){const life=(sceneT*.35+hsh(i,8))%1,xx=Math.floor(cols*(.2+hsh(i,9)*.6)+Math.sin((sceneT+i)*2)*1.5),yy=Math.floor(rows*(1-life*.85));cell(xx,yy,.5*(1-life),0);}}
-  x.globalAlpha=1;}
+    for(let i=0;i<46;i++){const xx=Math.floor(hsh(i,5)*cols),yy=Math.floor((hsh(i,6)*rows+rainT*rows*.9*(1+hsh(i,7)))%rows);cell(xx-Math.floor(yy/4),yy,3,0);cell(xx-Math.floor(yy/4),yy+1,2,0);}}
+  else if(w===2){if(live||calm)for(let i=0;i<14;i++)cell(Math.floor(Math.random()*cols),Math.floor(Math.random()*rows),2,0);}
+  else if(w===3){for(let i=0;i<22;i++){const life=(sceneT*.35+hsh(i,8))%1,xx=Math.floor(cols*(.2+hsh(i,9)*.6)+Math.sin((sceneT+i)*2)*1.5),yy=Math.floor(rows*(1-life*.85));cell(xx,yy,life<.35?3:life<.7?2:1,0);}}
+  x.globalAlpha=1;x.fillStyle=INKC;}
 /* a card on the screen: one big line, any small ones under it, on a patch of backlight so they read over the city */
-function titleCard(x,W,H,a,lines){const fs=Math.round(Math.min(26,W/16)),sm=Math.round(fs*.55),y0=H*.16;x.save();x.globalAlpha=Math.max(0,Math.min(1,a));x.textAlign='center';
-  x.font='400 '+fs+'px Silk';let w=x.measureText(lines[0]).width;x.font='400 '+sm+'px Silk';for(const l of lines.slice(1))w=Math.max(w,x.measureText(l).width);
-  const hgt=fs*1.35+(lines.length-1)*fs;x.fillStyle=LCD;x.globalAlpha*=.88;x.fillRect(Math.round(W/2-w/2-fs*.6),Math.round(y0),Math.round(w+fs*1.2),Math.round(hgt));x.globalAlpha=Math.max(0,Math.min(1,a));
-  x.fillStyle=INKC;x.font='400 '+fs+'px Silk';x.fillText(lines[0],W/2,y0+fs);x.font='400 '+sm+'px Silk';lines.slice(1).forEach((l,k)=>x.fillText(l,W/2,y0+fs*(2.1+k)));x.restore();}
+/* words on the screen with a pixel outline in the backlight, so ink letters read over the city (the step is one font pixel) */
+function inkText(x,str,X,Y){const sz=parseFloat(x.font.split(' ')[1])||16,k=Math.max(2,Math.round(sz/8));x.fillStyle=LCD;
+  for(let j=-k;j<=k;j+=k)for(let i=-k;i<=k;i+=k)if(i||j)x.fillText(str,X+i,Y+j);x.fillStyle=INKC;x.fillText(str,X,Y);}
+function titleCard(x,W,H,a,lines){const n=lines.length,fs=Math.round(Math.min(n>3?22:26,W/(n>3?19:16))),sm=Math.round(fs*(n>3?.58:.55)),lh=sm*1.6,y0=H*(n>3?.06:.16);x.save();x.globalAlpha=Math.max(0,Math.min(1,a));x.textAlign='center';
+  /* small lines wider than the screen wrap */
+  x.font='400 '+sm+'px Silk';const maxw=W*.84,rows=[];for(const l of lines.slice(1)){let cur='';for(const w of l.split(' ')){const t=cur?cur+' '+w:w;if(x.measureText(t).width>maxw&&cur){rows.push(cur);cur=w;}else cur=t;}rows.push(cur);}
+  x.font='400 '+fs+'px Silk';let w=x.measureText(lines[0]).width;x.font='400 '+sm+'px Silk';for(const l of rows)w=Math.max(w,x.measureText(l).width);
+  const hgt=Math.round(fs*1.45+rows.length*lh+fs*.35),bx=Math.round(W/2-w/2-fs*1.1),bw=Math.round(w+fs*2.2),by=Math.round(y0-fs*.15),q=Math.max(2,SBPX-2); /* a Game Boy message box: backlight, a double ink border */
+  x.fillStyle=INKC;x.fillRect(bx,by,bw,hgt);x.fillStyle=LCD;x.fillRect(bx+q,by+q,bw-2*q,hgt-2*q);x.fillStyle=INKC;x.fillRect(bx+2*q,by+2*q,bw-4*q,hgt-4*q);x.fillStyle=LCD;x.fillRect(bx+3*q,by+3*q,bw-6*q,hgt-6*q);
+  x.fillStyle=INKC;x.font='400 '+fs+'px Silk';x.fillText(lines[0],W/2,y0+fs);x.font='400 '+sm+'px Silk';rows.forEach((l,k)=>x.fillText(l,W/2,y0+fs*1.45+lh*(k+.75)));x.restore();}
 function drawStage(live,now,dt){
   if(live&&an){fbuf=fbuf||new Uint8Array(an.frequencyBinCount);an.getByteFrequencyData(fbuf);}
   const n=fbuf?fbuf.length:0,W=SW,H=SH,P=SP,COLS=SCOLS,ROWS=SROWS,x=sx,dot=P-3,x0=Math.round((W-COLS*P+3)/2);
   x.clearRect(0,0,W,H);let sum=0;
   drawScene(x,W,H,live,now,dt);
-  /* a title card: after the opening, NIGHT n, where the crew is and tonight's request; later, the district's name whenever they walk into a new one; and REQUEST MET */
-  {const tn=pnow(),sb=tn-bootAt-1.5,sd=tn-districtAt,since=Math.min(sd,sb),sm=tn-msgAt;let lines=null,t=0,len=3.2;
-    if(sm>=0&&sm<3.6){lines=msg;t=sm;len=3.6;}
-    else if(since>=0&&since<3.2){t=since;lines=sb<=sd&&(!BC||BC_NIGHT)?['NIGHT '+nightNo(),DISTRICTS[sceneStyle()]||'','TONIGHT: '+tonight().txt]:[DISTRICTS[sceneStyle()]||''];}
-    if(lines)titleCard(x,W,H,t<.3?t/.3:t>len-.6?(len-t)/.6:1,lines);}
-  if(!BC&&touched&&gen&&++reqTick%30===0)checkRequest();
-  const bt=pnow()-bootAt;if(bt<1.5){x.fillStyle=INKC;x.textAlign='center';x.textBaseline='middle';x.font='400 '+Math.round(Math.min(46,W/9))+'px Silk';
-    const yy=Math.min(1,bt/.7);x.fillText('SMALL BEATS',W/2,-30+(H*.42+30)*yy);if(bt>.7){x.font='400 '+Math.round(Math.min(14,W/34))+'px Silk';x.fillText('DINO & THE CREW',W/2,H*.42+Math.min(46,W/9)*.9);}
+  const bt=pnow()-bootAt;if(bt>=1.5&&bt<9&&!storyOn&&(!BC||BC_NIGHT)&&bootAt>0)startStory();
+  if(bt<1.5){x.fillStyle=INKC;x.textAlign='center';x.textBaseline='middle';x.font='400 '+Math.round(Math.min(46,W/9))+'px Silk';
+    /* the opening: a title card in a Game Boy message box drops in, SMALL BEATS, then DINO AND THE CREW under it */
+    const big=Math.round(Math.min(44,W/10)),small=Math.round(Math.min(14,W/30)),q=Math.max(2,SBPX-2);x.font='400 '+big+'px Silk';const tw=x.measureText('SMALL BEATS').width;
+    const bw=Math.round(tw+big*1.2),bh=Math.round(big*1.25+small*2.2),bx=Math.round(W/2-bw/2),cy=H*.4,yy=Math.min(1,bt/.6),by=Math.round(-bh+(cy-bh/2+bh)*(1-Math.pow(1-yy,3)));
+    x.fillStyle=INKC;x.fillRect(bx,by,bw,bh);x.fillStyle=LCD;x.fillRect(bx+q,by+q,bw-2*q,bh-2*q);x.fillStyle=INKC;x.fillRect(bx+2*q,by+2*q,bw-4*q,bh-4*q);x.fillStyle=LCD;x.fillRect(bx+3*q,by+3*q,bw-6*q,bh-6*q);
+    x.fillStyle=INKC;x.textBaseline='alphabetic';x.fillText('SMALL BEATS',W/2,by+big*1.05);if(bt>.7){x.font='400 '+small+'px Silk';x.fillText('DINO AND THE CREW',W/2,by+big*1.05+small*1.7);}
     x.textAlign='start';x.textBaseline='alphabetic';return 'VIBING';}
   for(let c=0;c<COLS;c++){let v=0;
     if(live&&n){const cc=c-(c%2),lo=Math.floor(2*Math.pow(n*.7/2,cc/COLS)),hi=Math.max(lo+1,Math.floor(2*Math.pow(n*.7/2,(cc+2)/COLS)));for(let b=lo;b<hi&&b<n;b++)v=Math.max(v,fbuf[b]); /* bars two dots wide */
       v=Math.pow(v/255,1.35)*ROWS*(.72+.55*c/COLS);}
     eqLvl[c]=v>eqLvl[c]?v:Math.max(0,eqLvl[c]-.35);eqPk[c]=eqLvl[c]>eqPk[c]?eqLvl[c]:Math.max(0,eqPk[c]-.06);sum+=eqLvl[c]/ROWS;
-    for(let k=0;k<ROWS;k++){const on=k<eqLvl[c],pk=k===Math.floor(eqPk[c])&&eqPk[c]>.6;x.fillStyle=INKC;x.globalAlpha=on?1:pk?.55:.05;x.fillRect(x0+c*P,H-(k+1)*P,dot,dot);}}
+    {const L=streetOf(H),hh=Math.round(Math.min(1,eqLvl[c]/ROWS)*(L.eq-1)),pk=Math.round(Math.min(1,eqPk[c]/ROWS)*(L.eq-1)),bw=Math.max(L.Q,Math.round(P*.62)),bx=x0+c*P; /* the equalizer: a thin strip of ink bars along the bottom, a dark-mid peak above each */
+      if(hh>0){x.fillStyle=INKC;x.fillRect(bx,H-hh*L.Q-L.Q,bw,hh*L.Q);}if(pk>hh){x.fillStyle=GB[2];x.fillRect(bx,H-pk*L.Q-L.Q,bw,L.Q);}}}
   x.globalAlpha=1;energy+=(sum/COLS-energy)*Math.min(1,dt*3);
   /* the band: the host, then a buddy for each part that's on */
-  const t=cur,fr=friendsOf(t),narrow=W<420,band=[{id:BUD.norm(t.t),host:1}];
-  [['d',t.d],['b',t.b],['k',t.k]].forEach(([p,v],i)=>{if(v)band.push({id:fr[i],part:p});});
-  const shown=band.slice(0,narrow?3:4),slots=narrow?[.2,.55,.82]:[.15,.42,.64,.86],mood=moodOf(live,now),hop=live&&!calm&&now<hopUntil;
+  /* the crew: Dino, Bunker and Hoot, all night; the run's new friend tags along from the halfway stop */
+  const t=cur,narrow=W<420,bid=nm=>{const i=BUD.list.findIndex(b=>b.name===nm);return i<0?0:i;},N0=window.SBN;
+  const band=N0.CREW.map((nm,i)=>i?{id:bid(nm)}:{id:bid(nm),host:1});if(friendJoined())band.push({id:bid(N0.friend(nightNo()))});
+  const shown=band,slots=band.map((m,i)=>.1+.8*(i+.5)/band.length),mood=moodOf(live,now),hop=live&&!calm&&now<hopUntil;
   walkers(shown,slots,W,live,mood,now);
   drawVisitors(x,W,H,P,ROWS,live,now,shown);
   x.fillStyle=INKC;HITS.length=0;
@@ -669,24 +795,27 @@ function drawStage(live,now,dt){
     const jt=wk?pnow()-wk.jumpAt:9,jp=jt<.42&&!calm?Math.sin(Math.PI*jt/.42)*wk.jumpH*px:0; /* a jump, when something's pressed */
     const bob=(wk&&now-wk.step<.09?px:0)+jp; /* a little bob with each step */
     const frozen=pnow()<freezeUntil,dance=RA&&RA.k==='dance'?Math.abs(Math.sin(re*9))*px*3:0;
-    const y=Math.max(2,Math.round(H-buddyPos[i]*P-h-2-(frozen?0:lift+jump+bob+dance))); /* never above the top of the screen: his head always shows */
+    const street=streetOf(H),y=Math.max(2,Math.round(street.G*street.Q-h-(frozen?0:lift+jump+bob+dance))); /* standing on the sidewalk; never above the top of the screen: his head always shows */
     let flip=!!wk&&wk.dir<0,rx=0,face=mood;
     if(RA){if(RA.k==='shake')rx=Math.round(Math.sin(re*70))*px;else if(RA.k==='confused'||RA.k==='look')flip=Math.floor(re/(RA.k==='look'?.5:.3))%2===0;else if(RA.k==='spin')flip=Math.floor(re/.07)%2===0;
       if(RA.k==='lie'||RA.k==='yawn'||RA.k==='camp')face='SLEEPY';if(RA.k==='confused'||RA.k==='spin')face='SURPRISED';if(RA.k==='read'||RA.k==='fish'||RA.k==='stars'){flip=false;face=RA.k==='read'?'COZY':'VIBING';}}
     const rows=b.rows;
     if(RA&&RA.k==='glitch'){const g=Math.floor(re*24);rows.forEach((r,j)=>{const off=((j+g)%5===0)?(g%2?2:-2)*px:0;drawSprite(x,[r],cx-w/2+off,y+j*px,px,flip);});}
-    else drawSprite(x,rows,cx-w/2+rx,y,px,flip); /* Dino always looks like Dino: sunglasses and headphones, never squashed */
+    else{const hp=Math.max(1,Math.round(px*.5));x.fillStyle=LCD;for(const [dx,dy] of [[hp,0],[-hp,0],[0,hp],[0,-hp]])drawSprite(x,rows,cx-w/2+rx+dx,y+dy,px,flip);drawSprite(x,insideOf(rows),cx-w/2+rx,y,px,flip);x.fillStyle=INKC;drawSprite(x,rows,cx-w/2+rx,y,px,flip);} /* Dino always looks like Dino: sunglasses and headphones, never squashed. A backlight halo, and solid insides, keep the crew clear of the city */
     HITS.push({id:m.id,host:!!m.host,x:cx-w/2,y,w,h,px});
     if(RA&&ACTS.includes(RA.k)){const gp=Math.max(2,px-1);
       if(RA.k==='read')drawSprite(x,GLYPH.book,cx+w/2-2*gp,y+h-6*gp,gp);
       else if(RA.k==='camp'){drawSprite(x,Math.floor(pnow()*5)%2?GLYPH.fire0:GLYPH.fire1,cx+w/2+3*gp,y+h-4*gp,gp);}
-      else if(RA.k==='fish'){const rx0=cx+w/2,ry0=y+3*px;for(let k=0;k<8;k++)x.fillRect(Math.round(rx0+k*gp),Math.round(ry0-k*gp*.6),gp,gp);const lx=rx0+8*gp;for(let yy=ry0-5*gp;yy<H-SROWS*SP;yy+=gp*2)x.fillRect(Math.round(lx),Math.round(yy),1,gp);
-        x.fillRect(Math.round(lx-gp),Math.round(H-SROWS*SP-gp+Math.sin(pnow()*3)*gp),gp*2,gp*2);}}
+      else if(RA.k==='fish'){const rx0=cx+w/2,ry0=y+3*px;for(let k=0;k<8;k++)x.fillRect(Math.round(rx0+k*gp),Math.round(ry0-k*gp*.6),gp,gp);const lx=rx0+8*gp;const sY=streetOf(H);for(let yy=ry0-5*gp;yy<(sY.G+5)*sY.Q;yy+=gp*2)x.fillRect(Math.round(lx),Math.round(yy),1,gp);
+        x.fillRect(Math.round(lx-gp),Math.round((sY.G+5)*sY.Q-gp+Math.sin(pnow()*3)*gp),gp*2,gp*2);}}
   });
+  /* a title card: the queue (the story's cards) first; otherwise the district's name whenever the crew walks into a new one (the stop's card, if it's tonight's next stop) */
+  if(CQ.length){const c=CQ[0],tn=pnow();if(!c.t0)c.t0=tn;const t=tn-c.t0;if(t>=c.dur)CQ.shift();else titleCard(x,W,H,t<.3?t/.3:t>c.dur-.6?(c.dur-t)/.6:1,c.lines);}
+  else if(!SCN.mode){const since=pnow()-districtAt;if(since>=0&&since<3.2){const st=routeStop(),stp=st&&st.s===sceneStyle()&&!BC;titleCard(x,W,H,since<.3?since/.3:since>2.6?(3.2-since)/.6:1,stp?stopLines(st,routeStep()):[DISTRICTS[sceneStyle()]||'',window.SBN.STOPS[sceneStyle()]||'']);}}
   /* attract: PRESS PLAY, blinking, and Dino points down at it */
   if(attract()&&!calm){const on=Math.floor(pnow()*1.6)%2===0,host=HITS.find(o=>o.host);x.fillStyle=INKC;x.textAlign='center';x.font='400 '+Math.round(Math.min(18,W/26))+'px Silk';
-    const gift=shared&&cur===shared;if(gift){x.fillText(shared.by?'A TAPE FROM '+shared.by.toUpperCase():'SOMEBODY SENT YOU A TAPE',W/2,H*.24);}
-    if(on)x.fillText('PRESS ▶ PLAY',W/2,H*(gift?.34:.32));x.textAlign='start';}
+    const gift=shared&&cur===shared;if(gift){inkText(x,shared.by?'A TAPE FROM '+shared.by.toUpperCase():'SOMEBODY SENT YOU A TAPE',W/2,H*.24);}
+    if(on)inkText(x,'PRESS ▶ PLAY',W/2,H*(gift?.34:.32));x.textAlign='start';}
   return REACT_busy()?({lie:'CHILLING',read:'READING',fish:'FISHING',camp:'BY THE FIRE',stars:'STARGAZING',glitch:'GLITCHING',shake:'HEADBANGING',confused:'CONFUSED',spin:'DIZZY',look:'LOOKING AROUND',dance:'DANCING',yawn:'ZONING OUT'}[REACT.k]||mood):mood;}
 /* ---------- visitors: birds by day, shooting stars by night, a UFO on trance, and now and then a buddy just passing through ---------- */
 let VIS2=null,visitCheck=0,lastRare=0;
@@ -723,13 +852,8 @@ function paintMet(){const box=$('met');if(!box)return;const m=S.met||{b:[],v:{}}
   [...box.children].forEach((d,i)=>{const seen=(m.b||[]).includes(i);d.classList.toggle('seen',seen);d.title=seen?BUD.list[i].name:'not met yet';});
   $('metSeen').innerHTML=[['bird','BAT'],['star','SHOOTING STAR'],['ufo','UFO'],['visitor','A VISITOR'],['poke','DINO SAYS HI']].map(([k,l])=>'<span class="'+(m.v&&m.v[k]?'got':'')+'">'+(m.v&&m.v[k]?'✓ ':'? ')+l+'</span>').join('');}
 paintMet();
-/* NIGHT n on your shelf: tonight's request, and the city, a district lit for every one you've made a tape in (your own tapes, not the starters or Small Mail) */
-function paintTonight(){if(BC||!$('tonight'))return;const n=nightNo(),r=tonight(),done=S.req===n,my=myNights();
-  $('nightN').textContent=n;$('myNights').textContent=my>1?'YOUR '+my+(my%10===1&&my%100!==11?'ST':my%10===2&&my%100!==12?'ND':my%10===3&&my%100!==13?'RD':'TH')+' WITH THE CREW':'';
-  $('tonight').innerHTML='<span class="'+(done?'got':'')+'">'+(done?'✓ ':'? ')+'TONIGHT THE CREW ASKED FOR '+r.txt+'</span>';
-  const been=new Set(S.tapes.filter(t=>!t.gift&&!starterIds.includes(t.id)).map(t=>t.s));
-  $('cityHint').hidden=been.size>=DISTRICTS.length;
-  $('city').innerHTML=DISTRICTS.map((d,i)=>'<span class="'+(been.has(i)?'got':'')+'">'+(been.has(i)?'✓ ':'? ')+d+'</span>').join('');}
+/* under the machine: how many times you've got the crew home (the route itself is on the screen's sign) */
+function paintTonight(){if(BC||!$('homes'))return;const n=S.homes||0;$('homesH').hidden=!n;$('homes').textContent=n===1?'ONCE':n+' TIMES';}
 if(!BC)$('sb1').addEventListener('pointerdown',()=>{touched=true;},{passive:true});
 /* when the music's been playing a while with nobody touching it (and all through the long videos), Dino settles into
    something: reading, fishing at the sea, a campfire at night, stargazing. Touch anything and he's back */
@@ -737,7 +861,7 @@ const ACTS=['read','fish','camp','stars'];let lastAct=0,lastIdle=0;
 function startActivity(){const sea=sceneStyle()===4,night=!skyPhase().day;const opts=['read'];if(sea)opts.push('fish','fish');if(night)opts.push('camp','stars');react(pick(opts),24);lastAct=pnow();}
 const REACT_busy=()=>REACT&&pnow()-REACT.t0<REACT.dur;
 let lastMood='';
-function paintStrip(mood,on){const m=BC&&Math.floor(pnow()/7)%3===2?'PLAY IT LIVE · SMALLBEATS.COM':BUD.list[BUD.norm(cur.t)].name+' · '+mood;if(m!==lastMood){lastMood=m;$('lcdMood').textContent=m;}
+function paintStrip(mood,on){if(pnow()-signT>.25){signT=pnow();paintSign();}const m=BC&&Math.floor(pnow()/7)%3===2?'PLAY IT LIVE · SMALLBEATS.COM':'DINO · '+mood;if(m!==lastMood){lastMood=m;$('lcdMood').textContent=m;}
   const sec=Math.floor(counterMs()/1000),tm=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
   $('lcdTime').textContent=(on?'▶ ':isPaused()?'❚❚ ':'■ ')+(cur._side||'A')+' '+tm;}
 
@@ -949,7 +1073,7 @@ if(BC){const root=document.documentElement;root.classList.add('broadcast');
   go();
   /* the turn: the next tape (or, with one tape, the same one turned over); each time a tape comes round again it plays its other side */
   window.SB_bcNext=()=>{segN++;const old=BQ.tapes[BQ.i];
-    if(BQ.tapes.length>1){BQ.i=(BQ.i+1)%BQ.tapes.length;const t=BQ.tapes[BQ.i];t._plays=(t._plays||0)+1;t._side=t._plays%2?'A':'B';t._prog=0;start(t,3);show(t);}
+    if(BQ.tapes.length>1){BQ.i=(BQ.i+1)%BQ.tapes.length;const t=BQ.tapes[BQ.i];t._plays=(t._plays||0)+1;t._side=t._plays%2?'A':'B';t._prog=0;start(t,3);show(t);routeNextTape(BQ.i);}
     else{old._side=old._side==='A'?'B':'A';old._prog=0;show(old);}
     segStart=actx.currentTime;BQ.until=segStart+BQ.each;};
   const fit=c=>{const r=c.getBoundingClientRect(),d=window.devicePixelRatio||1,w=Math.max(1,Math.round(r.width*d)),h=Math.max(1,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h;}return c.getContext('2d');};

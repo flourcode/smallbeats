@@ -37,7 +37,7 @@ Open http://localhost:8000. Analytics stays off on localhost; the service worker
 
 ## The machine
 
-- **The screen:** a fixed amber LCD. Top line: the tape number, style and tempo; the tape's name; the band standing on a dot equalizer; a status strip (time, and what Dino is doing).
+- **The screen:** a Game Boy olive LCD, four solid shades and nothing in between: the night sky `#a7b56d`, light (moon, stars, lit windows, the crew's fill) `#d9e2a3`, the city `#66733d` (dotted for the far skyline, solid for the near blocks), ink `#28301e`; it's the only green on the site, a window into the crew's world. Top line: the tape number, style and tempo; the tape's name; the band standing on a dot equalizer; a status strip (time, and what Dino is doing).
 - **The tape door:** the Mini Tape (a pixel microcassette) behind an aged plastic cover, between speaker grilles. Tapping it opens EJECT.
 - **SAVE TAPE** puts the tape on your shelf (RECORDING… / PRINTING LABEL… / SAVED on the screen). **EJECT** pops the tape and opens the sheet: SEND TAPE (the share menu, or copies the link), COPY LINK, QR, SAVE CARD; then the label (NAME, MIXED BY) and the look (buddy, shell).
 - **PLAY** (the one orange key). The first PLAY of a visit powers on: SMALL BEATS drops down the screen with a ding.
@@ -57,7 +57,7 @@ Open http://localhost:8000. Analytics stays off on localhost; the service worker
 - **Poke them:** each buddy sings its own note. Poke Dino five times quickly for a surprise.
 - **The city at night,** in faint "ghost ink", scrolling with the tempo. Dino and the crew are always walking through it; each style is a district with its own buildings: lo-fi OLD TOWN (low rows, warm windows, street lamps), house MIDTOWN (tall towers blinking on the beat), ambient CENTRAL PARK (treetops under a wall of towers, park lamps, a stone bridge), 8-bit ARCADE ROW (signs flickering on the beat), dub THE HARBOR (warehouses and cranes; Dino fishes here), trance THE BRIDGE (an elevated road with headlights streaming past). A faint skyline behind and stars above, always. The bass makes the ground thump. Walking into a new district shows its name.
 - **The sky:** it's always night. The moon crosses over the hours of your own day (over forty minutes on a broadcast).
-- **The opening:** the first PLAY of a visit drops SMALL BEATS and DINO & THE CREW down the screen, then NIGHT n (one more for every day you come back) and the district they're in.
+- **The opening:** the first PLAY of a visit drops SMALL BEATS and DINO AND THE CREW down the screen, then TONIGHT, the district they're in and what the crew asks for.
 - **Weather** from TEXTURE: rain (falling at the tape's SPEED), hiss (static), fire (embers).
 - **Visitors:** shooting stars and bats crossing the moon, a rare UFO on Trance, and after ten minutes a buddy passing through. Each first sighting is recorded in Buddies Met.
 - **Attract mode:** before the first PLAY, PRESS ▶ PLAY blinks and Dino walks over towards it. A tape someone sent you shows A TAPE FROM …
@@ -65,11 +65,16 @@ Open http://localhost:8000. Analytics stays off on localhost; the service worker
 
 ### The nights (night.js)
 
-- **NIGHT n is the same for everyone.** NIGHT 1 is launch day (`LAUNCH` at the top of night.js: set it to launch day) and every day after is the next night. It comes from the date, so there's no server, and the site and Small Beats FM always agree.
-- **Tonight's request.** Each night the crew asks for one thing (rain, a campfire, something slow, something for one district…), never the same two nights running. It shows on the opening card and under the machine. Once you've touched the machine, the moment what's playing answers it, the crew cheers: REQUEST MET, once a night.
-- **The city map.** Under the machine, a district lights up for every one you've saved a tape in. Nothing is lost by missing a night; your own count ("your 12th night with the crew") only goes up.
-- **The night's tapes.** `SBN.tapes(n)` presses six tapes for night n, one per district in walking order, minor keys (checked with the engine's `minorSeed`), mostly slow, rain and hiss, the first one answering the request. The Studio's EPISODE panel uses them, so every episode has fresh music with nobody sending anything in.
-- **On a broadcast,** `&night=n` opens the video on the NIGHT card: the night, the district and the request.
+The show ran late. The last train didn't. One long night: Dino and the crew have six stops between them and home. Every run is that same night; tomorrow's run has a new route.
+
+- **One night for everyone, never numbered.** It comes from the date (counted from `LAUNCH` at the top of night.js, so there's no server) and picks tonight's route, situations and the Studio's six tapes. The number is never shown.
+- **The route.** `SBN.route(n)`: six stops, the Bridge always last, the other five in a new order every day. Each stop: a district, its station (`STOPS`), one situation from `SITUATIONS` (a line of setup and a musical ask the machine checks on the tape: speed, bass, keys, drums, texture) and the service change (`CHANGES`) that comes after it. `PLANS` hand-picks a night's route and tape names (nights 1 and 2).
+- **On the site.** The first PLAY: the opening box, the platform (the train leaves without them, ding-dong), LAST TRAIN: MISSED, the first stop's card. SAVE TAPE on a tape that answers the stop: STOP DONE, the service change, a subway ride, the next stop's card. After the sixth: the last train home and MADE IT THROUGH. Progress is kept on this browser for the night. The screen's top line shows STOP 2/6 and six route marks; under the machine, the route card (a pocket subway guide).
+- **In an episode** (`&night=n` with the night's six tapes): the platform and the first stop at the start, a ride and the next stop with every new tape, the last train home after the sixth, then round again.
+- **On every tape,** the label prints the station of the district it was made in.
+- **The crew.** `SBN.CREW`: Dino, Bunker and Hoot stick together all night. After the third stop (`SBN.JOIN`; in an episode, from the fourth tape) the run's new friend, `SBN.friend(n)`, tags along.
+- **The route sign.** Built into the foot of the screen like a station sign: a black panel with a white rule, the stop's station in big letters, and the line: a coloured pixel marker per stop with its district's icon (made, here and blinking, still to come), then HOME. It's the screen's foot (the old time strip is gone): NEXT: station · MAKE IT (style) until the crew is in the stop's district, then the stop itself. After the sixth: HOME BY MORNING · NEW ROUTE TOMORROW. Under the machine, the only count: GOT THE CREW HOME n TIMES. One colour per district everywhere (`STARTS[].c` in app.js = `SBN.COLORS`).
+- **The Studio's tapes.** `SBN.tapes(n)`: six tapes, one per stop in order, each one answering its stop. The Studio makes a 1280 x 720 route-card thumbnail too.
 
 ## Your shelf
 
@@ -117,7 +122,7 @@ Anything that doesn't decode is ignored and the page opens normally.
 ## Brand
 
 - **Logo:** Dino in lines (a little T-rex in sunglasses, cream `#efe6d2` with orange headphones `#f0883a`) next to SMALL / BEATS stacked in chunky hand-drawn letters, two pixels thick, on the same pixel grid, with one hard dark shadow. That stacked chunky version is the logo; a thinner stacked version (`brand/small-beats-logo-alt.png`) is the quieter alternate. Dino alone is the favicon, app icon and YouTube profile picture. On the LCD and on tape labels Dino is the one-colour screen drawing.
-- **Colours:** deep brown `#2a1915`, the five-colour stripe (cream, gold, orange, red, brown), the amber LCD `#f2d58e` with ink `#2d2414`, PLAY orange `#e8782e`, record red only for recording.
+- **Colours:** deep brown `#2a1915`, the five-colour stripe (cream, gold, orange, red, brown), the olive LCD (`#d9e2a3` `#a7b56d` `#66733d` `#28301e`, the screen only: never anywhere else on the site), PLAY orange `#e8782e`, record red only for recording.
 - **The stripe:** chunky 4 px pixel bands under the header that bend up before the links in a round, pixel-stepped corner, and a bold diagonal band behind the machine.
 - **Link preview** (`og.png`, bump `?v=` when it changes) and the YouTube profile and banner use the same Dino and Mini Tapes.
 

@@ -2,31 +2,31 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="54">
+<meta name="build" content="67">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Small Beats · Make your own mixtape</title>
-<meta name="description" content="A tiny music sim in your browser. Dino and his crew walk a pixel New York every night, and you make their soundtrack: make a mixtape, play along, save it to a Mini Tape and send it to somebody. No account. No AI.">
+<meta name="description" content="The show ran late. The last train didn't. A tiny music adventure about one long night: get Dino and his crew across a pixel New York, one tape per stop. Make a mixtape, play along, send it to somebody. No account. No AI.">
 <link rel="canonical" href="https://smallbeats.com/">
 <meta name="theme-color" content="#2a1915">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Small Beats">
 <meta property="og:url" content="https://smallbeats.com/">
 <meta property="og:title" content="Small Beats · Make your own mixtape">
-<meta property="og:description" content="Dino and his crew walk the city every night. Make their soundtrack. Send it to somebody.">
-<meta property="og:image" content="https://smallbeats.com/og.png?v=17">
+<meta property="og:description" content="The show ran late. The last train didn't. One night. Six stops. Six tapes. Get the crew home.">
+<meta property="og:image" content="https://smallbeats.com/og.png?v=67">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A graphite pixel microcassette labelled SMALL BEATS with Dino stamped on it, and the Small Beats logo: Dino drawn in yellow lines with orange headphones and sunglasses, next to the words Make your own mixtape.">
+<meta property="og:image:alt" content="The Small Beats tape machine: a Game Boy green screen where Dino, in sunglasses and orange headphones, walks a pixel New York at night with his crew, a station sign showing tonight's six stops, beside a cassette. One night. Six stops. Six tapes. Get the crew home.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Small Beats · Make your own mixtape">
-<meta name="twitter:description" content="Dino and his crew walk the city every night. Make their soundtrack. Send it to somebody.">
-<meta name="twitter:image" content="https://smallbeats.com/og.png?v=17">
+<meta name="twitter:description" content="The show ran late. The last train didn't. One night. Six stops. Six tapes. Get the crew home.">
+<meta name="twitter:image" content="https://smallbeats.com/og.png?v=67">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="app.css?v=54">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Small Beats","url":"https://smallbeats.com/","applicationCategory":"MusicApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"A tiny music machine for making mixtapes in your browser.","sameAs":["https://www.youtube.com/@smallbeatsfm"]}</script>
+<link rel="stylesheet" href="app.css?v=67">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Small Beats","url":"https://smallbeats.com/","applicationCategory":"MusicApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"A tiny music adventure about one long night: get Dino and his crew across a pixel New York, one tape per stop. Make a mixtape, play along, send it to somebody.","sameAs":["https://www.youtube.com/@smallbeatsfm"]}</script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Can I use the music in my videos?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The music is royalty-free: use it in videos, streams, podcasts, games or anything else, even commercially, with no fee and no need to ask. Credit is appreciated, not required. Because anyone can make the same tape, please don't register it with Content ID or resell it as a sample library. The details are in the terms."}}, {"@type": "Question", "name": "Can I download a tape as a file?", "acceptedAnswer": {"@type": "Answer", "text": "Not as a file. The music is made live, so to keep it, record it: your phone or computer's screen recorder works, and so does OBS for longer recordings."}}, {"@type": "Question", "name": "Is any of it AI?", "acceptedAnswer": {"@type": "Answer", "text": "No. Not one note is AI-generated. Everything is synthesized by code in your browser, from the tape's settings and a number for the tune."}}, {"@type": "Question", "name": "Do I need an account?", "acceptedAnswer": {"@type": "Answer", "text": "No. There's nothing to sign up for and nothing to install. It's free, with no ads."}}, {"@type": "Question", "name": "Where are my tapes kept?", "acceptedAnswer": {"@type": "Answer", "text": "In this browser, on this device. Your shelf link (under YOUR TAPES) holds every tape in one link: open it in any other browser or phone to bring them along. Private browsing windows forget everything when they close."}}, {"@type": "Question", "name": "Does it work offline?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, once the page has loaded. Add it to your home screen and it opens like an app. On iPhone it plays even with the ring switch on silent."}}, {"@type": "Question", "name": "Which browsers does it work in?", "acceptedAnswer": {"@type": "Answer", "text": "Current Chrome, Edge, Safari and Firefox, on computers, phones and tablets."}}]}</script>
 </head>
 <body class="striped">
@@ -72,6 +72,7 @@
         <div class="vfd-top"><span id="vfdSide"></span><span id="vfdStyle"></span></div>
         <div class="vfd-name" id="vfdName" aria-live="polite"></div>
         <canvas class="stage" id="stage" aria-hidden="true"></canvas>
+        <div class="lcd-sign"><canvas id="routeSign" aria-label="Tonight's route"></canvas></div>
         <div class="lcd-strip"><span id="lcdTime">■ A 00:00</span><span id="lcdMood"></span></div>
       </div>
 
@@ -135,10 +136,7 @@
     <div class="rack" id="friends"></div>
     <p class="hint rack-empty" id="friendsEmpty">Tapes people send you land here, with their name on them.</p>
     </details>
-    <p class="rack-h">NIGHT <span id="nightN"></span> <span class="met-count" id="myNights"></span></p>
-    <p class="met-seen" id="tonight"></p>
-    <p class="met-seen" id="city" aria-label="The districts you've made a tape in"></p>
-    <p class="hint rack-empty" id="cityHint">Save a tape in each part of town to light up the map.</p>
+    <p class="rack-h" id="homesH" hidden>GOT THE CREW HOME <span class="met-count" id="homes"></span></p>
     <p class="rack-h">BUDDIES MET <span class="met-count" id="metCount"></span></p>
     <div class="met" id="met" aria-label="Buddies you've seen on the screen"></div>
     <p class="met-seen" id="metSeen"></p>
@@ -150,9 +148,10 @@
     <div class="about-cols">
       <div>
         <h3>What is this?</h3>
-        <p>Small Beats is a tiny music sim: a story that lives inside a little tape machine. Every night, Dino and his crew walk a pixel New York (Old Town, Midtown, Central Park, Arcade Row, the Harbor and the Bridge), and the nights are long. What gets them through is music, and you make it.</p>
-        <p>Pick a style and the crew heads to that part of town. Change the parts, play along on the keys, then hit <b>SAVE TAPE</b> and <b>EJECT</b> to name your Mini Tape. A tape keeps the whole night: the song, what you played, the buddy, the district, the weather. Play it again or send it to somebody, and that exact scene comes back. They can make it their own.</p>
-        <p>Every day is a new night, the same night for everyone, and every night the crew asks for something: rain, a campfire, something for the Harbor. Make a tape that answers it and they cheer. The crew doesn't keep score. They're just glad you brought something new.</p>
+        <p>Small Beats is a tiny music adventure about one long night, played on a little tape machine.</p>
+        <p><b>The show ran late. The last train didn't.</b> Now Dino and the crew have a pixel New York between them and morning: six stops, trains that stop short, entrances that close, long walks and strange detours. Good thing they brought the tape machine.</p>
+        <p>Every stop needs something different: something slow to get past the night shift on the pier, a deep bass to cut through Midtown, no drums so nobody on the park benches wakes up. Pick the style that takes the crew there, change the parts, play along on the keys, and hit <b>SAVE TAPE</b>. The right tape gets them moving again, and they ride on to the next stop, until the last train home.</p>
+        <p><b>One night. Six stops. Six tapes. Get the crew home.</b> Come back tomorrow and the route is new. Every tape you save keeps its scene, and <b>EJECT</b> lets you name it and send it to somebody: they hear exactly what you made, and can make it their own.</p>
         <p>No account. Nothing to install. Nothing to learn. Hit <b>NEW</b> whenever you want another tune, and <b>UNDO</b> if the last idea was better.</p>
       </div>
       <div>
@@ -170,7 +169,7 @@
       </div>
       <div>
         <h3>Small Beats FM</h3>
-        <p><a href="https://www.youtube.com/@smallbeatsfm" target="_blank" rel="noopener">Small Beats FM</a> is the crew's nightly series on YouTube. Every episode is a long walk through the city, and every song in it is a tape somebody made here: listen, watch, play along, or send one in. Tapes that come in by Small Mail go on air with the maker's name on them.</p>
+        <p><a href="https://www.youtube.com/@smallbeatsfm" target="_blank" rel="noopener">Small Beats FM</a> is the crew's channel on YouTube. Every episode is the whole night, start to finish, on a different route: the missed train, six stops, the last train home. Every song in it is a tape somebody made here. Listen, watch, play along, or send one in. Tapes that come in by Small Mail go on air with the maker's name on them.</p>
         <p>Want yours on? Drop your tape link in the comments under any video.</p>
         <h3>Who made it?</h3>
         <p>A guy who likes mixtapes, 808s, retro games and dinosaurs. It's free, with no ads. Something broken, or made a tape worth hearing? <a href="mailto:hello@smallbeats.com">hello@smallbeats.com</a></p>
@@ -188,9 +187,9 @@
           <li><b>Six parts.</b> Drums, bass, keys, texture, speed and volume. Tap one to change it, and it changes on the beat.</li>
           <li><b>NEW.</b> A new tune in the same style, landing on beat 1. Hold it to spin the name.</li>
           <li><b>The keyboard.</b> Every key fits the song. Hold for long notes. Play along while the music plays and what you play joins the song.</li>
-          <li><b>The crew.</b> Dino and fifty little regulars walk the city with you. They wander, dance to your track, react when you change it, and sing when you poke them.</li>
+          <li><b>The crew.</b> Dino leads, Bunker is the wildcard, Hoot keeps them grounded. The three of them stick together all night, and somewhere along the way somebody new tags along. They wander, dance to your track, react when you change it, and sing when you poke them. Fifty more regulars live around the city.</li>
           <li><b>Mini Tapes.</b> SAVE TAPE puts it on your shelf. EJECT to name it, pick a buddy and a shell, and send the link.</li>
-          <li><b>The city at night.</b> Every style is a different district of a pixel New York, with its own buildings and goings-on: the Empire State over Midtown, the Statue of Liberty across the Harbor, the old bridge, Central Park asleep under the towers. Rain follows your texture, the moon keeps your time, and strange things pass overhead.</li>
+          <li><b>The city at night.</b> Every style takes the crew to a different district of a pixel New York, with its own buildings and goings-on: the Empire State over Midtown, the Statue of Liberty across the Harbor, the old bridge, Central Park asleep under the towers. Rain follows your texture, the moon keeps your time, and strange things pass overhead.</li>
           <li><b>Royalty-free.</b> Every note is made in your browser, so the music is yours to use, even commercially. <a href="how-it-works/">How it works</a>.</li>
         </ul>
       </div>
@@ -233,11 +232,11 @@
   </div>
 </div>
 
-<script src="analytics.js?v=54" defer></script>
-<script src="buddies.js?v=54" defer></script>
-<script src="engine.js?v=54" defer></script>
-<script src="composer.js?v=54" defer></script>
-<script src="night.js?v=54" defer></script>
-<script src="app.js?v=54" defer></script>
+<script src="analytics.js?v=67" defer></script>
+<script src="buddies.js?v=67" defer></script>
+<script src="engine.js?v=67" defer></script>
+<script src="composer.js?v=67" defer></script>
+<script src="night.js?v=67" defer></script>
+<script src="app.js?v=67" defer></script>
 </body>
 </html>
